@@ -81,7 +81,21 @@ int main(int argc, char **argv) {
   int natoms;
   MDI_Send_Command("<NATOMS", ewald_comm);
   MDI_Recv(&natoms, 1, MDI_INT, ewald_comm);
-  cout << "natoms: " << natoms;
+  cout << "natoms: " << natoms << endl;
+
+  // Initialize a new MD simulation
+  MDI_Send_Command("@INIT_MD", ewald_comm);
+
+  // Go to the next force calculation
+  int nsteps = 500;
+  for (int istep=0; istep < nsteps; istep++) {
+    MDI_Send_Command("@FORCES", ewald_comm);
+
+    // Get the number of atoms
+    MDI_Send_Command("<NATOMS", ewald_comm);
+    MDI_Recv(&natoms, 1, MDI_INT, ewald_comm);
+    cout << "natoms: " << natoms << endl;
+  }
 
   // Send the "EXIT" command to each of the engines
   MDI_Send_Command("EXIT", ewald_comm);
