@@ -44,13 +44,47 @@ int main(int argc, char **argv) {
   }
 
   // Connect to the engines
-  // <YOUR CODE GOES HERE>
+  MDI_Comm ewald_comm = MDI_NULL_COMM;
+  MDI_Comm noewald_comm = MDI_NULL_COMM;
+  int nengines = 1;
+  for (int iengine=0; iengine < nengines; iengine++) {
+    MDI_Comm comm;
+    MDI_Accept_Communicator(&comm);
+ 
+    // Determine the name of this engine
+    char* engine_name = new char[MDI_NAME_LENGTH];
+    MDI_Send_Command("<NAME", comm);
+    MDI_Recv(engine_name, MDI_NAME_LENGTH, MDI_CHAR, comm);
+ 
+    cout << "Engine name: " << engine_name << endl;
+ 
+    if ( strcmp(engine_name, "EWALD") == 0 ) {
+      if ( ewald_comm != MDI_NULL_COMM ) {
+	throw runtime_error("Accepted a communicator from a second EWALD engine.");
+      }
+      ewald_comm = comm;
+    }
+    else if ( strcmp(engine_name, "NOEWALD") == 0 ) {
+      if ( noewald_comm != MDI_NULL_COMM ) {
+	throw runtime_error("Accepted a communicator from a second NOEWALD engine.");
+      }
+      noewald_comm = comm;
+    }
+    else {
+      throw runtime_error("Unrecognized engine name.");
+    }
+ 
+    delete[] engine_name;
+  }
 
   // Perform the simulation
-  // <YOUR CODE GOES HERE>
+  int natoms;
+  MDI_Send_Command("<NATOMS", ewald_comm);
+  MDI_Recv(&natoms, 1, MDI_INT, ewald_comm);
+  cout << "natoms: " << natoms;
 
   // Send the "EXIT" command to each of the engines
-  // <YOUR CODE GOES HERE>
+  MDI_Send_Command("EXIT", ewald_comm);
 
   // Synchronize all MPI ranks
   MPI_Barrier(world_comm);
