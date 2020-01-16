@@ -78,23 +78,67 @@ int main(int argc, char **argv) {
   }
 
   // Perform the simulation
+
+  // Get the number of atoms
   int natoms;
   MDI_Send_Command("<NATOMS", ewald_comm);
   MDI_Recv(&natoms, 1, MDI_INT, ewald_comm);
   cout << "natoms: " << natoms << endl;
 
+  // Get the number of multipole centers
+  int npoles;
+  MDI_Send_Command("<NPOLES", ewald_comm);
+  MDI_Recv(&npoles, 1, MDI_INT, ewald_comm);
+  cout << "npoles: " << npoles << endl;
+
+  // Allocate arrays
+  double coords[3*natoms];
+  double charges[natoms];
+  double poles[13*npoles];
+
   // Initialize a new MD simulation
   MDI_Send_Command("@INIT_MD", ewald_comm);
 
   // Go to the next force calculation
-  int nsteps = 500;
+  int nsteps = 100;
   for (int istep=0; istep < nsteps; istep++) {
+    //cout << "Iteration: " << istep << endl;
+
     MDI_Send_Command("@FORCES", ewald_comm);
 
-    // Get the number of atoms
-    MDI_Send_Command("<NATOMS", ewald_comm);
-    MDI_Recv(&natoms, 1, MDI_INT, ewald_comm);
-    cout << "natoms: " << natoms << endl;
+    // Get the atomic coordinates
+    MDI_Send_Command("<COORDS", ewald_comm);
+    MDI_Recv(&coords[0], 3*natoms, MDI_DOUBLE, ewald_comm);
+
+    // Get the charges
+    MDI_Send_Command("<CHARGES", ewald_comm);
+    MDI_Recv(&charges[0], natoms, MDI_DOUBLE, ewald_comm);
+
+    // Get the poles
+    MDI_Send_Command("<POLES", ewald_comm);
+    MDI_Recv(&poles[0], 13*npoles, MDI_DOUBLE, ewald_comm);
+  }
+
+  // Print the coordinates
+  /*
+  cout << "Coords: " << endl;
+  for (int iatom=0; iatom < natoms; iatom++) {
+    cout << "   " << iatom << ": " << coords[3*iatom + 0] << " " << coords[3*iatom + 1] << " " << coords[3*iatom + 2] << endl;
+  }
+  */
+
+  // Print the charges
+  /*
+  cout << "Charges: " << endl;
+  for (int iatom=0; iatom < natoms; iatom++) {
+    cout << "   " << iatom << ": " << charges[iatom] << endl;
+  }
+  */
+
+  // Print the poles
+  cout << "Monopoles: " << endl;
+  for (int ipole=0; ipole < npoles; ipole++) {
+    cout << "   " << ipole << ": " << poles[13*ipole + 0] << endl;
   }
 
   // Send the "EXIT" command to each of the engines
