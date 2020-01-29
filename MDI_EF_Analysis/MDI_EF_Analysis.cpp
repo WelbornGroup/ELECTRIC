@@ -44,8 +44,7 @@ int main(int argc, char **argv) {
   }
 
   // Connect to the engines
-  MDI_Comm ewald_comm = MDI_NULL_COMM;
-  MDI_Comm noewald_comm = MDI_NULL_COMM;
+  MDI_Comm engine_comm = MDI_NULL_COMM;
   int nengines = 1;
   for (int iengine=0; iengine < nengines; iengine++) {
     MDI_Comm comm;
@@ -58,17 +57,11 @@ int main(int argc, char **argv) {
  
     cout << "Engine name: " << engine_name << endl;
  
-    if ( strcmp(engine_name, "EWALD") == 0 ) {
-      if ( ewald_comm != MDI_NULL_COMM ) {
-	throw runtime_error("Accepted a communicator from a second EWALD engine.");
+    if ( strcmp(engine_name, "NO_EWALD") == 0 ) {
+      if ( engine_comm != MDI_NULL_COMM ) {
+	throw runtime_error("Accepted a communicator from a second NO_EWALD engine.");
       }
-      ewald_comm = comm;
-    }
-    else if ( strcmp(engine_name, "NOEWALD") == 0 ) {
-      if ( noewald_comm != MDI_NULL_COMM ) {
-	throw runtime_error("Accepted a communicator from a second NOEWALD engine.");
-      }
-      noewald_comm = comm;
+      engine_comm = comm;
     }
     else {
       throw runtime_error("Unrecognized engine name.");
@@ -81,68 +74,46 @@ int main(int argc, char **argv) {
 
   // Get the number of atoms
   int natoms;
-  MDI_Send_Command("<NATOMS", ewald_comm);
-  MDI_Recv(&natoms, 1, MDI_INT, ewald_comm);
+  MDI_Send_Command("<NATOMS", engine_comm);
+  MDI_Recv(&natoms, 1, MDI_INT, engine_comm);
   cout << "natoms: " << natoms << endl;
 
   // Get the number of multipole centers
   int npoles;
-  MDI_Send_Command("<NPOLES", ewald_comm);
-  MDI_Recv(&npoles, 1, MDI_INT, ewald_comm);
+  MDI_Send_Command("<NPOLES", engine_comm);
+  MDI_Recv(&npoles, 1, MDI_INT, engine_comm);
   cout << "npoles: " << npoles << endl;
 
   // Allocate arrays
   double coords[3*natoms];
   double charges[natoms];
-  double poles[13*npoles];
+  double rpoles[13*npoles];
+  double field[3*npoles];
+  double fid[3];
 
-  // Initialize a new MD simulation
-  MDI_Send_Command("@INIT_MD", ewald_comm);
+  // Set the probe atoms
+  int nprobes = 2;
+  int probes[nprobes];
+  probes[0] = 1;
+  probes[1] = 2;
 
-  // Go to the next force calculation
-  int nsteps = 100;
-  for (int istep=0; istep < nsteps; istep++) {
-    //cout << "Iteration: " << istep << endl;
+  MDI_Send_Command(">NPROBES", engine_comm);
+  MDI_Send(&nprobes, 1, MDI_INT, engine_comm);
 
-    MDI_Send_Command("@FORCES", ewald_comm);
+  MDI_Send_Command(">PROBES", engine_comm);
+  MDI_Send(&probes[0], nprobes, MDI_INT, engine_comm);
 
-    // Get the atomic coordinates
-    MDI_Send_Command("<COORDS", ewald_comm);
-    MDI_Recv(&coords[0], 3*natoms, MDI_DOUBLE, ewald_comm);
+  MDI_Send_Command("<FIELD", engine_comm);
+  MDI_Recv(&field[0], 3*npoles, MDI_DOUBLE, engine_comm);
 
-    // Get the charges
-    MDI_Send_Command("<CHARGES", ewald_comm);
-    MDI_Recv(&charges[0], natoms, MDI_DOUBLE, ewald_comm);
-
-    // Get the poles
-    MDI_Send_Command("<POLES", ewald_comm);
-    MDI_Recv(&poles[0], 13*npoles, MDI_DOUBLE, ewald_comm);
-  }
-
-  // Print the coordinates
-  /*
-  cout << "Coords: " << endl;
-  for (int iatom=0; iatom < natoms; iatom++) {
-    cout << "   " << iatom << ": " << coords[3*iatom + 0] << " " << coords[3*iatom + 1] << " " << coords[3*iatom + 2] << endl;
-  }
-  */
-
-  // Print the charges
-  /*
-  cout << "Charges: " << endl;
-  for (int iatom=0; iatom < natoms; iatom++) {
-    cout << "   " << iatom << ": " << charges[iatom] << endl;
-  }
-  */
-
-  // Print the poles
-  cout << "Monopoles: " << endl;
+  // Print the field
+  cout << "Field: " << endl;
   for (int ipole=0; ipole < npoles; ipole++) {
-    cout << "   " << ipole << ": " << poles[13*ipole + 0] << endl;
+    cout << "   " << ipole << ": " << field[3*ipole + 0] << " " << field[3*ipole + 1] << " " << field[3*ipole + 2] << endl;
   }
 
   // Send the "EXIT" command to each of the engines
-  MDI_Send_Command("EXIT", ewald_comm);
+  MDI_Send_Command("EXIT", engine_comm);
 
   // Synchronize all MPI ranks
   MPI_Barrier(world_comm);

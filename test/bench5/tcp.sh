@@ -17,7 +17,7 @@ export OMP_NUM_THREADS=1
 #launch Tinker without EWALD
 
 #launch Tinker using EWALD
-time ${TINKER_LOC} bench5 -mdi "-role ENGINE -name EWALD -method TCP -port 8021 -hostname localhost" 1000 1.0 10.0 2 298.0 778.0 &
+time ${TINKER_LOC} bench5 -mdi "-role ENGINE -name NO_EWALD -method TCP -port 8021 -hostname localhost" 1000 1.0 10.0 2 298.0 778.0 &
 
 #launch driver
 ${DRIVER_LOC} -mdi "-role DRIVER -name driver -method TCP -port 8021" &
