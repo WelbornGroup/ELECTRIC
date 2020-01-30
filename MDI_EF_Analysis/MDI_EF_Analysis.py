@@ -1,14 +1,9 @@
 import sys
 import time
+import numpy as np
 
 # Use local MDI build
 import mdi.MDI_Library as mdi
-
-try:
-    import numpy as np
-    use_numpy = True
-except ImportError:
-    use_numpy = False
 
 try:
     from mpi4py import MPI
@@ -75,12 +70,13 @@ mdi.MDI_Send(probes, len(probes), mdi.MDI_INT, engine_comm)
 
 # Get the electric field information
 mdi.MDI_Send_Command("<FIELD", engine_comm)
-field = mdi.MDI_Recv(3*npoles, mdi.MDI_DOUBLE, engine_comm)
+field = mdi.MDI_Recv(3*npoles, mdi.MDI_DOUBLE_NUMPY, engine_comm)
+field = field.reshape(npoles,3)
 
 # Print the electric field information
 print("Field: ")
 for ipole in range(npoles):
-    print("   " + str(ipole) + ": " + str(field[3*ipole + 0]) + " " + str(field[3*ipole + 1]) + " " + str(field[3*ipole + 2]))
+    print("   " + str(field[ipole]))
 
 
 # Send the "EXIT" command to the engine
