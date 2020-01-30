@@ -1,3 +1,11 @@
+# Compile MDI
+add_subdirectory(mdi)
+
+# Add an __init__.py to the MDI directory, so that it can be used as a package
+file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/mdi/__init__.py "")
+
+
+
 # Locate MPI
 
 find_package(MPI)
@@ -11,7 +19,7 @@ endif()
 
 # Link to MDI
 
-set( MDI_LOCATION ${CMAKE_BINARY_DIR}/lib/mdi/MDI_Library/ )
+set( MDI_LOCATION ${CMAKE_CURRENT_BINARY_DIR}/mdi/MDI_Library/ )
 link_directories( ${MDI_LOCATION} )
 include_directories(${MDI_LOCATION})
 
@@ -23,6 +31,8 @@ add_executable(MDI_EF_Analysis
                MDI_EF_Analysis.cpp)
 target_link_libraries(MDI_EF_Analysis mdi
                       ${MPI_LIBRARIES})
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/MDI_EF_Analysis.py ${CMAKE_CURRENT_BINARY_DIR}/MDI_EF_Analysis.py COPYONLY)
 
 
 
