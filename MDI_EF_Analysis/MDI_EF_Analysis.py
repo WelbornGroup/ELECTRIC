@@ -1,13 +1,8 @@
 import sys
 import time
 
-#sys.path.append("../lib/mdi")
-#sys.path.append("/Users/tbarnes/Documents/mdi/MDI_EF_Analysis/build/lib/mdi")
-
-#try: # Check for local build
+# Use local MDI build
 import mdi.MDI_Library as mdi
-#except: # Check for installed package
-#    import mdi
 
 try:
     import numpy as np
@@ -41,59 +36,56 @@ if not role == mdi.MDI_DRIVER:
     raise Exception("Must run driver_py.py as a DRIVER")
 
 # Connect to the engine
-comm = mdi.MDI_Accept_Communicator()
+engine_comm = mdi.MDI_NULL_COMM
+nengines = 1
+for iengine in range(nengines):
+    comm = mdi.MDI_Accept_Communicator()
 
-# Determine the name of the engine
-mdi.MDI_Send_Command("<NAME", comm)
-name = mdi.MDI_Recv(mdi.MDI_NAME_LENGTH, mdi.MDI_CHAR, comm)
+    # Determine the name of the engine
+    mdi.MDI_Send_Command("<NAME", comm)
+    name = mdi.MDI_Recv(mdi.MDI_NAME_LENGTH, mdi.MDI_CHAR, comm)
 
-print(" Engine name: " + str(name))
+    print(" Engine name: " + str(name))
 
-# Check if the engine has the @GLOBAL node
-#if ( not mdi.MDI_Check_Node_Exists("@GLOBAL",comm) ):
-#    raise Exception("Engine does not have the @GLOBAL node")
+    if name == "NO_EWALD":
+        if engine_comm != mdi.MDI_NULL_COMM:
+            raise Exception("Accepted a communicator from a second NO_EWALD engine.")
+        engine_comm = comm
+    else:
+        raise Exception("Unrecognized engine name.")
 
-# Check if the engine supports the EXIT command
-#if ( not mdi.MDI_Check_Command_Exists("@GLOBAL","EXIT",comm) ):
-#    raise Exception("Engine does not support the EXIT command")
+# Get the number of atoms
+mdi.MDI_Send_Command("<NATOMS", engine_comm)
+natoms = mdi.MDI_Recv(1, mdi.MDI_INT, engine_comm)
+print("natoms: " + str(natoms))
 
-# Test the node, command, and callback inquiry functions
-#nnodes = mdi.MDI_Get_NNodes(comm)
-#print("NNODES: " + str(nnodes))
-#second_node = mdi.MDI_Get_Node(1, comm)
-#print("NODE: " + str(second_node))
-#ncommands = mdi.MDI_Get_NCommands(second_node, comm)
-#print("NCOMMANDS: " + str(ncommands))
-#third_command = mdi.MDI_Get_Command(second_node, 2, comm)
-#print("COMMAND: " + str(third_command))
-#ncallbacks = mdi.MDI_Get_NCallbacks(second_node, comm)
-#print("NCALLBACKS: " + str(ncallbacks))
-#first_callback = mdi.MDI_Get_Callback(second_node, 0, comm)
-#print("CALLBACK: " + str(first_callback))
-# Check if the engine supports >FORCES callback
-#if ( not mdi.MDI_Check_Callback_Exists("@FORCES",">FORCES",comm) ):
-#    raise Exception("Engine does not support the >FORCES command")
+# Get the number of multipole centers
+mdi.MDI_Send_Command("<NPOLES", engine_comm)
+npoles = mdi.MDI_Recv(1, mdi.MDI_INT, engine_comm)
+print("npoles: " + str(npoles))
 
-# Send the "<NATOMS" command to the engine
-#mdi.MDI_Send_Command("<NATOMS", comm)
-#natoms = mdi.MDI_Recv(1, mdi.MDI_INT, comm)
-#print("NATOMS: " + str(natoms))
+# Set the probe atoms
+probes = [1, 2]
 
-# Send the "<COORDS" command to the engine
-#mdi.MDI_Send_Command("<COORDS", comm)
-#if use_numpy:
-#    coords_temp = mdi.MDI_Recv(3 * natoms, mdi.MDI_DOUBLE_NUMPY, comm)
-#else:
-#    coords_temp = mdi.MDI_Recv(3 * natoms, mdi.MDI_DOUBLE, comm)
-#coords = [ round(coords_temp[icoord], 10) for icoord in range( 3 * natoms ) ]
-#print("COORDS: " + str(coords))
+# Inform Tinker of the probe atoms
+mdi.MDI_Send_Command(">NPROBES", engine_comm)
+mdi.MDI_Send(len(probes), 1, mdi.MDI_INT, engine_comm)
+mdi.MDI_Send_Command(">PROBES", engine_comm)
+mdi.MDI_Send(probes, len(probes), mdi.MDI_INT, engine_comm)
 
-# Send the "<FORCES" command to the engine
-#mdi.MDI_Send_Command("<FORCES", comm)
-#forces = mdi.MDI_Recv(3 * natoms, mdi.MDI_DOUBLE, comm)
-#for iforce in range( 3 * natoms ):
-#    forces[iforce] = round(forces[iforce], 10)
-#print("FORCES: " + str(forces))
+# Get the electric field information
+mdi.MDI_Send_Command("<FIELD", engine_comm)
+field = mdi.MDI_Recv(3*npoles, mdi.MDI_DOUBLE, engine_comm)
+
+# Print the electric field information
+print("Field: ")
+for ipole in range(npoles):
+    print("   " + str(ipole) + ": " + str(field[3*ipole + 0]) + " " + str(field[3*ipole + 1]) + " " + str(field[3*ipole + 2]))
+
 
 # Send the "EXIT" command to the engine
-mdi.MDI_Send_Command("EXIT", comm)
+mdi.MDI_Send_Command("EXIT", engine_comm)
+
+# Ensure that all ranks have terminated
+if use_mpi4py:
+    MPI.COMM_WORLD.Barrier()
