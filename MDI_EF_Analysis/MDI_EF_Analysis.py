@@ -70,7 +70,8 @@ mdi.MDI_Send(probes, len(probes), mdi.MDI_INT, engine_comm)
 
 # Get the electric field information
 mdi.MDI_Send_Command("<FIELD", engine_comm)
-field = mdi.MDI_Recv(3*npoles, mdi.MDI_DOUBLE_NUMPY, engine_comm)
+field = np.zeros(3 * npoles, dtype='float64')
+mdi.MDI_Recv(3*npoles, mdi.MDI_DOUBLE, engine_comm, buf = field)
 field = field.reshape(npoles,3)
 
 # Print the electric field information
