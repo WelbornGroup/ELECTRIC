@@ -109,7 +109,9 @@ def c_ptr_to_py_str(in_ptr, length):
     presult = presult.decode('utf-8')
     return presult
 
-def mpi4py_get_np_array(buf, count, datatype):
+def mpi4py_get_np_array(buf, count, datatype, mdi_comm):
+    global mpi4py_comms
+
     # determine the data type
     if datatype == MDI_INT:
         mpi_type = MPI.INT
@@ -126,7 +128,10 @@ def mpi4py_get_np_array(buf, count, datatype):
     # get a numpy representation of the data
     nparray = np.ctypeslib.as_array(buf, shape=tuple([ count * datasize ]))
 
-    return (nparray, mpi_type)
+    # get the correct communicator for this array
+    comm = mpi4py_comms[mdi_comm]
+
+    return comm, (nparray, mpi_type)
 
 
 ##################################################
@@ -149,10 +154,7 @@ mdi.MDI_Set_Mpi4py_Recv_Callback.argtypes = [mpi4py_recv_func_type]
 def mpi4py_recv_callback(buf, count, datatype, source, mdi_comm):
     try:
 
-        global mpi4py_comms
-
-        recv_buf = mpi4py_get_np_array(buf, count, datatype)
-        comm = mpi4py_comms[mdi_comm]
+        comm, recv_buf = mpi4py_get_np_array(buf, count, datatype, mdi_comm)
         comm.Recv(recv_buf, source=source)
         return 0
 
@@ -188,10 +190,7 @@ mdi.MDI_Set_Mpi4py_Send_Callback.argtypes = [mpi4py_send_func_type]
 def mpi4py_send_callback(buf, count, datatype, destination, mdi_comm):
     try:
 
-        global mpi4py_comms
-
-        send_buf = mpi4py_get_np_array(buf, count, datatype)
-        comm = mpi4py_comms[mdi_comm]
+        comm, send_buf = mpi4py_get_np_array(buf, count, datatype, mdi_comm)
         comm.Send(send_buf, dest=destination)
         return 0
 
@@ -536,7 +535,7 @@ def MDI_Recv(arg2, arg3, arg4, buf = None):
         raise Exception("MDI Error: Attempting to use a Numpy array, but the Numpy package was not found")
     if (arg3 == MDI_INT):
         if use_numpy:
-            mdi.MDI_Recv.argtypes = [np.ctypeslib.ndpointer(dtype=np.int32, ndim=1, flags='C_CONTIGUOUS'), 
+            mdi.MDI_Recv.argtypes = [np.ctypeslib.ndpointer(dtype=np.int32, flags='C_CONTIGUOUS'), 
                                      ctypes.c_int, ctypes.c_int, ctypes.c_int]
         else:
             mdi.MDI_Recv.argtypes = [ctypes.POINTER(ctypes.c_char), ctypes.c_int, ctypes.c_int, ctypes.c_int]
@@ -544,7 +543,7 @@ def MDI_Recv(arg2, arg3, arg4, buf = None):
         mdi_type = MDI_INT
     elif (arg3 == MDI_DOUBLE):
         if use_numpy:
-            mdi.MDI_Recv.argtypes = [np.ctypeslib.ndpointer(dtype=np.float64, ndim=1, flags='C_CONTIGUOUS'), 
+            mdi.MDI_Recv.argtypes = [np.ctypeslib.ndpointer(dtype=np.float64, flags='C_CONTIGUOUS'), 
                                      ctypes.c_int, ctypes.c_int, ctypes.c_int]
         else:
             mdi.MDI_Recv.argtypes = [ctypes.POINTER(ctypes.c_char), ctypes.c_int, ctypes.c_int, ctypes.c_int]
