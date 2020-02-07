@@ -76,7 +76,7 @@ field = field.reshape(npoles,3)
 
 # Print the electric field information
 print("Field: ")
-for ipole in range(npoles):
+for ipole in range(min(npoles,10)):
     print("   " + str(field[ipole]))
 
 
