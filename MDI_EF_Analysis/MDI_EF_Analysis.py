@@ -11,19 +11,48 @@ try:
 except ImportError:
     use_mpi4py = False
 
-# get the MPI communicator
+# Get the MPI communicator
 if use_mpi4py:
     mpi_world = MPI.COMM_WORLD
 else:
     mpi_world = None
 
-# Initialize the MDI Library
-mdi.MDI_Init(sys.argv[2],mpi_world)
-if use_mpi4py:
-    mpi_world = mdi.MDI_Get_Intra_Code_MPI_Comm()
-    world_rank = mpi_world.Get_rank()
-else:
-    world_rank = 0
+# Read through the command-line arguments
+has_mdi_arg = False
+has_snapshot_arg = False
+snapshot_filename = None
+iarg = 1
+while iarg < len(sys.argv):
+    arg = sys.argv[iarg]
+    if arg == "-mdi":
+        # Initialize MDI
+        if len(sys.argv) <= iarg+1:
+            raise Exception("Argument to -mdi option not found")
+        mdi.MDI_Init(sys.argv[iarg+1],mpi_world)
+        if use_mpi4py:
+            mpi_world = mdi.MDI_Get_Intra_Code_MPI_Comm()
+            world_rank = mpi_world.Get_rank()
+        else:
+            world_rank = 0
+        has_mdi_arg = True
+        iarg += 1
+    elif arg == "-snap":
+        # Get the location of the file that contains the snapshot
+        if len(sys.argv) <= iarg+1:
+            raise Exception("Argument to -snap option not found")
+        snapshot_filename = sys.argv[iarg+1]
+        has_snapshot_arg = True
+        iarg += 1
+    else:
+        raise Exception("Unrecognized option")
+
+    iarg += 1
+
+# Confirm that the required command-line options were provided
+if not has_mdi_arg:
+    raise Exception("Did not receive the -mdi command-line option")
+if not has_snapshot_arg:
+    raise Exception("Did not receive the -snap command-line option")
 
 # Confirm that this code is being used as a driver
 role = mdi.MDI_Get_Role()
@@ -49,10 +78,41 @@ for iengine in range(nengines):
     else:
         raise Exception("Unrecognized engine name.")
 
+# Read the file with the MD snapshots
+snapshot_file = open(snapshot_filename, "r")
+snapshot_linenum = 0
+snapshots = []
+angstrom_to_bohr = mdi.MDI_Conversion_Factor("angstrom","atomic_unit_of_length")
+for unsplit_line in snapshot_file:
+    line = unsplit_line.split()
+    if snapshot_linenum == 0:
+        # Read the number of atoms in the snapshot
+        natoms = int(line[0])
+
+        # Create a new NumPy array to contain the coordinate information
+        snapshot = np.zeros((natoms,3))
+        snapshots.append(snapshot)
+    elif snapshot_linenum == 1:
+        # This line has the cell dimensions
+        pass
+    else:
+        # This line contains xyz coordinates
+        iatom = snapshot_linenum - 2
+        snapshot[iatom][0] = float(line[2]) * angstrom_to_bohr
+        snapshot[iatom][1] = float(line[3]) * angstrom_to_bohr
+        snapshot[iatom][2] = float(line[4]) * angstrom_to_bohr
+
+    snapshot_linenum += 1
+    if snapshot_linenum == natoms + 2:
+        # This is a new snapshot
+        snapshot_linenum = 0
+        
 # Get the number of atoms
 mdi.MDI_Send_Command("<NATOMS", engine_comm)
-natoms = mdi.MDI_Recv(1, mdi.MDI_INT, engine_comm)
-print("natoms: " + str(natoms))
+natoms_engine = mdi.MDI_Recv(1, mdi.MDI_INT, engine_comm)
+print("natoms: " + str(natoms_engine))
+if natoms != natoms_engine:
+    raise Exception("Snapshot file and engine have inconsistent number of atoms")
 
 # Get the number of multipole centers
 mdi.MDI_Send_Command("<NPOLES", engine_comm)
@@ -68,16 +128,23 @@ mdi.MDI_Send(len(probes), 1, mdi.MDI_INT, engine_comm)
 mdi.MDI_Send_Command(">PROBES", engine_comm)
 mdi.MDI_Send(probes, len(probes), mdi.MDI_INT, engine_comm)
 
-# Get the electric field information
-mdi.MDI_Send_Command("<FIELD", engine_comm)
-field = np.zeros(3 * npoles, dtype='float64')
-mdi.MDI_Recv(3*npoles, mdi.MDI_DOUBLE, engine_comm, buf = field)
-field = field.reshape(npoles,3)
+# Loop over all MD snapshots
+for snapshot in snapshots:
 
-# Print the electric field information
-print("Field: ")
-for ipole in range(min(npoles,10)):
-    print("   " + str(field[ipole]))
+    # Send the coordinates of this snapshot
+    mdi.MDI_Send_Command(">COORDS", engine_comm)
+    mdi.MDI_Send(snapshot, 3*natoms, mdi.MDI_DOUBLE, engine_comm)
+
+    # Get the electric field information
+    mdi.MDI_Send_Command("<FIELD", engine_comm)
+    field = np.zeros(3 * npoles, dtype='float64')
+    mdi.MDI_Recv(3*npoles, mdi.MDI_DOUBLE, engine_comm, buf = field)
+    field = field.reshape(npoles,3)
+
+    # Print the electric field information
+    print("Field: ")
+    for ipole in range(min(npoles,10)):
+        print("   " + str(field[ipole]))
 
 
 # Send the "EXIT" command to the engine
