@@ -141,10 +141,20 @@ for snapshot in snapshots:
     mdi.MDI_Recv(3*npoles, mdi.MDI_DOUBLE, engine_comm, buf = field)
     field = field.reshape(npoles,3)
 
+    # Get the electric field information
+    dfield = np.zeros((len(probes),npoles,3))
+    mdi.MDI_Send_Command("<DFIELD", engine_comm)
+    mdi.MDI_Recv(3*npoles*len(probes), mdi.MDI_DOUBLE, engine_comm, buf = dfield)
+
     # Print the electric field information
-    print("Field: ")
-    for ipole in range(min(npoles,10)):
-        print("   " + str(field[ipole]))
+    #print("Field: ")
+    #for ipole in range(min(npoles,10)):
+    #    print("   " + str(field[ipole]))
+
+    # Print dfield for the first probe atom
+    print("DFIELD: ")
+    for ipole in range(min(npoles, 10)):
+        print("   " + str(dfield[0][ipole]))
 
 
 # Send the "EXIT" command to the engine
