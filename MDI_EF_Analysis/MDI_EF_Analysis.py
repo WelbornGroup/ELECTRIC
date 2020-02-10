@@ -129,7 +129,9 @@ mdi.MDI_Send_Command(">PROBES", engine_comm)
 mdi.MDI_Send(probes, len(probes), mdi.MDI_INT, engine_comm)
 
 # Loop over all MD snapshots
-for snapshot in snapshots:
+#for snapshot in snapshots:
+snapshot = snapshots[0]
+for i in range(10):
 
     # Send the coordinates of this snapshot
     mdi.MDI_Send_Command(">COORDS", engine_comm)
@@ -141,10 +143,15 @@ for snapshot in snapshots:
     mdi.MDI_Recv(3*npoles, mdi.MDI_DOUBLE, engine_comm, buf = field)
     field = field.reshape(npoles,3)
 
-    # Get the electric field information
+    # Get the pairwise DFIELD
     dfield = np.zeros((len(probes),npoles,3))
     mdi.MDI_Send_Command("<DFIELD", engine_comm)
     mdi.MDI_Recv(3*npoles*len(probes), mdi.MDI_DOUBLE, engine_comm, buf = dfield)
+
+    # Get the pairwise UFIELD
+    ufield = np.zeros((len(probes),npoles,3))
+    mdi.MDI_Send_Command("<UFIELD", engine_comm)
+    mdi.MDI_Recv(3*npoles*len(probes), mdi.MDI_DOUBLE, engine_comm, buf = ufield)
 
     # Print the electric field information
     #print("Field: ")
@@ -152,9 +159,9 @@ for snapshot in snapshots:
     #    print("   " + str(field[ipole]))
 
     # Print dfield for the first probe atom
-    print("DFIELD: ")
+    print("DFIELD; UFIELD: ")
     for ipole in range(min(npoles, 10)):
-        print("   " + str(dfield[0][ipole]))
+        print("   " + str(dfield[0][ipole]) + "; " + str(ufield[0][ipole]) )
 
 
 # Send the "EXIT" command to the engine
