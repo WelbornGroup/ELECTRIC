@@ -20,6 +20,7 @@ else:
 # Read through the command-line arguments
 has_mdi_arg = False
 has_snapshot_arg = False
+has_probes_arg = False
 snapshot_filename = None
 iarg = 1
 while iarg < len(sys.argv):
@@ -43,6 +44,14 @@ while iarg < len(sys.argv):
         snapshot_filename = sys.argv[iarg+1]
         has_snapshot_arg = True
         iarg += 1
+    elif arg == "-probes":
+        # Get the probes
+        if len(sys.argv) <= iarg+1:
+            raise Exception("Argument to -probes option not found")
+        probes = sys.argv[iarg+1].strip('[]').split(',')
+        probes = [ int(probes[i]) for i in range(len(probes)) ]
+        has_probes_arg = True
+        iarg += 1
     else:
         raise Exception("Unrecognized option")
 
@@ -53,6 +62,11 @@ if not has_mdi_arg:
     raise Exception("Did not receive the -mdi command-line option")
 if not has_snapshot_arg:
     raise Exception("Did not receive the -snap command-line option")
+if not has_probes_arg:
+    raise Exception("Did not receive the -probes command-line option")
+
+# Print the probe atoms
+print("Probes: " + str(probes))
 
 # Confirm that this code is being used as a driver
 role = mdi.MDI_Get_Role()
@@ -119,9 +133,6 @@ mdi.MDI_Send_Command("<NPOLES", engine_comm)
 npoles = mdi.MDI_Recv(1, mdi.MDI_INT, engine_comm)
 print("npoles: " + str(npoles))
 
-# Set the probe atoms
-probes = [1, 2]
-
 # Inform Tinker of the probe atoms
 mdi.MDI_Send_Command(">NPROBES", engine_comm)
 mdi.MDI_Send(len(probes), 1, mdi.MDI_INT, engine_comm)
@@ -129,19 +140,17 @@ mdi.MDI_Send_Command(">PROBES", engine_comm)
 mdi.MDI_Send(probes, len(probes), mdi.MDI_INT, engine_comm)
 
 # Loop over all MD snapshots
-#for snapshot in snapshots:
-snapshot = snapshots[0]
-for i in range(10):
+for snapshot in snapshots:
 
     # Send the coordinates of this snapshot
     mdi.MDI_Send_Command(">COORDS", engine_comm)
     mdi.MDI_Send(snapshot, 3*natoms, mdi.MDI_DOUBLE, engine_comm)
 
     # Get the electric field information
-    mdi.MDI_Send_Command("<FIELD", engine_comm)
-    field = np.zeros(3 * npoles, dtype='float64')
-    mdi.MDI_Recv(3*npoles, mdi.MDI_DOUBLE, engine_comm, buf = field)
-    field = field.reshape(npoles,3)
+    #mdi.MDI_Send_Command("<FIELD", engine_comm)
+    #field = np.zeros(3 * npoles, dtype='float64')
+    #mdi.MDI_Recv(3*npoles, mdi.MDI_DOUBLE, engine_comm, buf = field)
+    #field = field.reshape(npoles,3)
 
     # Get the pairwise DFIELD
     dfield = np.zeros((len(probes),npoles,3))

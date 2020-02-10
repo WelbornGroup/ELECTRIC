@@ -23,6 +23,6 @@ export OMP_NUM_THREADS=1
 ${TINKER_LOC} traj_out.051 -k no_ewald.key -mdi "-role ENGINE -name NO_EWALD -method TCP -port 8021 -hostname localhost" 10 1.0 0.001999 2 300.00 > no_ewald.log &
 
 #launch driver
-python ${DRIVER_LOC} -snap traj_out.arc -mdi "-role DRIVER -name driver -method TCP -port 8021" &
+python ${DRIVER_LOC} -probes [48042,48043,48044,48051] -snap traj_out.arc -mdi "-role DRIVER -name driver -method TCP -port 8021" &
 
 wait
