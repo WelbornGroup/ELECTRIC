@@ -1,5 +1,6 @@
 import sys
 import time
+import argparse
 import numpy as np
 
 # Use local MDI build
@@ -17,53 +18,23 @@ if use_mpi4py:
 else:
     mpi_world = None
 
-# Read through the command-line arguments
-has_mdi_arg = False
-has_snapshot_arg = False
-has_probes_arg = False
-snapshot_filename = None
-iarg = 1
-while iarg < len(sys.argv):
-    arg = sys.argv[iarg]
-    if arg == "-mdi":
-        # Initialize MDI
-        if len(sys.argv) <= iarg+1:
-            raise Exception("Argument to -mdi option not found")
-        mdi.MDI_Init(sys.argv[iarg+1],mpi_world)
-        if use_mpi4py:
-            mpi_world = mdi.MDI_Get_Intra_Code_MPI_Comm()
-            world_rank = mpi_world.Get_rank()
-        else:
-            world_rank = 0
-        has_mdi_arg = True
-        iarg += 1
-    elif arg == "-snap":
-        # Get the location of the file that contains the snapshot
-        if len(sys.argv) <= iarg+1:
-            raise Exception("Argument to -snap option not found")
-        snapshot_filename = sys.argv[iarg+1]
-        has_snapshot_arg = True
-        iarg += 1
-    elif arg == "-probes":
-        # Get the probes
-        if len(sys.argv) <= iarg+1:
-            raise Exception("Argument to -probes option not found")
-        probes = sys.argv[iarg+1].strip('[]').split(',')
-        probes = [ int(probes[i]) for i in range(len(probes)) ]
-        has_probes_arg = True
-        iarg += 1
-    else:
-        raise Exception("Unrecognized option")
+# Handle arguments with argparse
+parser = argparse.ArgumentParser()
+parser.add_argument("-mdi", help="flags for mdi", type=str, required=True)
+parser.add_argument("-snap", help="the snapshot file to process", type=str, required=True)
+parser.add_argument("-probes", help="indices of the probe atoms", type=str, required=True)
 
-    iarg += 1
+args = parser.parse_args()
 
-# Confirm that the required command-line options were provided
-if not has_mdi_arg:
-    raise Exception("Did not receive the -mdi command-line option")
-if not has_snapshot_arg:
-    raise Exception("Did not receive the -snap command-line option")
-if not has_probes_arg:
-    raise Exception("Did not receive the -probes command-line option")
+# Process args
+mdi.MDI_Init(args.mdi, mpi_world)
+if use_mpi4py:
+    mpi_world = mdi.MDI_Get_Intra_Code_MPI_Comm()
+    world_rank = mpi_world.Get_rank()
+
+snapshot_filename = args.snap
+probes = [int(x) for x in args.probes.split()]
+
 
 # Print the probe atoms
 print("Probes: " + str(probes))
@@ -120,7 +91,7 @@ for unsplit_line in snapshot_file:
     if snapshot_linenum == natoms + 2:
         # This is a new snapshot
         snapshot_linenum = 0
-        
+
 # Get the number of atoms
 mdi.MDI_Send_Command("<NATOMS", engine_comm)
 natoms_engine = mdi.MDI_Recv(1, mdi.MDI_INT, engine_comm)
@@ -168,9 +139,9 @@ for snapshot in snapshots:
     #    print("   " + str(field[ipole]))
 
     # Print dfield for the first probe atom
-    print("DFIELD; UFIELD: ")
-    for ipole in range(min(npoles, 10)):
-        print("   " + str(dfield[0][ipole]) + "; " + str(ufield[0][ipole]) )
+    # print("DFIELD; UFIELD: ")
+    #for ipole in range(min(npoles, 10)):
+    #    print("   " + str(dfield[0][ipole]) + "; " + str(ufield[0][ipole]) )
 
 
 # Send the "EXIT" command to the engine
