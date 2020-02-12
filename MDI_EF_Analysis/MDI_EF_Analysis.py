@@ -12,6 +12,9 @@ try:
 except ImportError:
     use_mpi4py = False
 
+# For now
+from_molecule = [10, 100]
+
 # Get the MPI communicator
 if use_mpi4py:
     mpi_world = MPI.COMM_WORLD
@@ -104,11 +107,20 @@ mdi.MDI_Send_Command("<NPOLES", engine_comm)
 npoles = mdi.MDI_Recv(1, mdi.MDI_INT, engine_comm)
 print("npoles: " + str(npoles))
 
+# Get the indices of the mulitpole centers per atom
+mdi.MDI_Send_Command("<IPOLES", engine_comm)
+ipoles = mdi.MDI_Recv(natoms_engine, mdi.MDI_DOUBLE, engine_comm)
+print(ipoles)
+
 # Inform Tinker of the probe atoms
 mdi.MDI_Send_Command(">NPROBES", engine_comm)
 mdi.MDI_Send(len(probes), 1, mdi.MDI_INT, engine_comm)
 mdi.MDI_Send_Command(">PROBES", engine_comm)
 mdi.MDI_Send(probes, len(probes), mdi.MDI_INT, engine_comm)
+
+# Get the residue information
+mdi.MDI_Send_Command("<MOLECULES", engine_comm)
+molecules = mdi.MDI_Recv(natoms_engine, mdi.MDI_DOUBLE, engine_comm)
 
 # Loop over all MD snapshots
 for snapshot in snapshots:
@@ -118,10 +130,10 @@ for snapshot in snapshots:
     mdi.MDI_Send(snapshot, 3*natoms, mdi.MDI_DOUBLE, engine_comm)
 
     # Get the electric field information
-    #mdi.MDI_Send_Command("<FIELD", engine_comm)
-    #field = np.zeros(3 * npoles, dtype='float64')
-    #mdi.MDI_Recv(3*npoles, mdi.MDI_DOUBLE, engine_comm, buf = field)
-    #field = field.reshape(npoles,3)
+    # mdi.MDI_Send_Command("<FIELD", engine_comm)
+    # field = np.zeros(3 * npoles, dtype='float64')
+    # mdi.MDI_Recv(3*npoles, mdi.MDI_DOUBLE, engine_comm, buf = field)
+    # field = field.reshape(npoles,3)
 
     # Get the pairwise DFIELD
     dfield = np.zeros((len(probes),npoles,3))
@@ -136,12 +148,12 @@ for snapshot in snapshots:
     # Print the electric field information
     #print("Field: ")
     #for ipole in range(min(npoles,10)):
-    #    print("   " + str(field[ipole]))
+        #print("   " + str(field[ipole]))
 
     # Print dfield for the first probe atom
-    # print("DFIELD; UFIELD: ")
-    #for ipole in range(min(npoles, 10)):
-    #    print("   " + str(dfield[0][ipole]) + "; " + str(ufield[0][ipole]) )
+    print("DFIELD; UFIELD: ")
+    for ipole in range(min(npoles, 10)):
+        print("   " + str(dfield[0][ipole]) + "; " + str(ufield[0][ipole]) )
 
 
 # Send the "EXIT" command to the engine
