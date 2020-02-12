@@ -39,7 +39,7 @@ def mdi_checks(mdi_engine):
         mdi_engine.MDI_Send_Command("<NAME", comm)
         name = mdi_engine.MDI_Recv(mdi.MDI_NAME_LENGTH, mdi.MDI_CHAR, comm)
 
-        print(" Engine name: {name}")
+        print(F"Engine name: {name}")
 
         if name == "NO_EWALD":
             if engine_comm != mdi_engine.MDI_NULL_COMM:
@@ -69,6 +69,9 @@ if __name__ == "__main__":
 
     snapshot_filename = args.snap
     probes = [int(x) for x in args.probes.split()]
+
+    # Print the probe atoms
+    print(F"Probes: {probes}")
 
     # For now add this until I get in command line specification
     from_molecule = [10, 100]
@@ -124,34 +127,32 @@ if __name__ == "__main__":
 
         # Pull out just coords, convert to numeric and use conversion factor.
         # Using .values returns numpy array of values.
-        snapshot_coords = (snapshot.iloc[:natoms , 2:5].apply(pd.to_numeric) * angstrom_to_bohr).values
+        snapshot_coords = (snapshot.iloc[:natoms , 2:5].apply(pd.to_numeric) * angstrom_to_bohr).to_numpy().copy()
 
-        print(snapshot_coords.shape)
-
-        # Send the coordinates of this snapshot
         mdi.MDI_Send_Command(">COORDS", engine_comm)
         mdi.MDI_Send(snapshot_coords, 3*natoms, mdi.MDI_DOUBLE, engine_comm)
 
         # Get the electric field information
-        #mdi.MDI_Send_Command("<FIELD", engine_comm)
-        #field = np.zeros(3 * npoles, dtype='float64')
-        #mdi.MDI_Recv(3*npoles, mdi.MDI_DOUBLE, engine_comm, buf = field)
-        #field = field.reshape(npoles,3)
+        # mdi.MDI_Send_Command("<FIELD", engine_comm)
+        # field = np.zeros(3 * npoles, dtype='float64')
+        # mdi.MDI_Recv(3*npoles, mdi.MDI_DOUBLE, engine_comm, buf = field)
+        # field = field.reshape(npoles,3)
 
-        ## Get the pairwise DFIELD
+        # Get the pairwise DFIELD
         dfield = np.zeros((len(probes),npoles,3))
         mdi.MDI_Send_Command("<DFIELD", engine_comm)
-        #mdi.MDI_Recv(3*npoles*len(probes), mdi.MDI_DOUBLE, engine_comm, buf = dfield)
+        mdi.MDI_Recv(3*npoles*len(probes), mdi.MDI_DOUBLE, engine_comm, buf = dfield)
 
-        ## Get the pairwise UFIELD
-        #ufield = np.zeros((len(probes),npoles,3))
-        #mdi.MDI_Send_Command("<UFIELD", engine_comm)
-        #mdi.MDI_Recv(3*npoles*len(probes), mdi.MDI_DOUBLE, engine_comm, buf = ufield)
+        # Get the pairwise UFIELD
+        ufield = np.zeros((len(probes),npoles,3))
+        mdi.MDI_Send_Command("<UFIELD", engine_comm)
+        mdi.MDI_Recv(3*npoles*len(probes), mdi.MDI_DOUBLE, engine_comm, buf = ufield)
 
-        ## Print dfield for the first probe atom
-        #print("DFIELD; UFIELD: ")
-        #for ipole in range(min(npoles, 10)):
-        #    print("   " + str(dfield[0][ipole]) + "; " + str(ufield[0][ipole]) )
+        # Print dfield for the first probe atom
+        print("DFIELD; UFIELD: ")
+        for ipole in range(min(npoles, 10)):
+            print("   " + str(dfield[0][ipole]) + "; " + str(ufield[0][ipole]) )
+
 
 
     # Send the "EXIT" command to the engine
