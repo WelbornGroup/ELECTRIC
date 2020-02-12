@@ -121,12 +121,31 @@ if __name__ == "__main__":
         raise Exception(F"Snapshot file and engine have inconsistent number of atoms \
                             Engine : {natoms_engine} \n Snapshot File : {natoms}")
 
+
+    ## Bookkeeping
+
+    # Get the indices we will use for dfield and ufield.
+    # Probe is given as atom number, but this may not correspond
+    # to the pole index. We have to get it from ipoles which gives
+    # the pole index for each atom. We subtract 1 because python
+    # indexes from 0, but the original (fortran) indexes from one.
+    probe_pole_indices = [ipoles[x-1] for x in probes]
+
+    # Get the atom and pole indices for the molecules of interest.
+    interest_atoms = []
+    atoms_pole_indices = []
+    for mol in from_molecule:
+        molecule_atoms = np.where(np.array(molecules) == mol)
+        pole_indices = [ipoles[x] for x in molecule_atoms[0]]
+        interest_atoms.append(molecule_atoms[0])
+        atoms_pole_indices.append(np.array(pole_indices)))
+
     # Read trajectory and do analysis
     for snapshot in pd.read_csv(snapshot_filename, chunksize=natoms+skip_line,
         header=None, delim_whitespace=True, names=range(8), skiprows=skip_line, index_col=None):
 
         # Pull out just coords, convert to numeric and use conversion factor.
-        # Using .values returns numpy array of values.
+        # columns 2-4 are the coordinates.
         snapshot_coords = (snapshot.iloc[:natoms , 2:5].apply(pd.to_numeric) * angstrom_to_bohr).to_numpy().copy()
 
         mdi.MDI_Send_Command(">COORDS", engine_comm)
@@ -149,9 +168,13 @@ if __name__ == "__main__":
         mdi.MDI_Recv(3*npoles*len(probes), mdi.MDI_DOUBLE, engine_comm, buf = ufield)
 
         # Print dfield for the first probe atom
-        print("DFIELD; UFIELD: ")
-        for ipole in range(min(npoles, 10)):
-            print("   " + str(dfield[0][ipole]) + "; " + str(ufield[0][ipole]) )
+        #print("DFIELD; UFIELD: ")
+        #for ipole in range(min(npoles, 10)):
+            #print("   " + str(dfield[0][ipole]) + "; " + str(ufield[0][ipole]) )
+
+
+        # Now do the analysis with indices and output from Tinker.
+
 
 
 
