@@ -163,8 +163,9 @@ if __name__ == "__main__":
     else:
         by_type = 'atom'
         # We are interested in all of the atoms.
-        interest_atoms = list(1, range(natoms) + 1)
-        atoms_pole_numbers = ipoles.copy()
+        interest_atoms = list(range(1,natoms_engine+1))
+        from_fragment = interest_atoms.copy()
+        atoms_pole_numbers = np.array([[x] for x in ipoles])
 
     ###########################################################################
     #
