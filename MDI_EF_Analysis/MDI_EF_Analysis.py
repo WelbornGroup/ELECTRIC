@@ -138,7 +138,6 @@ if __name__ == "__main__":
     print(F'Probe pole indices {probe_pole_indices}')
 
     # Get the atom and pole numbers for the molecules/residues of interest.
-    interest_atoms = []
     atoms_pole_numbers = []
     if args.bymol:
         by_type = 'molecule'
@@ -148,7 +147,6 @@ if __name__ == "__main__":
             molecule_atoms = np.array(np.where(molecules == mol)) + 1
             # The pole indices for the speified molecule
             pole_numbers = [ipoles[atom_index - 1] for atom_index in molecule_atoms[0]]
-            interest_atoms.append(molecule_atoms[0])
             atoms_pole_numbers.append(np.array(pole_numbers))
     elif args.byres:
         by_type = 'residue'
@@ -158,13 +156,11 @@ if __name__ == "__main__":
             residue_atoms = np.array(np.where(residues == res)) + 1
             # The pole indices for the speified molecule
             pole_numbers = [ipoles[atom_index - 1] for atom_index in residue_atoms[0]]
-            interest_atoms.append(residue_atoms[0])
             atoms_pole_numbers.append(np.array(pole_numbers))
     else:
         by_type = 'atom'
         # We are interested in all of the atoms.
-        interest_atoms = list(range(1,natoms_engine+1))
-        from_fragment = interest_atoms.copy()
+        from_fragment = list(range(1,natoms_engine+1))
         atoms_pole_numbers = np.array([[x] for x in ipoles])
 
     ###########################################################################
