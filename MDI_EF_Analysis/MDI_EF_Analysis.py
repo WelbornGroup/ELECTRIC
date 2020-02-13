@@ -53,15 +53,27 @@ def mdi_checks(mdi_engine):
 
 if __name__ == "__main__":
 
+    ###########################################################################
+    #
+    #   Handle user arguments
+    #
+    ###########################################################################
+
     # Handle arguments with argparse
     parser = argparse.ArgumentParser()
     parser.add_argument("-mdi", help="flags for mdi", type=str, required=True)
-    parser.add_argument("-snap", help="the snapshot file to process", type=str, required=True)
-    parser.add_argument("-probes", help="indices of the probe atoms", type=str, required=True)
+    parser.add_argument("-snap", help="the snapshot file to process", type=str,
+        required=True)
+    parser.add_argument("-probes", help="indices of the probe atoms", type=str,
+        required=True)
+    parser.add_argument("--byres", help="give electric field at probe by residue",
+        action="store_true")
+    parser.add_argument("--bymol", help="give electric field at probe by molecule",
+        action="store_true")
 
     args = parser.parse_args()
 
-    # Process args
+    # Process args for MDI
     mdi.MDI_Init(args.mdi, mpi_world)
     if use_mpi4py:
         mpi_world = mdi.MDI_Get_Intra_Code_MPI_Comm()
@@ -70,13 +82,19 @@ if __name__ == "__main__":
     snapshot_filename = args.snap
     probes = [int(x) for x in args.probes.split()]
 
+    if args.byres and args.bymol:
+        parser.error("--byres and --bymol cannot be used together. Please only use one.")
+
+    engine_comm = mdi_checks(mdi)
+
     # Print the probe atoms
     print(F"Probes: {probes}")
 
-    # For now add this until I get in command line specification
-    from_molecule = [10, 100]
-
-    engine_comm = mdi_checks(mdi)
+    ###########################################################################
+    #
+    #   Get Information from Tinker
+    #
+    ###########################################################################
 
     # Get the number of atoms
     mdi.MDI_Send_Command("<NATOMS", engine_comm)
@@ -90,19 +108,83 @@ if __name__ == "__main__":
 
     # Get the indices of the mulitpole centers per atom
     mdi.MDI_Send_Command("<IPOLES", engine_comm)
-    ipoles = mdi.MDI_Recv(natoms_engine, mdi.MDI_DOUBLE, engine_comm)
+    ipoles = mdi.MDI_Recv(natoms_engine, mdi.MDI_INT, engine_comm)
+
+    # Get the molecule information
+    mdi.MDI_Send_Command("<MOLECULES", engine_comm)
+    molecules = np.array(mdi.MDI_Recv(natoms_engine, mdi.MDI_INT, engine_comm))
+
+    # Get the residue information
+    mdi.MDI_Send_Command("<RESIDUES", engine_comm)
+    residues = np.array(mdi.MDI_Recv(natoms_engine, mdi.MDI_INT, engine_comm))
+
+
+    ###########################################################################
+    #
+    #   Calculate Indices
+    #
+    ###########################################################################
+
+    ## Bookkeeping
+
+    # Probe is given as atom number by user, but this may not correspond
+    # to the pole index. We have to get it from ipoles which gives
+    # the pole index for each atom. We subtract 1 because python
+    # indexes from 0, but the original (fortran) indexes from one.
+    # ipoles is length natom and gives the pole number for each atom.
+    # probe_pole_indices gives the pole number (starts at 1 because we are passing)
+    # to Tinker
+    probe_pole_indices = [int(ipoles[atom_number-1]) for atom_number in probes]
+    print(F'Probe pole indices {probe_pole_indices}')
+
+    # Get the atom and pole numbers for the molecules/residues of interest.
+    interest_atoms = []
+    atoms_pole_numbers = []
+    if args.bymol:
+        by_type = 'molecule'
+        from_fragment = np.unique(molecules)
+        for mol in from_fragment:
+            # These are the atom numbers for the atoms in the specified molecules
+            molecule_atoms = np.array(np.where(molecules == mol)) + 1
+            # The pole indices for the speified molecule
+            pole_numbers = [ipoles[atom_index - 1] for atom_index in molecule_atoms[0]]
+            interest_atoms.append(molecule_atoms[0])
+            atoms_pole_numbers.append(np.array(pole_numbers))
+    elif args.byres:
+        by_type = 'residue'
+        from_fragment = np.unique(residues)
+        for res in from_fragment:
+            # These are the atom numbers for the atoms in the specified residues
+            residue_atoms = np.array(np.where(residues == res)) + 1
+            # The pole indices for the speified molecule
+            pole_numbers = [ipoles[atom_index - 1] for atom_index in residue_atoms[0]]
+            interest_atoms.append(residue_atoms[0])
+            atoms_pole_numbers.append(np.array(pole_numbers))
+    else:
+        by_type = 'atom'
+        # We are interested in all of the atoms.
+        interest_atoms = list(1, range(natoms) + 1)
+        atoms_pole_numbers = ipoles.copy()
+
+    ###########################################################################
+    #
+    #   Send Probe Information to Tinker
+    #
+    ###########################################################################
 
     # Inform Tinker of the probe atoms
     mdi.MDI_Send_Command(">NPROBES", engine_comm)
     mdi.MDI_Send(len(probes), 1, mdi.MDI_INT, engine_comm)
     mdi.MDI_Send_Command(">PROBES", engine_comm)
-    mdi.MDI_Send(probes, len(probes), mdi.MDI_INT, engine_comm)
-
-    # Get the residue information
-    mdi.MDI_Send_Command("<MOLECULES", engine_comm)
-    molecules = mdi.MDI_Recv(natoms_engine, mdi.MDI_DOUBLE, engine_comm)
+    mdi.MDI_Send(probe_pole_indices, len(probes), mdi.MDI_INT, engine_comm)
 
     angstrom_to_bohr = mdi.MDI_Conversion_Factor("angstrom","atomic_unit_of_length")
+
+    ###########################################################################
+    #
+    #   Engine and Trajectory File Compatibility Check.
+    #
+    ###########################################################################
 
     # Check that engine and trajectory are compatible.
     # Process first two lines of snapshot to get information.
@@ -121,32 +203,22 @@ if __name__ == "__main__":
         raise Exception(F"Snapshot file and engine have inconsistent number of atoms \
                             Engine : {natoms_engine} \n Snapshot File : {natoms}")
 
-
-    ## Bookkeeping
-
-    # Get the indices we will use for dfield and ufield.
-    # Probe is given as atom number, but this may not correspond
-    # to the pole index. We have to get it from ipoles which gives
-    # the pole index for each atom. We subtract 1 because python
-    # indexes from 0, but the original (fortran) indexes from one.
-    probe_pole_indices = [ipoles[x-1] for x in probes]
-
-    # Get the atom and pole indices for the molecules of interest.
-    interest_atoms = []
-    atoms_pole_indices = []
-    for mol in from_molecule:
-        molecule_atoms = np.where(np.array(molecules) == mol)
-        pole_indices = [ipoles[x] for x in molecule_atoms[0]]
-        interest_atoms.append(molecule_atoms[0])
-        atoms_pole_indices.append(np.array(pole_indices)))
+    ###########################################################################
+    #
+    #   Read Trajectory and do analysis.
+    #
+    ###########################################################################
 
     # Read trajectory and do analysis
     for snapshot in pd.read_csv(snapshot_filename, chunksize=natoms+skip_line,
-        header=None, delim_whitespace=True, names=range(8), skiprows=skip_line, index_col=None):
+        header=None, delim_whitespace=True, names=range(8),
+        skiprows=skip_line, index_col=None):
 
         # Pull out just coords, convert to numeric and use conversion factor.
-        # columns 2-4 are the coordinates.
-        snapshot_coords = (snapshot.iloc[:natoms , 2:5].apply(pd.to_numeric) * angstrom_to_bohr).to_numpy().copy()
+        # columns 2-4 of the pandas dataframe are the coordinates.
+        # Must create a copy to send to MDI.
+        snapshot_coords = (snapshot.iloc[:natoms , 2:5].apply(pd.to_numeric) *
+            angstrom_to_bohr).to_numpy().copy()
 
         mdi.MDI_Send_Command(">COORDS", engine_comm)
         mdi.MDI_Send(snapshot_coords, 3*natoms, mdi.MDI_DOUBLE, engine_comm)
@@ -160,12 +232,12 @@ if __name__ == "__main__":
         # Get the pairwise DFIELD
         dfield = np.zeros((len(probes),npoles,3))
         mdi.MDI_Send_Command("<DFIELD", engine_comm)
-        mdi.MDI_Recv(3*npoles*len(probes), mdi.MDI_DOUBLE, engine_comm, buf = dfield)
+        mdi.MDI_Recv(3*npoles*len(probes), mdi.MDI_DOUBLE, engine_comm, buf=dfield)
 
         # Get the pairwise UFIELD
         ufield = np.zeros((len(probes),npoles,3))
         mdi.MDI_Send_Command("<UFIELD", engine_comm)
-        mdi.MDI_Recv(3*npoles*len(probes), mdi.MDI_DOUBLE, engine_comm, buf = ufield)
+        mdi.MDI_Recv(3*npoles*len(probes), mdi.MDI_DOUBLE, engine_comm, buf=ufield)
 
         # Print dfield for the first probe atom
         #print("DFIELD; UFIELD: ")
@@ -173,9 +245,32 @@ if __name__ == "__main__":
             #print("   " + str(dfield[0][ipole]) + "; " + str(ufield[0][ipole]) )
 
 
-        # Now do the analysis with indices and output from Tinker.
+        # Sum the appropriate values
 
+        columns = ['Probe Atom', 'Probe Coordinates']
+        columns += [F'{by_type} {x}' for x in from_fragment]
+        dfield_df = pd.DataFrame(columns=columns)
+        ufield_df = pd.DataFrame(columns=columns)
 
+        # Get sum at each probe (total)
+        for i in range(len(probes)):
+            to_add_dfield = {'Probe Atom': probes[i]}
+            to_add_dfield['Probe Coordinates'] = snapshot_coords[probes[i]]
+            to_add_ufield = {'Probe Atom': probes[i]}
+            to_add_ufield['Probe Coordinates'] = snapshot_coords[probes[i]]
+
+            for fragment_index, fragment in enumerate(atoms_pole_numbers):
+                dfield_at_probe_due_to_fragment = dfield[i, fragment-1].sum(axis=0)
+                to_add_dfield[F'{by_type} {from_fragment[fragment_index]}'] = dfield_at_probe_due_to_fragment
+
+                ufield_at_probe_due_to_fragment = ufield[i, fragment-1].sum(axis=0)
+                to_add_ufield[F'{by_type} {from_fragment[fragment_index]}'] = ufield_at_probe_due_to_fragment
+
+            dfield_df = dfield_df.append(to_add_dfield, ignore_index=True)
+            ufield_df = ufield_df.append(to_add_ufield, ignore_index=True)
+
+    dfield_df.to_csv('dfield.csv', index=False)
+    ufield_df.to_csv('ufield.csv', index=False)
 
 
     # Send the "EXIT" command to the engine
