@@ -4,6 +4,8 @@ import argparse
 import numpy as np
 import pandas as pd
 
+from copy import deepcopy
+
 # Use local MDI build
 import mdi.MDI_Library as mdi
 
@@ -29,16 +31,19 @@ def mdi_checks(mdi_engine):
     if not role == mdi_engine.MDI_DRIVER:
         raise Exception("Must run driver_py.py as a DRIVER")
 
+    print("Here")
+
     # Connect to the engine
     engine_comm = mdi_engine.MDI_NULL_COMM
     nengines = 1
     for iengine in range(nengines):
         comm = mdi.MDI_Accept_Communicator()
+        print("Communicator accepted.")
 
         # Determine the name of the engine
         mdi_engine.MDI_Send_Command("<NAME", comm)
+        print("Name requested.")
         name = mdi_engine.MDI_Recv(mdi.MDI_NAME_LENGTH, mdi.MDI_CHAR, comm)
-
         print(F"Engine name: {name}")
 
         if name == "NO_EWALD":
@@ -46,7 +51,7 @@ def mdi_checks(mdi_engine):
                 raise Exception("Accepted a communicator from a second NO_EWALD engine.")
             engine_comm = comm
         else:
-            raise Exception("Unrecognized engine name.")
+            raise Exception("Unrecognized engine name", name)
 
     return engine_comm
 
@@ -75,12 +80,18 @@ if __name__ == "__main__":
     parser.add_argument("--stride", help="number of frames between analysis", type=int)
 
     args = parser.parse_args()
+    print("Arguments parsed")
 
+
+    print("Initializing MDI")
     # Process args for MDI
     mdi.MDI_Init(args.mdi, mpi_world)
+    print("MDI Initialized.")
+
     if use_mpi4py:
         mpi_world = mdi.MDI_Get_Intra_Code_MPI_Comm()
         world_rank = mpi_world.Get_rank()
+
 
     snapshot_filename = args.snap
     probes = [int(x) for x in args.probes.split()]
@@ -98,6 +109,7 @@ if __name__ == "__main__":
     else:
         stride = args.stride
 
+    print("Checking MDI")
     engine_comm = mdi_checks(mdi)
 
     # Print the probe atoms
@@ -223,6 +235,8 @@ if __name__ == "__main__":
         else:
             skip_line = 1
 
+    print(F'The number of atoms is {natoms}, {natoms_engine}')
+
     if natoms != natoms_engine:
         raise Exception(F"Snapshot file and engine have inconsistent number of atoms \
                             Engine : {natoms_engine} \n Snapshot File : {natoms}")
@@ -236,7 +250,7 @@ if __name__ == "__main__":
     start = time.time()
     # Read trajectory and do analysis
     for snap_num, snapshot in enumerate(pd.read_csv(snapshot_filename, chunksize=natoms+skip_line,
-        header=None, delim_whitespace=True, names=range(8),
+        header=None, delim_whitespace=True, names=range(15),
         skiprows=skip_line, index_col=None)):
 
         if snap_num > equil - 1:
@@ -245,11 +259,15 @@ if __name__ == "__main__":
                 # Pull out just coords, convert to numeric and use conversion factor.
                 # columns 2-4 of the pandas dataframe are the coordinates.
                 # Must create a copy to send to MDI.
-                snapshot_coords = (snapshot.iloc[:natoms , 2:5].apply(pd.to_numeric) *
-                    angstrom_to_bohr).to_numpy().copy()
+                snapshot_coords = deepcopy((snapshot.iloc[:natoms , 2:5].apply(pd.to_numeric) *
+                    angstrom_to_bohr).to_numpy())
+
+                print(snapshot_coords)
 
                 mdi.MDI_Send_Command(">COORDS", engine_comm)
                 mdi.MDI_Send(snapshot_coords, 3*natoms, mdi.MDI_DOUBLE, engine_comm)
+
+                print("Sent coordinates")
 
                 # Get the electric field information
                 # mdi.MDI_Send_Command("<FIELD", engine_comm)
