@@ -259,8 +259,8 @@ if __name__ == "__main__":
                 # Pull out just coords, convert to numeric and use conversion factor.
                 # columns 2-4 of the pandas dataframe are the coordinates.
                 # Must create a copy to send to MDI.
-                snapshot_coords = deepcopy((snapshot.iloc[:natoms , 2:5].apply(pd.to_numeric) *
-                    angstrom_to_bohr).to_numpy())
+                snapshot_coords = (snapshot.iloc[:natoms , 2:5].apply(pd.to_numeric) *
+                    angstrom_to_bohr).to_numpy().copy()
 
                 print(snapshot_coords)
 
