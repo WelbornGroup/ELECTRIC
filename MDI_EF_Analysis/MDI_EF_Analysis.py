@@ -31,8 +31,6 @@ def mdi_checks(mdi_engine):
     if not role == mdi_engine.MDI_DRIVER:
         raise Exception("Must run driver_py.py as a DRIVER")
 
-    print("Here")
-
     # Connect to the engine
     engine_comm = mdi_engine.MDI_NULL_COMM
     nengines = 1
@@ -42,7 +40,6 @@ def mdi_checks(mdi_engine):
 
         # Determine the name of the engine
         mdi_engine.MDI_Send_Command("<NAME", comm)
-        print("Name requested.")
         name = mdi_engine.MDI_Recv(mdi.MDI_NAME_LENGTH, mdi.MDI_CHAR, comm)
         print(F"Engine name: {name}")
 
@@ -260,21 +257,29 @@ if __name__ == "__main__":
                 # columns 2-4 of the pandas dataframe are the coordinates.
                 # Must create a copy to send to MDI.
                 snapshot_coords = (snapshot.iloc[:natoms , 2:5].apply(pd.to_numeric) *
-                    angstrom_to_bohr).to_numpy().copy()
+                    angstrom_to_bohr).to_numpy()
 
-                print(snapshot_coords)
+                #print(snapshot_coords)
 
                 mdi.MDI_Send_Command(">COORDS", engine_comm)
-                mdi.MDI_Send(snapshot_coords, 3*natoms, mdi.MDI_DOUBLE, engine_comm)
+                mdi.MDI_Send(snapshot_coords.copy(), 3*natoms, mdi.MDI_DOUBLE, engine_comm)
 
                 print("Sent coordinates")
+
+                coord_buf = np.zeros(3*natoms_engine)
+                mdi.MDI_Send_Command("<COORDS", engine_comm)
+                mdi.MDI_Recv(3*natoms, mdi.MDI_DOUBLE, engine_comm, buf=coord_buf)
+
+                coord_buf = coord_buf.reshape(natoms,3)
+
+                print(F"The same : {np.allclose(snapshot_coords, coord_buf)}")
 
                 # Get the electric field information
                 # mdi.MDI_Send_Command("<FIELD", engine_comm)
                 # field = np.zeros(3 * npoles, dtype='float64')
                 # mdi.MDI_Recv(3*npoles, mdi.MDI_DOUBLE, engine_comm, buf = field)
                 # field = field.reshape(npoles,3)
-
+#
                 start_dfield = time.time()
                 # Get the pairwise DFIELD
                 dfield = np.zeros((len(probes),npoles,3))
@@ -283,42 +288,38 @@ if __name__ == "__main__":
                 elapsed_dfield = time.time() - start_dfield
                 print(F"DField Retrieval:\t {elapsed_dfield}")
 
-                # Get the pairwise UFIELD
+#
+#                # Get the pairwise UFIELD
                 ufield = np.zeros((len(probes),npoles,3))
                 mdi.MDI_Send_Command("<UFIELD", engine_comm)
                 mdi.MDI_Recv(3*npoles*len(probes), mdi.MDI_DOUBLE, engine_comm, buf=ufield)
 
-                # Print dfield for the first probe atom
-                #print("DFIELD; UFIELD: ")
-                #for ipole in range(min(npoles, 10)):
-                    #print("   " + str(dfield[0][ipole]) + "; " + str(ufield[0][ipole]) )
-
-
-                # Sum the appropriate values
-
+#                # Print dfield for the first probe atom
+#                #print("DFIELD; UFIELD: ")
+#                #for ipole in range(min(npoles, 10)):
+#                    #print("   " + str(dfield[0][ipole]) + "; " + str(ufield[0][ipole]) )
+#
+#
+#                # Sum the appropriate values
+#
                 start_sum = time.time()
 
                 columns = ['Probe Atom', 'Probe Coordinates']
                 columns += [F'{by_type} {x}' for x in from_fragment]
-                dfield_df = pd.DataFrame(columns=columns)
-                ufield_df = pd.DataFrame(columns=columns)
+                dfield_df = pd.DataFrame(columns=columns, index=range(len(probes)))
+                ufield_df = pd.DataFrame(columns=columns, index=range(len(probes)))
 
                 # Get sum at each probe (total)
                 for i in range(len(probes)):
-                    to_add_dfield = {'Probe Atom': probes[i]}
-                    to_add_dfield['Probe Coordinates'] = snapshot_coords[probes[i]]
-                    to_add_ufield = {'Probe Atom': probes[i]}
-                    to_add_ufield['Probe Coordinates'] = snapshot_coords[probes[i]]
+                    dfield_df.loc[i, 'Probe Atom'] = probes[i]
+                    dfield_df.loc[i, 'Probe Coordinates'] = snapshot_coords[probes[i]]
+                    ufield_df.loc[i, 'Probe Atom'] = probes[i]
+                    ufield_df.loc[i, 'Probe Coordinates'] = snapshot_coords[probes[i]]
 
                     for fragment_index, fragment in enumerate(atoms_pole_numbers):
-                        dfield_at_probe_due_to_fragment = dfield[i, fragment-1].sum(axis=0)
-                        to_add_dfield[F'{by_type} {from_fragment[fragment_index]}'] = dfield_at_probe_due_to_fragment
+                        dfield_df.loc[i, F'{by_type} {from_fragment[fragment_index]}'] = dfield[i, fragment-1].sum(axis=0)
+                        ufield_df.loc[i, F'{by_type} {from_fragment[fragment_index]}'] = ufield[i, fragment-1].sum(axis=0)
 
-                        ufield_at_probe_due_to_fragment = ufield[i, fragment-1].sum(axis=0)
-                        to_add_ufield[F'{by_type} {from_fragment[fragment_index]}'] = ufield_at_probe_due_to_fragment
-
-            dfield_df = dfield_df.append(to_add_dfield, ignore_index=True)
-            ufield_df = ufield_df.append(to_add_ufield, ignore_index=True)
         elapsed_sum = time.time() - start_sum
 
         print(F"Elapsed sum: {elapsed_sum}")
@@ -327,8 +328,7 @@ if __name__ == "__main__":
     ufield_df.to_csv('ufield.csv', index=False)
 
     elapsed = time.time() - start
-    print(F'Elapsed loop:{elapsed}')
-
+    print(F'Elapsed loop:{elapsed}')#
 
     # Send the "EXIT" command to the engine
     mdi.MDI_Send_Command("EXIT", engine_comm)
