@@ -36,7 +36,6 @@ def mdi_checks(mdi_engine):
     nengines = 1
     for iengine in range(nengines):
         comm = mdi.MDI_Accept_Communicator()
-        print("Communicator accepted.")
 
         # Determine the name of the engine
         mdi_engine.MDI_Send_Command("<NAME", comm)
@@ -54,6 +53,8 @@ def mdi_checks(mdi_engine):
 
 
 if __name__ == "__main__":
+
+    conversion_factor = 1440  # Conversion factor for Tinker units to Mv/cm.
 
     ###########################################################################
     #
@@ -77,8 +78,6 @@ if __name__ == "__main__":
     parser.add_argument("--stride", help="number of frames between analysis", type=int)
 
     args = parser.parse_args()
-    print("Arguments parsed")
-
 
     print("Initializing MDI")
     # Process args for MDI
@@ -232,8 +231,6 @@ if __name__ == "__main__":
         else:
             skip_line = 1
 
-    print(F'The number of atoms is {natoms}, {natoms_engine}')
-
     if natoms != natoms_engine:
         raise Exception(F"Snapshot file and engine have inconsistent number of atoms \
                             Engine : {natoms_engine} \n Snapshot File : {natoms}")
@@ -245,6 +242,9 @@ if __name__ == "__main__":
     ###########################################################################
 
     start = time.time()
+
+    output = pd.DataFrame(index=range(np.sum(range(len(probes)-1))))
+
     # Read trajectory and do analysis
     for snap_num, snapshot in enumerate(pd.read_csv(snapshot_filename, chunksize=natoms+skip_line,
         header=None, delim_whitespace=True, names=range(15),
@@ -259,20 +259,8 @@ if __name__ == "__main__":
                 snapshot_coords = (snapshot.iloc[:natoms , 2:5].apply(pd.to_numeric) *
                     angstrom_to_bohr).to_numpy()
 
-                #print(snapshot_coords)
-
                 mdi.MDI_Send_Command(">COORDS", engine_comm)
                 mdi.MDI_Send(snapshot_coords.copy(), 3*natoms, mdi.MDI_DOUBLE, engine_comm)
-
-                print("Sent coordinates")
-
-                coord_buf = np.zeros(3*natoms_engine)
-                mdi.MDI_Send_Command("<COORDS", engine_comm)
-                mdi.MDI_Recv(3*natoms, mdi.MDI_DOUBLE, engine_comm, buf=coord_buf)
-
-                coord_buf = coord_buf.reshape(natoms,3)
-
-                print(F"The same : {np.allclose(snapshot_coords, coord_buf)}")
 
                 # Get the electric field information
                 # mdi.MDI_Send_Command("<FIELD", engine_comm)
@@ -281,6 +269,7 @@ if __name__ == "__main__":
                 # field = field.reshape(npoles,3)
 #
                 start_dfield = time.time()
+
                 # Get the pairwise DFIELD
                 dfield = np.zeros((len(probes),npoles,3))
                 mdi.MDI_Send_Command("<DFIELD", engine_comm)
@@ -294,31 +283,56 @@ if __name__ == "__main__":
                 mdi.MDI_Send_Command("<UFIELD", engine_comm)
                 mdi.MDI_Recv(3*npoles*len(probes), mdi.MDI_DOUBLE, engine_comm, buf=ufield)
 
-#                # Print dfield for the first probe atom
-#                #print("DFIELD; UFIELD: ")
-#                #for ipole in range(min(npoles, 10)):
-#                    #print("   " + str(dfield[0][ipole]) + "; " + str(ufield[0][ipole]) )
-#
-#
-#                # Sum the appropriate values
-#
+                # Sum the appropriate values
+
                 start_sum = time.time()
 
                 columns = ['Probe Atom', 'Probe Coordinates']
                 columns += [F'{by_type} {x}' for x in from_fragment]
                 dfield_df = pd.DataFrame(columns=columns, index=range(len(probes)))
                 ufield_df = pd.DataFrame(columns=columns, index=range(len(probes)))
+                totfield_df = pd.DataFrame(columns=columns, index=range(len(probes)))
 
-                # Get sum at each probe (total)
+                # Get sum at each probe from fragment.
                 for i in range(len(probes)):
                     dfield_df.loc[i, 'Probe Atom'] = probes[i]
-                    dfield_df.loc[i, 'Probe Coordinates'] = snapshot_coords[probes[i]]
+                    dfield_df.loc[i, 'Probe Coordinates'] = snapshot_coords[probes[i]-1]
                     ufield_df.loc[i, 'Probe Atom'] = probes[i]
-                    ufield_df.loc[i, 'Probe Coordinates'] = snapshot_coords[probes[i]]
+                    ufield_df.loc[i, 'Probe Coordinates'] = snapshot_coords[probes[i]-1]
+                    totfield_df.loc[i, 'Probe Coordinates'] = snapshot_coords[probes[i]-1]
 
                     for fragment_index, fragment in enumerate(atoms_pole_numbers):
-                        dfield_df.loc[i, F'{by_type} {from_fragment[fragment_index]}'] = dfield[i, fragment-1].sum(axis=0)
-                        ufield_df.loc[i, F'{by_type} {from_fragment[fragment_index]}'] = ufield[i, fragment-1].sum(axis=0)
+                        fragment_string = F'{by_type} {from_fragment[fragment_index]}'
+                        dfield_df.loc[i, fragment_string] = dfield[i, fragment-1].sum(axis=0)
+                        ufield_df.loc[i, fragment_string] = ufield[i, fragment-1].sum(axis=0)
+                        totfield_df.loc[i, fragment_string] = dfield_df.loc[i, fragment_string] + \
+                            ufield_df.loc[i, fragment_string]
+
+                # Pairwise probe calculation - Get avg electric field
+                count = 0
+                for i in range(len(probes)):
+                    for j in range(i+1, len(probes)):
+
+                        output.loc[count,'Atom 1'] = probes[i]
+                        output.loc[count, 'Atom 2'] = probes[j]
+
+                        avg_field = (totfield_df.iloc[i, 2:] - totfield_df.iloc[j, 2:]) / 2
+
+                        coord1 = totfield_df.loc[i, 'Probe Coordinates']
+                        coord2 = totfield_df.loc[j, 'Probe Coordinates']
+                        # Unit vector
+                        dir_vec = (coord2 - coord1) / np.linalg.norm(coord2 - coord1)
+
+                        efield_at_point = []
+                        label = []
+                        for column_name, column_value in avg_field.iteritems():
+                            efield_at_point.append(np.dot(column_value, dir_vec)*conversion_factor)
+                            label.append(column_name)
+
+                        output.loc[count, 'From'] = label
+                        output.loc[count, F'Frame {snap_num}'] = efield_at_point
+                        count += 1
+
 
         elapsed_sum = time.time() - start_sum
 
@@ -326,6 +340,12 @@ if __name__ == "__main__":
 
     dfield_df.to_csv('dfield.csv', index=False)
     ufield_df.to_csv('ufield.csv', index=False)
+
+    output['Atom 1'] = output['Atom 1'].astype(int)
+    output['Atom 2'] = output['Atom 2'].astype(int)
+
+
+    output.to_csv('ouput.csv', index=False)
 
     elapsed = time.time() - start
     print(F'Elapsed loop:{elapsed}')#
