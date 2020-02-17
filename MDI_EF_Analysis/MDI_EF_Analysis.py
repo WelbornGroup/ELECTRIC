@@ -70,8 +70,7 @@ if __name__ == "__main__":
         required=True)
     parser.add_argument("-probes", help="indices of the probe atoms", type=str,
         required=True)
-    parser.add_argument("--byres", help="give electric field at probe by residue",
-        action="store_true")
+    parser.add_argument("--byres", help="give electric field at probe by residue")
     parser.add_argument("--bymol", help="give electric field at probe by molecule",
         action="store_true")
     parser.add_argument("--equil", help="number of equilibration frames to skip")
@@ -243,7 +242,8 @@ if __name__ == "__main__":
 
     start = time.time()
 
-    output = pd.DataFrame(index=range(np.sum(range(len(probes)-1))))
+    # Overallocate array since we don't know how many frames
+    output = pd.DataFrame(index=range(len(from_fragment) * np.sum(range(len(probes)-1))))
 
     # Read trajectory and do analysis
     for snap_num, snapshot in enumerate(pd.read_csv(snapshot_filename, chunksize=natoms+skip_line,
@@ -312,10 +312,6 @@ if __name__ == "__main__":
                 count = 0
                 for i in range(len(probes)):
                     for j in range(i+1, len(probes)):
-
-                        output.loc[count,'Atom 1'] = probes[i]
-                        output.loc[count, 'Atom 2'] = probes[j]
-
                         avg_field = (totfield_df.iloc[i, 2:] - totfield_df.iloc[j, 2:]) / 2
 
                         coord1 = totfield_df.loc[i, 'Probe Coordinates']
@@ -326,12 +322,11 @@ if __name__ == "__main__":
                         efield_at_point = []
                         label = []
                         for column_name, column_value in avg_field.iteritems():
-                            efield_at_point.append(np.dot(column_value, dir_vec)*conversion_factor)
-                            label.append(column_name)
-
-                        output.loc[count, 'From'] = label
-                        output.loc[count, F'Frame {snap_num}'] = efield_at_point
-                        count += 1
+                            output.loc[count,'Atom 1'] = probes[i]
+                            output.loc[count, 'Atom 2'] = probes[j]
+                            output.loc[count, 'From'] = column_name
+                            output.loc[count, F'Frame {snap_num}'] = np.dot(column_value, dir_vec)*conversion_factor
+                            count += 1
 
 
         elapsed_sum = time.time() - start_sum
