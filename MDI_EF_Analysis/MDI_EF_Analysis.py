@@ -104,6 +104,31 @@ if __name__ == "__main__":
     else:
         stride = args.stride
 
+    if args.byres:
+        pdb = pd.read_fwf(args.byres, skiprows=4, header=None, colspecs=((0,6),
+                                                              (6,12), (12, 16), (16,17),
+                                                              (17,20), (21, 22), (22, 27),
+                                                              (27,28)), dtype=str)
+        pdb = pdb[[4,6]]
+        pdb.columns = ['res name', 'residue number']
+        pdb.dropna(inplace=True)
+
+        residue_number = 1
+        previous = None
+        previous_name = None
+        residues = []
+        for row in pdb.iterrows():
+            now_number = row[1]['residue number']
+            now_name = row[1]['res name']
+            if previous:
+                if previous != now_number and previous_name != 'WAT' and previous_name != "Na+":
+                    residue_number += 1
+                elif previous != now_number and now_name != 'WAT' and now_name != "Na+":
+                    residue_number += 1
+                residues.append(residue_number)
+            previous = now_number
+            previous_name = now_name
+
     print("Checking MDI")
     engine_comm = mdi_checks(mdi)
 
@@ -139,9 +164,9 @@ if __name__ == "__main__":
     molecules = np.array(mdi.MDI_Recv(natoms_engine, mdi.MDI_INT, engine_comm))
 
     # Get the residue information
-    mdi.MDI_Send_Command("<RESIDUES", engine_comm)
-    residues = np.array(mdi.MDI_Recv(natoms_engine, mdi.MDI_INT, engine_comm))
-    elapsed = time.time() - start
+    #mdi.MDI_Send_Command("<RESIDUES", engine_comm)
+    #residues = np.array(mdi.MDI_Recv(natoms_engine, mdi.MDI_INT, engine_comm))
+    #elapsed = time.time() - start
     print(F'Initial Info to Tinker:\t {elapsed}')
 
 
@@ -241,9 +266,7 @@ if __name__ == "__main__":
     ###########################################################################
 
     start = time.time()
-
-    # Overallocate array since we don't know how many frames
-    output = pd.DataFrame(index=range(len(from_fragment) * np.sum(range(len(probes)-1))))
+    output = pd.DataFrame()
 
     # Read trajectory and do analysis
     for snap_num, snapshot in enumerate(pd.read_csv(snapshot_filename, chunksize=natoms+skip_line,
@@ -276,7 +299,6 @@ if __name__ == "__main__":
                 mdi.MDI_Recv(3*npoles*len(probes), mdi.MDI_DOUBLE, engine_comm, buf=dfield)
                 elapsed_dfield = time.time() - start_dfield
                 print(F"DField Retrieval:\t {elapsed_dfield}")
-
 #
 #                # Get the pairwise UFIELD
                 ufield = np.zeros((len(probes),npoles,3))
@@ -299,6 +321,7 @@ if __name__ == "__main__":
                     dfield_df.loc[i, 'Probe Coordinates'] = snapshot_coords[probes[i]-1]
                     ufield_df.loc[i, 'Probe Atom'] = probes[i]
                     ufield_df.loc[i, 'Probe Coordinates'] = snapshot_coords[probes[i]-1]
+                    totfield_df.loc[i, 'Probe Atom'] = probes[i]
                     totfield_df.loc[i, 'Probe Coordinates'] = snapshot_coords[probes[i]-1]
 
                     for fragment_index, fragment in enumerate(atoms_pole_numbers):
@@ -319,14 +342,19 @@ if __name__ == "__main__":
                         # Unit vector
                         dir_vec = (coord2 - coord1) / np.linalg.norm(coord2 - coord1)
 
+                        #print(avg_field)
+
                         efield_at_point = []
                         label = []
                         for column_name, column_value in avg_field.iteritems():
-                            output.loc[count,'Atom 1'] = probes[i]
-                            output.loc[count, 'Atom 2'] = probes[j]
-                            output.loc[count, 'From'] = column_name
-                            output.loc[count, F'Frame {snap_num}'] = np.dot(column_value, dir_vec)*conversion_factor
+                            efield_at_point.append(np.dot(column_value, dir_vec)*conversion_factor)
+                            label.append(column_name)
                             count += 1
+                        series = pd.Series(efield_at_point, index=label)
+                        output = pd.concat([output, series], axis=1)
+                        cols = list(output.columns)
+                        cols[-1] = F'{probes[i]} and {probes[j]} - frame {snap_num}'
+                        output.columns = cols
 
 
         elapsed_sum = time.time() - start_sum
@@ -336,11 +364,11 @@ if __name__ == "__main__":
     dfield_df.to_csv('dfield.csv', index=False)
     ufield_df.to_csv('ufield.csv', index=False)
 
-    output['Atom 1'] = output['Atom 1'].astype(int)
-    output['Atom 2'] = output['Atom 2'].astype(int)
+    #output['Atom 1'] = output['Atom 1'].astype(int)
+    #output['Atom 2'] = output['Atom 2'].astype(int)
 
 
-    output.to_csv('ouput.csv', index=False)
+    output.to_csv('ouput.csv')
 
     elapsed = time.time() - start
     print(F'Elapsed loop:{elapsed}')#
