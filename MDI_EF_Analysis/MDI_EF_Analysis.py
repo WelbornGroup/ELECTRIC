@@ -1,10 +1,13 @@
 import sys
+import os
 import time
 import argparse
 import numpy as np
 import pandas as pd
 
-from copy import deepcopy
+
+from util import process_pdb, index_fragments
+
 
 # Use local MDI build
 import mdi.MDI_Library as mdi
@@ -73,20 +76,17 @@ if __name__ == "__main__":
     parser.add_argument("--byres", help="give electric field at probe by residue")
     parser.add_argument("--bymol", help="give electric field at probe by molecule",
         action="store_true")
-    parser.add_argument("--equil", help="number of equilibration frames to skip")
+    parser.add_argument("--equil", help="number of equilibration frames to skip", type=int)
     parser.add_argument("--stride", help="number of frames between analysis", type=int)
 
     args = parser.parse_args()
 
-    print("Initializing MDI")
     # Process args for MDI
     mdi.MDI_Init(args.mdi, mpi_world)
-    print("MDI Initialized.")
 
     if use_mpi4py:
         mpi_world = mdi.MDI_Get_Intra_Code_MPI_Comm()
         world_rank = mpi_world.Get_rank()
-
 
     snapshot_filename = args.snap
     probes = [int(x) for x in args.probes.split()]
@@ -105,29 +105,7 @@ if __name__ == "__main__":
         stride = args.stride
 
     if args.byres:
-        pdb = pd.read_fwf(args.byres, skiprows=4, header=None, colspecs=((0,6),
-                                                              (6,12), (12, 16), (16,17),
-                                                              (17,20), (21, 22), (22, 27),
-                                                              (27,28)), dtype=str)
-        pdb = pdb[[4,6]]
-        pdb.columns = ['res name', 'residue number']
-        pdb.dropna(inplace=True)
-
-        residue_number = 1
-        previous = None
-        previous_name = None
-        residues = []
-        for row in pdb.iterrows():
-            now_number = row[1]['residue number']
-            now_name = row[1]['res name']
-            if previous:
-                if previous != now_number and previous_name != 'WAT' and previous_name != "Na+":
-                    residue_number += 1
-                elif previous != now_number and now_name != 'WAT' and now_name != "Na+":
-                    residue_number += 1
-                residues.append(residue_number)
-            previous = now_number
-            previous_name = now_name
+        residues = process_pdb(args.byres)
 
     print("Checking MDI")
     engine_comm = mdi_checks(mdi)
@@ -164,9 +142,7 @@ if __name__ == "__main__":
     molecules = np.array(mdi.MDI_Recv(natoms_engine, mdi.MDI_INT, engine_comm))
 
     # Get the residue information
-    #mdi.MDI_Send_Command("<RESIDUES", engine_comm)
-    #residues = np.array(mdi.MDI_Recv(natoms_engine, mdi.MDI_INT, engine_comm))
-    #elapsed = time.time() - start
+    # Residue information comes from pdb.
     print(F'Initial Info to Tinker:\t {elapsed}')
 
 
@@ -195,27 +171,16 @@ if __name__ == "__main__":
     atoms_pole_numbers = []
     if args.bymol:
         by_type = 'molecule'
-        from_fragment = np.unique(molecules)
-        for mol in from_fragment:
-            # These are the atom numbers for the atoms in the specified molecules
-            molecule_atoms = np.array(np.where(molecules == mol)) + 1
-            # The pole indices for the speified molecule
-            pole_numbers = [ipoles[atom_index - 1] for atom_index in molecule_atoms[0]]
-            atoms_pole_numbers.append(np.array(pole_numbers))
+        fragment_list = molecules
     elif args.byres:
         by_type = 'residue'
-        from_fragment = np.unique(residues)
-        for res in from_fragment:
-            # These are the atom numbers for the atoms in the specified residues
-            residue_atoms = np.array(np.where(residues == res)) + 1
-            # The pole indices for the speified molecule
-            pole_numbers = [ipoles[atom_index - 1] for atom_index in residue_atoms[0]]
-            atoms_pole_numbers.append(np.array(pole_numbers))
+        fragment_list = residues
     else:
         by_type = 'atom'
         # We are interested in all of the atoms.
-        from_fragment = list(range(1,natoms_engine+1))
-        atoms_pole_numbers = np.array([[x] for x in ipoles])
+        fragment_list = list(range(1,natoms_engine+1))
+
+    atoms_pole_numbers, from_fragment = index_fragments(fragment_list, ipoles)
 
     elapsed = time.time() - start
     print(F'Bookkeeping:\t {elapsed}')
@@ -299,6 +264,7 @@ if __name__ == "__main__":
                 mdi.MDI_Recv(3*npoles*len(probes), mdi.MDI_DOUBLE, engine_comm, buf=dfield)
                 elapsed_dfield = time.time() - start_dfield
                 print(F"DField Retrieval:\t {elapsed_dfield}")
+                #np.save('dfield.pkl', dfield)
 #
 #                # Get the pairwise UFIELD
                 ufield = np.zeros((len(probes),npoles,3))
@@ -306,8 +272,6 @@ if __name__ == "__main__":
                 mdi.MDI_Recv(3*npoles*len(probes), mdi.MDI_DOUBLE, engine_comm, buf=ufield)
 
                 # Sum the appropriate values
-
-                start_sum = time.time()
 
                 columns = ['Probe Atom', 'Probe Coordinates']
                 columns += [F'{by_type} {x}' for x in from_fragment]
@@ -326,6 +290,9 @@ if __name__ == "__main__":
 
                     for fragment_index, fragment in enumerate(atoms_pole_numbers):
                         fragment_string = F'{by_type} {from_fragment[fragment_index]}'
+                        # This uses a numpy array (fragments) for indexing. The fragments
+                        # array lists pole indices in that fragment. We subtract 1 because
+                        # python indexes from zero.
                         dfield_df.loc[i, fragment_string] = dfield[i, fragment-1].sum(axis=0)
                         ufield_df.loc[i, fragment_string] = ufield[i, fragment-1].sum(axis=0)
                         totfield_df.loc[i, fragment_string] = dfield_df.loc[i, fragment_string] + \
@@ -335,7 +302,7 @@ if __name__ == "__main__":
                 count = 0
                 for i in range(len(probes)):
                     for j in range(i+1, len(probes)):
-                        avg_field = (totfield_df.iloc[i, 2:] - totfield_df.iloc[j, 2:]) / 2
+                        avg_field = (totfield_df.iloc[i, 2:] + totfield_df.iloc[j, 2:]) / 2
 
                         coord1 = totfield_df.loc[i, 'Probe Coordinates']
                         coord2 = totfield_df.loc[j, 'Probe Coordinates']
@@ -356,19 +323,7 @@ if __name__ == "__main__":
                         cols[-1] = F'{probes[i]} and {probes[j]} - frame {snap_num}'
                         output.columns = cols
 
-
-        elapsed_sum = time.time() - start_sum
-
-        print(F"Elapsed sum: {elapsed_sum}")
-
-    dfield_df.to_csv('dfield.csv', index=False)
-    ufield_df.to_csv('ufield.csv', index=False)
-
-    #output['Atom 1'] = output['Atom 1'].astype(int)
-    #output['Atom 2'] = output['Atom 2'].astype(int)
-
-
-    output.to_csv('ouput.csv')
+    output.to_csv('proj_totfield.csv')
 
     elapsed = time.time() - start
     print(F'Elapsed loop:{elapsed}')#
