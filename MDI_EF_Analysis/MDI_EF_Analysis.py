@@ -25,7 +25,7 @@ if use_mpi4py:
 else:
     mpi_world = None
 
-def mdi_checks(mdi_engine):
+def mdi_checks(mdi_engine, nengines):
     """
     Perform checks on the MDI driver we have accepted to make sure it fits this analysis.
     """
@@ -35,8 +35,7 @@ def mdi_checks(mdi_engine):
         raise Exception("Must run driver_py.py as a DRIVER")
 
     # Connect to the engine
-    engine_comm = mdi_engine.MDI_NULL_COMM
-    nengines = 1
+    engine_comm = []
     for iengine in range(nengines):
         comm = mdi.MDI_Accept_Communicator()
 
@@ -46,13 +45,76 @@ def mdi_checks(mdi_engine):
         print(F"Engine name: {name}")
 
         if name == "NO_EWALD":
-            if engine_comm != mdi_engine.MDI_NULL_COMM:
-                raise Exception("Accepted a communicator from a second NO_EWALD engine.")
-            engine_comm = comm
+            #if engine_comm != mdi_engine.MDI_NULL_COMM:
+            #    raise Exception("Accepted a communicator from a second NO_EWALD engine.")
+            #engine_comm = comm
+            engine_comm.append(comm)
         else:
             raise Exception("Unrecognized engine name", name)
 
     return engine_comm
+
+def receive_from_engine(comm, snapshot_coords, snap_num, output):
+    mdi.MDI_Recv(3*npoles*len(probes), mdi.MDI_DOUBLE, comm, buf=dfield)
+
+    # Get the pairwise UFIELD
+    ufield = np.zeros((len(probes),npoles,3))
+    mdi.MDI_Send_Command("<UFIELD", comm)
+    mdi.MDI_Recv(3*npoles*len(probes), mdi.MDI_DOUBLE, comm, buf=ufield)
+
+    # Sum the appropriate values
+
+    columns = ['Probe Atom', 'Probe Coordinates']
+    columns += [F'{by_type} {x}' for x in from_fragment]
+    dfield_df = pd.DataFrame(columns=columns, index=range(len(probes)))
+    ufield_df = pd.DataFrame(columns=columns, index=range(len(probes)))
+    totfield_df = pd.DataFrame(columns=columns, index=range(len(probes)))
+
+    # Get sum at each probe from fragment.
+    for i in range(len(probes)):
+        dfield_df.loc[i, 'Probe Atom'] = probes[i]
+        dfield_df.loc[i, 'Probe Coordinates'] = snapshot_coords[probes[i]-1]
+        ufield_df.loc[i, 'Probe Atom'] = probes[i]
+        ufield_df.loc[i, 'Probe Coordinates'] = snapshot_coords[probes[i]-1]
+        totfield_df.loc[i, 'Probe Atom'] = probes[i]
+        totfield_df.loc[i, 'Probe Coordinates'] = snapshot_coords[probes[i]-1]
+
+        for fragment_index, fragment in enumerate(atoms_pole_numbers):
+            fragment_string = F'{by_type} {from_fragment[fragment_index]}'
+            # This uses a numpy array (fragments) for indexing. The fragments
+            # array lists pole indices in that fragment. We subtract 1 because
+            # python indexes from zero.
+            dfield_df.loc[i, fragment_string] = dfield[i, fragment-1].sum(axis=0)
+            ufield_df.loc[i, fragment_string] = ufield[i, fragment-1].sum(axis=0)
+            totfield_df.loc[i, fragment_string] = dfield_df.loc[i, fragment_string] + \
+                                                                      ufield_df.loc[i, fragment_string]
+
+    # Pairwise probe calculation - Get avg electric field
+    count = 0
+    for i in range(len(probes)):
+        for j in range(i+1, len(probes)):
+            avg_field = (totfield_df.iloc[i, 2:] + totfield_df.iloc[j, 2:]) / 2
+
+            coord1 = totfield_df.loc[i, 'Probe Coordinates']
+            coord2 = totfield_df.loc[j, 'Probe Coordinates']
+            # Unit vector
+            dir_vec = (coord2 - coord1) / np.linalg.norm(coord2 - coord1)
+
+            #print(avg_field)
+
+            efield_at_point = []
+            label = []
+            for column_name, column_value in avg_field.iteritems():
+                efield_at_point.append(np.dot(column_value, dir_vec)*conversion_factor)
+                label.append(column_name)
+                count += 1
+            series = pd.Series(efield_at_point, index=label)
+            output = pd.concat([output, series], axis=1)
+            cols = list(output.columns)
+            cols[-1] = F'{probes[i]} and {probes[j]} - frame {snap_num}'
+            output.columns = cols
+
+    return output
 
 
 if __name__ == "__main__":
@@ -73,6 +135,7 @@ if __name__ == "__main__":
         required=True)
     parser.add_argument("-probes", help="indices of the probe atoms", type=str,
         required=True)
+    parser.add_argument("-nengines", help="number of frames between analysis", type=int)
     parser.add_argument("--byres", help="give electric field at probe by residue")
     parser.add_argument("--bymol", help="give electric field at probe by molecule",
         action="store_true")
@@ -107,8 +170,13 @@ if __name__ == "__main__":
     if args.byres:
         residues = process_pdb(args.byres)
 
+    if not args.nengines:
+        nengines = 1
+    else:
+        nengines = args.nengines
+
     print("Checking MDI")
-    engine_comm = mdi_checks(mdi)
+    engine_comm = mdi_checks(mdi, nengines)
 
     # Print the probe atoms
     print(F"Probes: {probes}")
@@ -124,22 +192,22 @@ if __name__ == "__main__":
 
     start = time.time()
     # Get the number of atoms
-    mdi.MDI_Send_Command("<NATOMS", engine_comm)
-    natoms_engine = mdi.MDI_Recv(1, mdi.MDI_INT, engine_comm)
+    mdi.MDI_Send_Command("<NATOMS", engine_comm[0])
+    natoms_engine = mdi.MDI_Recv(1, mdi.MDI_INT, engine_comm[0])
     print(F"natoms: {natoms_engine}")
 
     # Get the number of multipole centers
-    mdi.MDI_Send_Command("<NPOLES", engine_comm)
-    npoles = mdi.MDI_Recv(1, mdi.MDI_INT, engine_comm)
+    mdi.MDI_Send_Command("<NPOLES", engine_comm[0])
+    npoles = mdi.MDI_Recv(1, mdi.MDI_INT, engine_comm[0])
     print("npoles: " + str(npoles))
 
     # Get the indices of the mulitpole centers per atom
-    mdi.MDI_Send_Command("<IPOLES", engine_comm)
-    ipoles = mdi.MDI_Recv(natoms_engine, mdi.MDI_INT, engine_comm)
+    mdi.MDI_Send_Command("<IPOLES", engine_comm[0])
+    ipoles = mdi.MDI_Recv(natoms_engine, mdi.MDI_INT, engine_comm[0])
 
     # Get the molecule information
-    mdi.MDI_Send_Command("<MOLECULES", engine_comm)
-    molecules = np.array(mdi.MDI_Recv(natoms_engine, mdi.MDI_INT, engine_comm))
+    mdi.MDI_Send_Command("<MOLECULES", engine_comm[0])
+    molecules = np.array(mdi.MDI_Recv(natoms_engine, mdi.MDI_INT, engine_comm[0]))
 
     # Get the residue information
     # Residue information comes from pdb.
@@ -192,10 +260,11 @@ if __name__ == "__main__":
     ###########################################################################
     start = time.time()
     # Inform Tinker of the probe atoms
-    mdi.MDI_Send_Command(">NPROBES", engine_comm)
-    mdi.MDI_Send(len(probes), 1, mdi.MDI_INT, engine_comm)
-    mdi.MDI_Send_Command(">PROBES", engine_comm)
-    mdi.MDI_Send(probe_pole_indices, len(probes), mdi.MDI_INT, engine_comm)
+    for comm in engine_comm:
+        mdi.MDI_Send_Command(">NPROBES", comm)
+        mdi.MDI_Send(len(probes), 1, mdi.MDI_INT, comm)
+        mdi.MDI_Send_Command(">PROBES", comm)
+        mdi.MDI_Send(probe_pole_indices, len(probes), mdi.MDI_INT, comm)
 
     angstrom_to_bohr = mdi.MDI_Conversion_Factor("angstrom","atomic_unit_of_length")
     elapsed - time.time() - start
@@ -233,6 +302,10 @@ if __name__ == "__main__":
     start = time.time()
     output = pd.DataFrame()
 
+    itask = 0
+    itask_to_snap_num = {}
+    snapshot_coords = [ None for iengine in range(nengines) ]
+
     # Read trajectory and do analysis
     for snap_num, snapshot in enumerate(pd.read_csv(snapshot_filename, chunksize=natoms+skip_line,
         header=None, delim_whitespace=True, names=range(15),
@@ -241,87 +314,48 @@ if __name__ == "__main__":
         if snap_num > equil - 1:
             if snap_num % stride == 0:
 
+                icomm = itask % nengines
+                itask_to_snap_num[itask] = snap_num
+                itask += 1
+
+                start_dfield = time.time()
+
                 # Pull out just coords, convert to numeric and use conversion factor.
                 # columns 2-4 of the pandas dataframe are the coordinates.
                 # Must create a copy to send to MDI.
-                snapshot_coords = (snapshot.iloc[:natoms , 2:5].apply(pd.to_numeric) *
-                    angstrom_to_bohr).to_numpy()
+                snapshot_coords[icomm] = (snapshot.iloc[:natoms , 2:5].apply(pd.to_numeric) *
+                    angstrom_to_bohr).to_numpy().copy()
 
-                mdi.MDI_Send_Command(">COORDS", engine_comm)
-                mdi.MDI_Send(snapshot_coords.copy(), 3*natoms, mdi.MDI_DOUBLE, engine_comm)
+                mdi.MDI_Send_Command(">COORDS", engine_comm[icomm])
+                mdi.MDI_Send(snapshot_coords[icomm], 3*natoms, mdi.MDI_DOUBLE, engine_comm[icomm])
 
                 # Get the electric field information
                 # mdi.MDI_Send_Command("<FIELD", engine_comm)
                 # field = np.zeros(3 * npoles, dtype='float64')
                 # mdi.MDI_Recv(3*npoles, mdi.MDI_DOUBLE, engine_comm, buf = field)
                 # field = field.reshape(npoles,3)
-#
-                start_dfield = time.time()
 
                 # Get the pairwise DFIELD
+                # Note: We only send the command here; we do NOT wait for Tinker to finish the calculation
+                # This allows us to farm out tasks to each of the engines simultaneously
                 dfield = np.zeros((len(probes),npoles,3))
-                mdi.MDI_Send_Command("<DFIELD", engine_comm)
-                mdi.MDI_Recv(3*npoles*len(probes), mdi.MDI_DOUBLE, engine_comm, buf=dfield)
-                elapsed_dfield = time.time() - start_dfield
-                print(F"DField Retrieval:\t {elapsed_dfield}")
-                #np.save('dfield.pkl', dfield)
-#
-#                # Get the pairwise UFIELD
-                ufield = np.zeros((len(probes),npoles,3))
-                mdi.MDI_Send_Command("<UFIELD", engine_comm)
-                mdi.MDI_Recv(3*npoles*len(probes), mdi.MDI_DOUBLE, engine_comm, buf=ufield)
+                mdi.MDI_Send_Command("<DFIELD", engine_comm[icomm])
 
-                # Sum the appropriate values
+                # After every engine has received a task, collect the data
+                if (icomm % nengines) == (nengines - 1):
+                    for jcomm in range(nengines):
+                        output = receive_from_engine(engine_comm[jcomm], snapshot_coords[jcomm], 
+                                                     itask_to_snap_num[itask - nengines + jcomm], 
+                                                     output)
 
-                columns = ['Probe Atom', 'Probe Coordinates']
-                columns += [F'{by_type} {x}' for x in from_fragment]
-                dfield_df = pd.DataFrame(columns=columns, index=range(len(probes)))
-                ufield_df = pd.DataFrame(columns=columns, index=range(len(probes)))
-                totfield_df = pd.DataFrame(columns=columns, index=range(len(probes)))
+                    elapsed_dfield = time.time() - start_dfield
+                    print(F"DField Retrieval:\t {elapsed_dfield}")
 
-                # Get sum at each probe from fragment.
-                for i in range(len(probes)):
-                    dfield_df.loc[i, 'Probe Atom'] = probes[i]
-                    dfield_df.loc[i, 'Probe Coordinates'] = snapshot_coords[probes[i]-1]
-                    ufield_df.loc[i, 'Probe Atom'] = probes[i]
-                    ufield_df.loc[i, 'Probe Coordinates'] = snapshot_coords[probes[i]-1]
-                    totfield_df.loc[i, 'Probe Atom'] = probes[i]
-                    totfield_df.loc[i, 'Probe Coordinates'] = snapshot_coords[probes[i]-1]
-
-                    for fragment_index, fragment in enumerate(atoms_pole_numbers):
-                        fragment_string = F'{by_type} {from_fragment[fragment_index]}'
-                        # This uses a numpy array (fragments) for indexing. The fragments
-                        # array lists pole indices in that fragment. We subtract 1 because
-                        # python indexes from zero.
-                        dfield_df.loc[i, fragment_string] = dfield[i, fragment-1].sum(axis=0)
-                        ufield_df.loc[i, fragment_string] = ufield[i, fragment-1].sum(axis=0)
-                        totfield_df.loc[i, fragment_string] = dfield_df.loc[i, fragment_string] + \
-                            ufield_df.loc[i, fragment_string]
-
-                # Pairwise probe calculation - Get avg electric field
-                count = 0
-                for i in range(len(probes)):
-                    for j in range(i+1, len(probes)):
-                        avg_field = (totfield_df.iloc[i, 2:] + totfield_df.iloc[j, 2:]) / 2
-
-                        coord1 = totfield_df.loc[i, 'Probe Coordinates']
-                        coord2 = totfield_df.loc[j, 'Probe Coordinates']
-                        # Unit vector
-                        dir_vec = (coord2 - coord1) / np.linalg.norm(coord2 - coord1)
-
-                        #print(avg_field)
-
-                        efield_at_point = []
-                        label = []
-                        for column_name, column_value in avg_field.iteritems():
-                            efield_at_point.append(np.dot(column_value, dir_vec)*conversion_factor)
-                            label.append(column_name)
-                            count += 1
-                        series = pd.Series(efield_at_point, index=label)
-                        output = pd.concat([output, series], axis=1)
-                        cols = list(output.columns)
-                        cols[-1] = F'{probes[i]} and {probes[j]} - frame {snap_num}'
-                        output.columns = cols
+    # Collect any tasks that have not yet been collected
+    for icomm in range ( itask % nengines ):
+        output = receive_from_engine(engine_comm[icomm], snapshot_coords[icomm], 
+                                     itask_to_snap_num[itask - nengines + jcomm], 
+                                     output)
 
     output.to_csv('proj_totfield.csv')
 
@@ -329,7 +363,8 @@ if __name__ == "__main__":
     print(F'Elapsed loop:{elapsed}')#
 
     # Send the "EXIT" command to the engine
-    mdi.MDI_Send_Command("EXIT", engine_comm)
+    for comm in engine_comm:
+        mdi.MDI_Send_Command("EXIT", comm)
 
     # Ensure that all ranks have terminated
     if use_mpi4py:
