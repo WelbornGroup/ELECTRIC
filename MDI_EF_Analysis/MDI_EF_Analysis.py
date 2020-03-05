@@ -54,7 +54,7 @@ def mdi_checks(mdi_engine, nengines):
 
     return engine_comm
 
-def receive_from_engine(comm, snapshot_coords, snap_num, output):
+def collect_task(comm, snapshot_coords, snap_num, output):
     mdi.MDI_Recv(3*npoles*len(probes), mdi.MDI_DOUBLE, comm, buf=dfield)
 
     # Get the pairwise UFIELD
@@ -344,18 +344,16 @@ if __name__ == "__main__":
                 # After every engine has received a task, collect the data
                 if (icomm % nengines) == (nengines - 1):
                     for jcomm in range(nengines):
-                        output = receive_from_engine(engine_comm[jcomm], snapshot_coords[jcomm], 
-                                                     itask_to_snap_num[itask - nengines + jcomm], 
-                                                     output)
+                        output = collect_task(engine_comm[jcomm], snapshot_coords[jcomm], 
+                                              itask_to_snap_num[itask - nengines + jcomm], output)
 
                     elapsed_dfield = time.time() - start_dfield
                     print(F"DField Retrieval:\t {elapsed_dfield}")
 
     # Collect any tasks that have not yet been collected
     for icomm in range ( itask % nengines ):
-        output = receive_from_engine(engine_comm[icomm], snapshot_coords[icomm], 
-                                     itask_to_snap_num[itask - nengines + jcomm], 
-                                     output)
+        output = collect_task(engine_comm[icomm], snapshot_coords[icomm], 
+                              itask_to_snap_num[itask - nengines + jcomm], output)
 
     output.to_csv('proj_totfield.csv')
 
