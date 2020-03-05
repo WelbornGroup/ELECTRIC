@@ -56,7 +56,7 @@ def process_pdb(file_path, group_solvent=True):
             if previous != now_number and previous is not None:
                 if not (group_solvent) or \
                             (group_solvent and previous_name.lower() not in solvent_residues) or \
-                                (group_solvent and previous_name.lower() not in solvent_residues):
+                                (group_solvent and now_name.lower() not in solvent_residues):
                     residue_number += 1
 
             residues.append(residue_number)
