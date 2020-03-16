@@ -129,18 +129,55 @@ if __name__ == "__main__":
 
     start = time.time()
     # Handle arguments with argparse
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-mdi", help="flags for mdi", type=str, required=True)
-    parser.add_argument("-snap", help="the snapshot file to process", type=str,
+    parser = argparse.ArgumentParser(add_help=False,
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    required = parser.add_argument_group('required arguments')
+    optional = parser.add_argument_group('optional arguments')
+
+    # Add back help
+    optional.add_argument(
+        '-h',
+        '--help',
+        action='help',
+        help='show this help message and exit'
+    )
+
+    required.add_argument("-mdi", help="flags for mdi", type=str, required=True)
+    required.add_argument("-snap", help="The file name of the trajectory to analyze.", type=str,
         required=True)
-    parser.add_argument("-probes", help="indices of the probe atoms", type=str,
-        required=True)
-    parser.add_argument("-nengines", help="number of frames between analysis", type=int)
-    parser.add_argument("--byres", help="give electric field at probe by residue")
-    parser.add_argument("--bymol", help="give electric field at probe by molecule",
-        action="store_true")
-    parser.add_argument("--equil", help="number of equilibration frames to skip", type=int)
-    parser.add_argument("--stride", help="number of frames between analysis", type=int)
+
+    required.add_argument("-probes", help='''Atom indices which are probes for
+                the electric field calculations. For example, if you would like
+                to calculate the electric field along the bond between atoms 1 and 2,
+                you would use `-probes "1 2"`.''', type=str, required=True)
+
+    optional.add_argument("-nengines", help="""This option allows the driver to
+                farm tasks out to multiple Tinker engines simultaneously, enabling
+                parallelization of the electric field analysis computation.
+                The argument to this option **must** be equal to the number of
+                Tinker engines that are launched along with the driver.""", type=int,
+                default=1)
+
+
+    optional.add_argument("--equil", help='''The number of frames to skip performing analysis on
+                at the beginning of the trajectory file (given by the -snap argument)
+                For example, using --equil 50 will result in the first 50 frames of the trajectory
+                being skipped.''',
+                type=int, default=0)
+
+    optional.add_argument("--stride", help='''The number of frames to skip between
+                analysis calculations. For example, using --stride 2 would
+                result in analysis of every other frame in the trajectory.''',
+                type=int, default=1)
+
+    optional.add_argument("--byres", help='''Flag which indicates electric field
+                at the probe atoms should be calculated with electric field contributions given
+                per residue. If --byres is indicated, the argument should be followed
+                by the filename for a pdb file which gives residues.''')
+
+    optional.add_argument("--bymol", help='''Flag which indicates electric field
+                at the probe atoms should be calculated with electric field contributions given
+                per molecule.''', action="store_true")
 
     args = parser.parse_args()
 
@@ -157,25 +194,9 @@ if __name__ == "__main__":
     if args.byres and args.bymol:
         parser.error("--byres and --bymol cannot be used together. Please only use one.")
 
-    if not args.equil:
-        equil = 0
-    else:
-        equil = args.equil
-
-    if not args.stride:
-        stride = 1
-    else:
-        stride = args.stride
-
     if args.byres:
         residues = process_pdb(args.byres)
 
-    if not args.nengines:
-        nengines = 1
-    else:
-        nengines = args.nengines
-
-    print("Checking MDI")
     engine_comm = mdi_checks(mdi, nengines)
 
     # Print the probe atoms
@@ -344,7 +365,7 @@ if __name__ == "__main__":
                 # After every engine has received a task, collect the data
                 if (icomm % nengines) == (nengines - 1):
                     for jcomm in range(nengines):
-                        output = collect_task(engine_comm[jcomm], snapshot_coords[jcomm], 
+                        output = collect_task(engine_comm[jcomm], snapshot_coords[jcomm],
                                               itask_to_snap_num[itask - nengines + jcomm], output)
 
                     elapsed_dfield = time.time() - start_dfield
@@ -352,7 +373,7 @@ if __name__ == "__main__":
 
     # Collect any tasks that have not yet been collected
     for icomm in range ( itask % nengines ):
-        output = collect_task(engine_comm[icomm], snapshot_coords[icomm], 
+        output = collect_task(engine_comm[icomm], snapshot_coords[icomm],
                               itask_to_snap_num[itask - nengines + jcomm], output)
 
     output.to_csv('proj_totfield.csv')
