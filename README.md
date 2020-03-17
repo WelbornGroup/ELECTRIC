@@ -30,7 +30,7 @@ The above clone should be compiled before running calculations with the driver. 
     cd Tinker
     git checkout mdi-ef
 
-The build scripts are in the `dev` folder. If it is the first time you are compiling, you should run `full_build.sh`:
+For convenience, we have provided build scripts in the dev folder. You can either build Tinker in the normal manner, or you can do:
 
     cd dev
     ./full_build.sh
@@ -55,7 +55,7 @@ Note the output of this command for the following steps.
 
 ### Compiling Electric Field Analysis Driver
 
-Once you have downloaded and compiled MD, you will need to download and compiile the code to do electric field analysis (the code in this repository). Before cloning the repository, make sure you are no longer in the Tinker repo you just built. If you followed along with the previous steps:
+Once you have downloaded and compiled MDI, you will need to download and compile the code to do electric field analysis. Before cloning the repository, make sure you are no longer in the Tinker repo you just built. If you followed along with the previous steps:
 
     cd ../../../../
 
@@ -88,11 +88,11 @@ This script will run a short Tinker dynamics simulation that includes periodic b
 
     ${TINKER_LOC} bench5 -k bench5.key 10 1.0 0.001999 2 300.00 > Dynamics.log
 
-It then launches an instance of Tinker as an MDI engine, which will request a connection to the driver and then listen for commands from the driver. This line is similar to the above line, except that it uses a modified Tinker input file (more on this below), and adds an additional command line argument which passes information to MDI (`-mdi "role ENGINE -name NO_EWALD -method TCP -port 8022 -hostname localhost"`)
+The script then launches an instance of Tinker as an MDI engine, which will request a connection to the driver and then listen for commands from the driver. This command is similar to running a simulation with Tinker, except that it uses a modified Tinker input file (more on this below), and adds an additional command line argument which passes information to MDI (`-mdi "role ENGINE -name NO_EWALD -method TCP -port 8022 -hostname localhost"`):
 
     ${TINKER_LOC} bench5 -k no_ewald.key -mdi "-role ENGINE -name NO_EWALD -method TCP -port 8022 -hostname localhost" 10 1.0 0.001999 2 300.00 > no_ewald.log &
 
-It will then launch an instance of the driver in the background, which will listen for connections from an MDI engine:
+The script will then launch an instance of the driver in the background, which will listen for connections from an MDI engine:
 
     python ${DRIVER_LOC} -probes "1 40" -snap bench5.arc -mdi "-role DRIVER -name driver -method TCP -port 8022" --bymol &
 
@@ -110,7 +110,7 @@ If each snapshot was instead written to a different file (i.e., `coordinates.001
 This keyfile should be identical to the one used in Step 1, except that it **must not** include periodic boundary conditions and **must not** use an Ewald summation. This means that in the `.key` file for running the driver, you should not have an `a-axis` keyword, or keywords related to Ewald.
 
 3. **Launch one (or more; see the `-nengines` option below) instance(s) of Tinker as an MDI engine, using the keyfile created in Step 2.**  
-This is done in the same way you launch a normal Tinker simulation (by launching the `dynamic.x` executable) except that the `-mdi` command-line option is added. However, it is **very important** that the reference coordinates you use do not have perioidic boundary information. So, if when you originally ran the simulation you started it with a snapshot from a previous simulation run, make sure to create a new snapshot to launch the simulation from which does not include box information on line 2.
+This is done in the same way you launch a normal Tinker simulation (by launching the `dynamic.x` executable) except that the `-mdi` command-line option is added. However, it is **very important** that the reference coordinates you use do not have periodic boundary information. So, if when you originally ran the simulation you started it with a snapshot from a previous simulation run, make sure to create a new snapshot to launch the simulation from which does not include box information on line 2.
 
   The argument to the `-mdi` command-line option details how Tinker should connect to the driver; its possible arguments are described in the [MDI documentation](https://molssi.github.io/MDI_Library/html/library_page.html#library_launching_sec).
   When in doubt, we recommend doing `-mdi "-role ENGINE -name NO_EWALD -method TCP -port 8021 -hostname localhost"`
