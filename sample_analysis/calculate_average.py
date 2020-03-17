@@ -1,5 +1,5 @@
 """
-Makes plot to compare previously calculated value with new value.
+Calculates time average for probe pairs.
 """
 
 import pandas as pd
