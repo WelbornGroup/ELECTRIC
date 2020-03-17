@@ -96,7 +96,7 @@ The script will then launch an instance of the driver in the background, which w
 
     python ${DRIVER_LOC} -probes "1 40" -snap bench5.arc -mdi "-role DRIVER -name driver -method TCP -port 8022" --bymol &
 
-The driver's output should match the reference output in the `ref` file.
+The driver's output should match the reference output file (`proj_totfield.csv`) in the `sample_analysis` directory.
 
 ## Usage
 
@@ -168,7 +168,7 @@ Here is the help information for the command line arguments:
       -probes PROBES      Atom indices which are probes for the electric field
                           calculations. For example, if you would like to
                           calculate the electric field along the bond between
-                          atoms 1 and 2, you would use `-probes "1 2"`. (default:
+                          atoms 1 and 2, you would use -probes "1 2". (default:
                           None)
 
     optional arguments:
@@ -196,3 +196,27 @@ Here is the help information for the command line arguments:
       --bymol             Flag which indicates electric field at the probe atoms
                           should be calculated with electric field contributions
                           given per molecule. (default: False)
+
+## Output
+
+The driver will output a file called `proj_totfield.csv`. This is a CSV file which contains data on the projected electric field at the point between each probe atom due to each fragment , depending on input (`--byres` for by residue, `--bymol` for by molecule, or by atom if neither argument is given.). Each column will contain a header which indicates which probe atoms the measurement is between, followed by the frame number, while the rows will be the electric field at the mean location between the probe atoms due to a particular fragment
+
+Consider the example (`bench5`), which was run with the following command:
+
+    python ${DRIVER_LOC} -probes "1 40" -snap bench5.arc -mdi "-role DRIVER -name driver -method TCP -port 8022" --bymol
+
+Here, we have set the probe atoms to be atoms 1 and 40, and we have indicated we want the the electric field between the probe atoms based on contributions by molecule. Headers will be "`i and j - frame n`. Where `i` and `j` are the atom indices of the probes, and `n` is the frame number.
+
+For the example, headers are:
+
+    "1 and 40 - frame 0"
+    "1 and 40 - frame 1"
+    "1 and 40 - frame 2"
+    "1 and 40 - frame 3"
+    "1 and 40 - frame 4"
+
+Since this calculation was run using `--bymol`, there are 216 rows, one for each molecule in the system.
+
+The first entry, column `1 and 40 - frame 0`, header `molecule 1`, gives the projected total electric field at the midway point between `atom 1` and `atom 40` due to `molecule 1`. The electric field has been projected along the vector which points from `atom 1` to `atom 40`. The projection will always be along the vector from atom 1 to atom 2. You can reverse the sign of the number if you would like the vector to point the opposite way.
+
+A sample script which calculates the time average for each probe pair is given in the directory `sample_analysis`.
