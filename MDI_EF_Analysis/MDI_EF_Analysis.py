@@ -180,6 +180,9 @@ if __name__ == "__main__":
                 per molecule.''', action="store_true")
 
     args = parser.parse_args()
+    nengines = args.nengines
+    equil = args.equil
+    stride = args.stride
 
     # Process args for MDI
     mdi.MDI_Init(args.mdi, mpi_world)
