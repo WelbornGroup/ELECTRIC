@@ -12,7 +12,9 @@ import util
 @pytest.mark.parametrize("file_name, group_solvent, num_atom, num_res", [
     ('1bna.pdb', True, 566, 25),
     ('1bna.pdb', False, 566, 104),
-    ('1bna_blank_line.pdb', True, 566, 25)
+    ('1bna_blank_line.pdb', True, 566, 25),
+    ('ke15.pdb', True, 48051, 255),
+    ('ke15_noheader.pdb', True, 48051, 255),
 ])
 def test_process_pdb(file_name, group_solvent, num_atom, num_res):
     base_location = os.path.dirname(os.path.realpath(__file__))
