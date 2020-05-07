@@ -33,7 +33,7 @@ def process_pdb(file_path, group_solvent=True):
             if len(line)>0:
                 line = line[0]
             if 'ATOM' in line or 'HETATM' in line:
-                found = line_number
+                found = True
             else:
                 line_number +=1
 
