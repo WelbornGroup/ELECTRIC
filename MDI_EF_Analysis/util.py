@@ -29,8 +29,9 @@ def process_pdb(file_path, group_solvent=True):
         found = False
         line_number = 0
         while not found:
-            line = f.readline()
-            line = line.split()[0]
+            line = f.readline().split()
+            if len(line)>0:
+                line = line[0]
             if 'ATOM' in line or 'HETATM' in line:
                 found = line_number
             else:
