@@ -21,7 +21,7 @@ def process_pdb(file_path, group_solvent=True):
         A list of size n_atoms where each element gives the residue number that atom belongs to.
     """
 
-    solvent_residues = ['wat', 'na+', 'cl-', 'hoh']
+    solvent_residues = ['wat', 'na+', 'cl-', 'hoh', 'na', 'cl']
     accepted_names = ['HETATM', 'ATOM']
 
     # Determine the number of lines to skip.
@@ -40,7 +40,7 @@ def process_pdb(file_path, group_solvent=True):
     pdb = pd.read_fwf(file_path, skiprows=line_number, header=None, colspecs=((0,6),
                                                           (6,12), (12, 16), (16,17),
                                                           (17,20), (21, 22), (22, 27),
-                                                          (27,28)), dtype=str)
+                                                          (27,28)), dtype=str, keep_default_na=False)
     pdb = pdb[[0,4,6]]
     pdb.columns = ['record type','res name', 'residue number']
     pdb.dropna(inplace=True)
@@ -49,6 +49,7 @@ def process_pdb(file_path, group_solvent=True):
     previous = None
     previous_name = None
     residues = []
+    residue_names = []
     for row in pdb.iterrows():
         now_number = row[1]['residue number']
         now_name = row[1]['res name']
@@ -60,11 +61,16 @@ def process_pdb(file_path, group_solvent=True):
                                 (group_solvent and now_name.lower() not in solvent_residues):
                     residue_number += 1
 
+            if now_name.lower() in solvent_residues:
+                residue_names.append('solvent')
+            else:
+                residue_names.append(now_name)
+
             residues.append(residue_number)
         previous = now_number
         previous_name = now_name
 
-    return residues
+    return residues, residue_names
 
 def index_fragments(fragment_list, ipoles):
     '''

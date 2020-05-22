@@ -198,7 +198,7 @@ if __name__ == "__main__":
         parser.error("--byres and --bymol cannot be used together. Please only use one.")
 
     if args.byres:
-        residues = process_pdb(args.byres)
+        residues = process_pdb(args.byres)[0]
 
     engine_comm = mdi_checks(mdi, nengines)
 
