@@ -38,18 +38,18 @@ def mdi_checks(mdi_engine, nengines):
     engine_comm = []
     for iengine in range(nengines):
         comm = mdi.MDI_Accept_Communicator()
+        engine_comm.append(comm)
+
+    # Verify the engine names
+    for iengine in range(nengines):
+        comm = engine_comm[iengine]
 
         # Determine the name of the engine
         mdi_engine.MDI_Send_Command("<NAME", comm)
         name = mdi_engine.MDI_Recv(mdi.MDI_NAME_LENGTH, mdi.MDI_CHAR, comm)
         print(F"Engine name: {name}")
 
-        if name == "NO_EWALD":
-            #if engine_comm != mdi_engine.MDI_NULL_COMM:
-            #    raise Exception("Accepted a communicator from a second NO_EWALD engine.")
-            #engine_comm = comm
-            engine_comm.append(comm)
-        else:
+        if name != "NO_EWALD":
             raise Exception("Unrecognized engine name", name)
 
     return engine_comm
