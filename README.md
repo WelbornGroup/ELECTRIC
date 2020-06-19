@@ -15,7 +15,7 @@ Using this tool, you can calculate the electric field along a bond or between at
 This analysis uses the NumPy [NumPy](https://numpy.org/) and [pandas](https://pandas.pydata.org/) Python packages.
 We recommend installing these packages via Conda:
 
-    conda install -c conda-forge numpy pandas
+    conda install -c conda-forge numpy pandas texinfo matplotlib
 
 The repository includes a copy of the [MDI Library](https://github.com/MolSSI/MDI_Library), which is built using CMake, as described below.
 
@@ -69,18 +69,17 @@ Then build it using CMake:
     cmake .
     make
 
-This will create the MDI driver for electric field calculations in the `build`directory.
 
 #### Configuration
 
-You will next need to tell the driver the location of the files you just compiled. This is indicated in a text file in the repository. Edit the file `MDI_EF_Analysis/test/locations/MDI_EF_Analysis` to provide the **full path** to the `MDI_EF_Analysis.py` Python script.
-If you followed the installation instructions above, this file will be in `[...]/MDI_EF_Analysis/MDI_EF_Analysis/MDI_EF_Analysis.py`, where `[...]` should be the path appropriate for your system.
+You will next need to tell the driver the location of the files you just compiled. This is indicated in a text file in the repository. Edit the file `ELECTRIC/test/locations/ELECTRIC` to provide the **full path** to the `ELECTRIC.py` Python script.
+If you followed the installation instructions above, this file will be in `[...]/ELECTRIC/ELECTRIC/ELECTRIC.py`, where `[...]` should be the path appropriate for your system.
 
-Similarly, edit the file `MDI_EF_Analysis/test/locations/Tinker` to provide the **full path** to the `dynamic.x` executable you compiled from the Tinker distribution.
+Similarly, edit the file `ELECTRIC/test/locations/Tinker_ELECTRIC` to provide the **full path** to the `dynamic.x` executable you compiled from the Tinker distribution.
 
 ## Testing
 
-You can now run a quick test of the driver by changing directory to the `MDI_EF_Analysis/test/bench5` directory and running the `tcp.sh` script:
+You can now run a quick test of the driver by changing directory to the `ELECTRIC/test/bench5` directory and running the `tcp.sh` script:
 
     ./tcp.sh
 
@@ -122,15 +121,15 @@ One possible launch command would be:
 
     `python ${DRIVER_LOC} -probes "1 2 10" -snap coordinates.arc -mdi "-role DRIVER -name driver -method TCP -port 8021" --byres ke15.pdb --equil 51 -nengines 15 &`
 
-where `DRIVER_LOC` is the path to MDI_EF_Analysis.py which you set during the configuration step.
+where `DRIVER_LOC` is the path to ELECTRIC.py which you set during the configuration step.
 The output will be written to `proj_totfield.csv`.
 
 It is useful to write a script that performs Steps 3 and 4, especially if the calculations are intended to be run on a shared cluster.
 Such a script might look like:
 
     # location of required codes
-    DRIVER_LOC=$(cat ../locations/MDI_EF_Analysis)
-    TINKER_LOC=$(cat ../locations/Tinker)
+    DRIVER_LOC=$(cat ../locations/ELECTRIC)
+    TINKER_LOC=$(cat ../locations/Tinker_ELECTRIC)
 
     # number of instances of Tinker to run as an engine
     nengines=18
@@ -153,11 +152,11 @@ Such a script might look like:
 
 You can see command line arguments for this driver using the following command from the top level of this repositry:
 
-    python MDI_EF_Analysis/MDI_EF_Analysis.py --help
+    python ELECTRIC/ELECTRIC.py --help
 
 Here is the help information for the command line arguments:
 
-    usage: MDI_EF_Analysis.py [-h] -mdi MDI -snap SNAP -probes PROBES
+    usage: ELECTRIC.py [-h] -mdi MDI -snap SNAP -probes PROBES
                               [-nengines NENGINES] [--equil EQUIL]
                               [--stride STRIDE] [--byres BYRES] [--bymol]
 
