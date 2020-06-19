@@ -65,7 +65,7 @@ Clone this repository:
 
 Then build it using CMake:
 
-    cd MDI_EF_Analysis
+    cd ELECTRIC
     cmake .
     make
 
