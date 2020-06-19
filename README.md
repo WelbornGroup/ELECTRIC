@@ -1,11 +1,14 @@
-# MDI_EF_Analysis
+# ELECTRIC
+
+The `ELECTRIC` driver has been written by Taylor Barnes and Jessica Nash, from the MoLSSI. 
+
 
 ## Overview
 
 This repository contains a driver that uses the [MolSSI Driver Interface](https://github.com/MolSSI/MDI_Library) to perform electric field analysis of [Tinker](https://dasher.wustl.edu/tinker/) trajectories which use the AMOEBA forcefield. This currently works as a post-processing tool, meaning that you run simulations as normal using Tinker, then analyze the trajectories using
 MDI-enabled Tinker and this driver.
 
-Using this tool, you can calculate the electric field along a bond or between atoms due to other atoms, molecules, or residues in the system.
+Using this tool, you can calculate the electric field along a bond or between atoms due to molecules or residues in the system.
 
 ## Requirements:
 
@@ -18,50 +21,47 @@ The repository includes a copy of the [MDI Library](https://github.com/MolSSI/MD
 
 ## Installation
 
-### Compiling MDI-enabled Tinker
+### Compiling MDI-enabled Tinker to use with ELECTRIC
 
-Running calculations with this driver will require an [MDI-enabled fork](https://github.com/taylor-a-barnes/Tinker) of Tinker.
+Running calculations with this driver will require an [MDI-enabled fork](https://github.com/WelbornGroup/Tinker.git) of Tinker.
 This can be acquired using:
 
-    git clone --branch mdi-ef https://github.com/taylor-a-barnes/Tinker.git
+    git clone https://github.com/WelbornGroup/Tinker_ELECTRIC.git 
 
-The above clone should be compiled before running calculations with the driver. First, navigate into the cloned repository. It should be compiled from the `mdi-ef` branch:
+The above clone should be compiled before running calculations with the driver. First, navigate into the cloned repository. 
 
-    cd Tinker
-    git checkout mdi-ef
+    cd Tinker_ELECTRIC
 
 For convenience, we have provided build scripts in the dev folder. You can either build Tinker in the normal manner, or you can do:
 
     cd dev
     ./full_build.sh
 
-Your compiled files are now in `../build`. Only the `dynamic.x` Tinker executable is required by this driver.
+Your compiled files are now in `../build/tinker`. 
 
-You will need the location of `dynamic.x` for subsequent installation steps. This file is in `../build/tinker/source/dynamic.x`. To find the full location:
+Only the `dynamic.x` Tinker executable is required by this driver. You will need the location of `dynamic.x` for subsequent installation steps. This file is in `../build/tinker/source/dynamic.x`. To find the full location:
 
-    cd ../
-    cd build
-    cd source
+    cd ../build/tinker/source
 
 Verify that you have a `dynamic.x` file:
 
     ls dynamic.x
 
-This should list the file name. Next, note the location of this file.
+This should list the file name. Next, note the location of this file by typing.
 
     pwd
 
 Note the output of this command for the following steps.
 
-### Compiling Electric Field Analysis Driver
+### Compiling ELECTRIC, the Electric Field Analysis Driver
 
-Once you have downloaded and compiled MDI, you will need to download and compile the code to do electric field analysis. Before cloning the repository, make sure you are no longer in the Tinker repo you just built. If you followed along with the previous steps:
+You now need to download and compile the code to do electric field analysis. Before cloning the repository, make sure you are no longer in the Tinker repo you just built. If you followed along with the previous steps:
 
     cd ../../../../
 
 Clone this repository:
 
-    git clone https://github.com/taylor-a-barnes/MDI_EF_Analysis.git
+    git clone https://github.com/WelbornGroup/ELECTRIC.git
 
 Then build it using CMake:
 
