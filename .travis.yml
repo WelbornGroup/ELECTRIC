@@ -1,0 +1,58 @@
+language: cpp
+python:
+  - "3.6"
+sudo: required
+
+matrix:
+  include:
+    - os: linux
+
+      before_install:
+        # Update apt-get
+        - sudo apt-get update
+
+        # Install gfortran
+        - sudo apt-get install gfortran
+
+        # Install conda
+        - wget http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
+        - bash miniconda.sh -b -p $HOME/miniconda
+        - export PATH=$HOME/miniconda/bin:$PATH
+        - conda config --set always_yes yes --set changeps1 no
+        - conda update -q conda
+        - conda info -a
+
+        # Install dependencies
+        - conda install -c conda-forge numpy pandas pytest pytest-cov
+
+        # Install Tinker
+        - git clone https://github.com/WelbornGroup/Tinker_ELECTRIC.git
+        - cd Tinker_ELECTRIC/dev
+        - ./full_build.sh
+        - cd ../../
+        - ls Tinker_ELECTRIC/build
+
+      install:
+        - echo "Install"
+        - cmake .
+        - make
+
+      script:
+        # Set location of codes
+        - BASE_PATH=$(pwd)
+        - echo $BASE_PATH
+        - echo "${BASE_PATH}/MDI_EF_Analysis/MDI_EF_Analysis.py" > ${BASE_PATH}/test/locations/ELECTRIC
+        - cat ${BASE_PATH}/test/locations/ELECTRIC
+        - echo "${BASE_PATH}/Tinker_ELECTRIC/build/tinker/source/dynamic.x" > ${BASE_PATH}/test/locations/Tinker
+        - echo "Script"
+
+        # Run pytest
+        - cd MDI_EF_Analysis
+        - pytest --ignore=mdi
+        - cd ../
+
+        # Run test calculation
+        - cd test/bench5
+        - ./tcp.sh
+        - cat ref
+        - cat work/proj_totfield.csv
