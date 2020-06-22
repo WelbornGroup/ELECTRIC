@@ -49,10 +49,4 @@ matrix:
         # Run pytest
         - cd MDI_EF_Analysis
         - pytest --ignore=mdi
-        - cd ../
-
-        # Run test calculation
-        - cd test/bench5
-        - ./tcp.sh
-        - cat ref
-        - cat work/proj_totfield.csv
+        - cat pytest/bench5/proj_totfield.csv
