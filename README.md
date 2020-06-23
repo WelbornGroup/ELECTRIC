@@ -23,7 +23,7 @@ The repository includes a copy of the [MDI Library](https://github.com/MolSSI/MD
 
 ### Compiling MDI-enabled Tinker to use with ELECTRIC
 
-Running calculations with this driver will require an [MDI-enabled fork](https://github.com/WelbornGroup/Tinker.git) of Tinker.
+Running calculations with this driver will require an [MDI-enabled fork](https://github.com/WelbornGroup/Tinker_ELECTRIC.git) of Tinker.
 This can be acquired using:
 
     git clone https://github.com/WelbornGroup/Tinker_ELECTRIC.git 
