@@ -18,7 +18,7 @@ def format_return(input_string):
 
 def test_bench5():
     # get the name of the codes
-    driver_path = os.path.join(mypath, "../../MDI_EF_Analysis.py")
+    driver_path = os.path.join(mypath, "../../ELECTRIC.py")
     engine_path = os.path.join(mypath, "../../../Tinker_ELECTRIC/build/tinker/source/dynamic.x")
 
     # run the calculation

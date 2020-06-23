@@ -39,9 +39,9 @@ matrix:
         # Set location of codes
         - BASE_PATH=$(pwd)
         - echo $BASE_PATH
-        - echo "${BASE_PATH}/MDI_EF_Analysis/MDI_EF_Analysis.py" > ${BASE_PATH}/test/locations/ELECTRIC
+        - echo "${BASE_PATH}/ELECTRIC/ELECTRIC.py" > ${BASE_PATH}/test/locations/ELECTRIC
         - echo "${BASE_PATH}/Tinker_ELECTRIC/build/tinker/source/dynamic.x" > ${BASE_PATH}/test/locations/Tinker
 
         # Run pytest
-        - cd MDI_EF_Analysis
-        - pytest --ignore=mdi
+        - cd ELECTRIC/pytest
+        - pytest
