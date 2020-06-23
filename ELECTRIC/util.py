@@ -69,8 +69,33 @@ def process_pdb(file_path, group_solvent=True):
             residues.append(residue_number)
         previous = now_number
         previous_name = now_name
-
+    
     return residues, residue_names
+
+
+def print_info(pdb_file):
+    """
+    Print info from process_pdb function.
+    """
+    atom_residues, names = process_pdb(pdb_file)
+
+
+    atom_residues = np.array(atom_residues)
+
+    report = F'''
+    {pdb_file} processed. 
+    Found {len(atom_residues)} atoms and {atom_residues[-1]} residues.\n'''
+
+    residue_index = np.where(atom_residues[:-1] != atom_residues[1:])[0]+1
+
+    report += F'{"Residue Number":<20} {"Starting atom":<20} {"Residue Name":<20}\n'
+    report += F'{"1":^20} {"1":^20} {names[0]:^20}\n'
+
+    for count, residue in enumerate(residue_index):
+        report += F"{count+2:^20} {residue:^20} {names[residue]:^20}\n"
+    
+    return report
+
 
 def index_fragments(fragment_list, ipoles):
     '''
