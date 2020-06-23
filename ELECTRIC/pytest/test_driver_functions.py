@@ -3,10 +3,12 @@ Some functions to test the driver.
 """
 
 import os
+import sys
 
 import numpy as np
 import pytest
 
+sys.path.append('../')
 import util
 
 @pytest.mark.parametrize("file_name, group_solvent, num_atom, num_res", [
@@ -18,7 +20,7 @@ import util
 ])
 def test_process_pdb(file_name, group_solvent, num_atom, num_res):
     base_location = os.path.dirname(os.path.realpath(__file__))
-    pdb_path = os.path.join(base_location, '..', 'test', 'pytest_data', file_name)
+    pdb_path = os.path.join(base_location, '..', '..', 'test', 'pytest_data', file_name)
     residues = util.process_pdb(pdb_path, group_solvent=group_solvent)[0]
 
     assert len(residues) == num_atom
