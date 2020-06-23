@@ -1,6 +1,6 @@
 #location of required codes
-DRIVER_LOC=$(cat ../locations/MDI_EF_Analysis)
-TINKER_LOC=$(cat ../locations/Tinker)
+DRIVER_LOC=$(cat ../locations/ELECTRIC)
+TINKER_LOC=$(cat ../locations/Tinker_ELECTRIC)
 
 #remove old files
 if [ -d work ]; then

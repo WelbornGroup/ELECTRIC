@@ -1,86 +1,85 @@
-# MDI_EF_Analysis
+# ELECTRIC
+
+The `ELECTRIC` driver has been written by Taylor Barnes and Jessica Nash, from the MoLSSI. 
+
 
 ## Overview
 
 This repository contains a driver that uses the [MolSSI Driver Interface](https://github.com/MolSSI/MDI_Library) to perform electric field analysis of [Tinker](https://dasher.wustl.edu/tinker/) trajectories which use the AMOEBA forcefield. This currently works as a post-processing tool, meaning that you run simulations as normal using Tinker, then analyze the trajectories using
 MDI-enabled Tinker and this driver.
 
-Using this tool, you can calculate the electric field along a bond or between atoms due to other atoms, molecules, or residues in the system.
+Using this tool, you can calculate the electric field along a bond or between atoms due to molecules or residues in the system.
 
 ## Requirements:
 
 This analysis uses the NumPy [NumPy](https://numpy.org/) and [pandas](https://pandas.pydata.org/) Python packages.
 We recommend installing these packages via Conda:
 
-    conda install -c conda-forge numpy pandas
+    conda install -c conda-forge numpy pandas texinfo matplotlib
 
 The repository includes a copy of the [MDI Library](https://github.com/MolSSI/MDI_Library), which is built using CMake, as described below.
 
 ## Installation
 
-### Compiling MDI-enabled Tinker
+### Compiling MDI-enabled Tinker to use with ELECTRIC
 
-Running calculations with this driver will require an [MDI-enabled fork](https://github.com/taylor-a-barnes/Tinker) of Tinker.
+Running calculations with this driver will require an [MDI-enabled fork](https://github.com/WelbornGroup/Tinker.git) of Tinker.
 This can be acquired using:
 
-    git clone --branch mdi-ef https://github.com/taylor-a-barnes/Tinker.git
+    git clone https://github.com/WelbornGroup/Tinker_ELECTRIC.git 
 
-The above clone should be compiled before running calculations with the driver. First, navigate into the cloned repository. It should be compiled from the `mdi-ef` branch:
+The above clone should be compiled before running calculations with the driver. First, navigate into the cloned repository. 
 
-    cd Tinker
-    git checkout mdi-ef
+    cd Tinker_ELECTRIC
 
 For convenience, we have provided build scripts in the dev folder. You can either build Tinker in the normal manner, or you can do:
 
     cd dev
     ./full_build.sh
 
-Your compiled files are now in `../build`. Only the `dynamic.x` Tinker executable is required by this driver.
+Your compiled files are now in `../build/tinker`. 
 
-You will need the location of `dynamic.x` for subsequent installation steps. This file is in `../build/tinker/source/dynamic.x`. To find the full location:
+Only the `dynamic.x` Tinker executable is required by this driver. You will need the location of `dynamic.x` for subsequent installation steps. This file is in `../build/tinker/source/dynamic.x`. To find the full location:
 
-    cd ../
-    cd build
-    cd source
+    cd ../build/tinker/source
 
 Verify that you have a `dynamic.x` file:
 
     ls dynamic.x
 
-This should list the file name. Next, note the location of this file.
+This should list the file name. Next, note the location of this file by typing.
 
     pwd
 
 Note the output of this command for the following steps.
 
-### Compiling Electric Field Analysis Driver
+### Compiling ELECTRIC, the Electric Field Analysis Driver
 
-Once you have downloaded and compiled MDI, you will need to download and compile the code to do electric field analysis. Before cloning the repository, make sure you are no longer in the Tinker repo you just built. If you followed along with the previous steps:
+You now need to download and compile the code to do electric field analysis. Before cloning the repository, make sure you are no longer in the Tinker repo you just built. If you followed along with the previous steps:
 
     cd ../../../../
 
 Clone this repository:
 
-    git clone https://github.com/taylor-a-barnes/MDI_EF_Analysis.git
+    git clone https://github.com/WelbornGroup/ELECTRIC.git
 
 Then build it using CMake:
 
-    cd MDI_EF_Analysis
+    cd ELECTRIC
     cmake .
     make
 
-This will create the MDI driver for electric field calculations in the `build`directory.
 
 #### Configuration
 
-You will next need to tell the driver the location of the files you just compiled. This is indicated in a text file in the repository. Edit the file `MDI_EF_Analysis/test/locations/MDI_EF_Analysis` to provide the **full path** to the `MDI_EF_Analysis.py` Python script.
-If you followed the installation instructions above, this file will be in `[...]/MDI_EF_Analysis/MDI_EF_Analysis/MDI_EF_Analysis.py`, where `[...]` should be the path appropriate for your system.
+You will next need to tell the driver the location of the files you just compiled. This is indicated in a text file in the repository. Edit the file `ELECTRIC/test/locations/ELECTRIC` to provide the **full path** to the `ELECTRIC.py` Python script.
+If you followed the installation instructions above, this file will be in `[...]/ELECTRIC/ELECTRIC/ELECTRIC.py`, where `[...]` should be the path appropriate for your system.
 
-Similarly, edit the file `MDI_EF_Analysis/test/locations/Tinker` to provide the **full path** to the `dynamic.x` executable you compiled from the Tinker distribution.
+Similarly, edit the file `ELECTRIC/test/locations/Tinker_ELECTRIC` to provide the **full path** to the `dynamic.x` executable you compiled from the Tinker distribution.
 
 ## Testing
 
-You can now run a quick test of the driver by changing directory to the `MDI_EF_Analysis/test/bench5` directory and running the `tcp.sh` script:
+You can now run a quick test of the driver by changing directory to the `ELECTRIC/test/bench5` directory and running the `tcp.sh` script:
 
     ./tcp.sh
 
@@ -122,15 +121,15 @@ One possible launch command would be:
 
     `python ${DRIVER_LOC} -probes "1 2 10" -snap coordinates.arc -mdi "-role DRIVER -name driver -method TCP -port 8021" --byres ke15.pdb --equil 51 -nengines 15 &`
 
-where `DRIVER_LOC` is the path to MDI_EF_Analysis.py which you set during the configuration step.
+where `DRIVER_LOC` is the path to ELECTRIC.py which you set during the configuration step.
 The output will be written to `proj_totfield.csv`.
 
 It is useful to write a script that performs Steps 3 and 4, especially if the calculations are intended to be run on a shared cluster.
 Such a script might look like:
 
     # location of required codes
-    DRIVER_LOC=$(cat ../locations/MDI_EF_Analysis)
-    TINKER_LOC=$(cat ../locations/Tinker)
+    DRIVER_LOC=$(cat ../locations/ELECTRIC)
+    TINKER_LOC=$(cat ../locations/Tinker_ELECTRIC)
 
     # number of instances of Tinker to run as an engine
     nengines=18
@@ -153,11 +152,11 @@ Such a script might look like:
 
 You can see command line arguments for this driver using the following command from the top level of this repositry:
 
-    python MDI_EF_Analysis/MDI_EF_Analysis.py --help
+    python ELECTRIC/ELECTRIC.py --help
 
 Here is the help information for the command line arguments:
 
-    usage: MDI_EF_Analysis.py [-h] -mdi MDI -snap SNAP -probes PROBES
+    usage: ELECTRIC.py [-h] -mdi MDI -snap SNAP -probes PROBES
                               [-nengines NENGINES] [--equil EQUIL]
                               [--stride STRIDE] [--byres BYRES] [--bymol]
 

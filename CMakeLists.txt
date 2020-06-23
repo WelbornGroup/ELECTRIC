@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.5)
 
-project(MDI_EF_Analysis
+project(ELECTRIC
         LANGUAGES C CXX)
 
-add_subdirectory(MDI_EF_Analysis)
+add_subdirectory(ELECTRIC)

@@ -1,0 +1,98 @@
+
+
+
+%POLARIZABLE FORCE FIELD
+
+@article{doi:10.1146/annurev-biophys-070317-033349,
+author = {Jing, Zhifeng and Liu, Chengwen and Cheng, Sara Y. and Qi, Rui and Walker, Brandon D. and Piquemal, Jean-Philip and Ren, Pengyu},
+title = {Polarizable Force Fields for Biomolecular Simulations: Recent Advances and Applications},
+journal = {Annu. Rev. Biophys.},
+volume = {48},
+number = {1},
+pages = {371-394},
+year = {2019},
+doi = {10.1146/annurev-biophys-070317-033349},
+    abstract = { Realistic modeling of biomolecular systems requires an accurate treatment of electrostatics, including electronic polarization. Due to recent advances in physical models, simulation algorithms, and computing hardware, biomolecular simulations with advanced force fields at biologically relevant timescales are becoming increasingly promising. These advancements have not only led to new biophysical insights but also afforded opportunities to advance our understanding of fundamental intermolecular forces. This article describes the recent advances and applications, as well as future directions, of polarizable force fields in biomolecular simulations. }
+}
+
+
+%AMOEBA
+
+@article{doi:10.1021/ct4003702,
+author = {Shi, Yue and Xia, Zhen and Zhang, Jiajing and Best, Robert and Wu, Chuanjie and Ponder, Jay W. and Ren, Pengyu},
+title = {Polarizable Atomic Multipole-Based AMOEBA Force Field for Proteins},
+journal = {J. Chem. Theory Comput.},
+volume = {9},
+number = {9},
+pages = {4046-4063},
+year = {2013},
+doi = {10.1021/ct4003702},
+    abstract = { Development of the AMOEBA (atomic multipole optimized energetics for biomolecular simulation) force field for proteins is presented. The current version (AMOEBA-2013) utilizes permanent electrostatic multipole moments through the quadrupole at each atom, and explicitly treats polarization effects in various chemical and physical environments. The atomic multipole electrostatic parameters for each amino acid residue type are derived from high-level gas phase quantum mechanical calculations via a consistent and extensible protocol. Molecular polarizability is modeled via a Thole-style damped interactive induction model based upon distributed atomic polarizabilities. Inter- and intramolecular polarization is treated in a consistent fashion via the Thole model. The intramolecular polarization model ensures transferability of electrostatic parameters among different conformations, as demonstrated by the agreement between QM and AMOEBA electrostatic potentials, and dipole moments of dipeptides. The backbone and side chain torsional parameters were determined by comparing to gas-phase QM (RI-TRIM MP2/CBS) conformational energies of dipeptides and to statistical distributions from the Protein Data Bank. Molecular dynamics simulations are reported for short peptides in explicit water to examine their conformational properties in solution. Overall the calculated conformational free energies and J-coupling constants are consistent with PDB statistics and experimental NMR results, respectively. In addition, the experimental crystal structures of a number of proteins are well maintained during molecular dynamics (MD) simulation. While further calculations are necessary to fully validate the force field, initial results suggest the AMOEBA polarizable multipole force field is able to describe the structure and energetics of peptides and proteins, in both gas-phase and solution environments. }
+}
+
+
+@article{doi:10.1021/acs.jctc.7b01169,
+author = {Zhang, Changsheng and Lu, Chao and Jing, Zhifeng and Wu, Chuanjie and Piquemal, Jean-Philip and Ponder, Jay W. and Ren, Pengyu},
+title = {AMOEBA Polarizable Atomic Multipole Force Field for Nucleic Acids},
+journal = {J. Chem. Theory Comput.},
+volume = {14},
+number = {4},
+pages = {2084-2108},
+year = {2018},
+doi = {10.1021/acs.jctc.7b01169},
+    abstract = { The AMOEBA polarizable atomic multipole force field for nucleic acids is presented. Valence and electrostatic parameters were determined from high-level quantum mechanical data, including structures, conformational energy, and electrostatic potentials, of nucleotide model compounds. Previously derived parameters for the phosphate group and nucleobases were incorporated. A total of over 35 μs of condensed-phase molecular dynamics simulations of DNA and RNA molecules in aqueous solution and crystal lattice were performed to validate and refine the force field. The solution and/or crystal structures of DNA B-form duplexes, RNA duplexes, and hairpins were captured with an average root-mean-squared deviation from NMR structures below or around 2.0 Å. Structural details, such as base pairing and stacking, sugar puckering, backbone and χ-torsion angles, groove geometries, and crystal packing interfaces, agreed well with NMR and/or X-ray. The interconversion between A- and B-form DNAs was observed in ethanol–water mixtures at 328 K. Crystal lattices of B- and Z-form DNA and A-form RNA were examined with simulations. For the RNA tetraloop, single strand tetramers, and HIV TAR with 29 residues, the simulated conformational states, 3J-coupling, nuclear Overhauser effect, and residual dipolar coupling data were compared with NMR results. Starting from a totally unstacked/unfolding state, the rCAAU tetranucleotide was folded into A-form-like structures during ∼1 μs molecular dynamics simulations. }
+}
+
+
+%ELECTRIC FIELD
+@article{doi:10.1021/jacs.6b12265,
+author = {Bhowmick, Asmit and Sharma, Sudhir C. and Head-Gordon, Teresa},
+title = {The Importance of the Scaffold for de Novo Enzymes: A Case Study with Kemp Eliminase},
+journal = {J. Am. Chem. Soc.},
+volume = {139},
+number = {16},
+pages = {5793-5800},
+year = {2017},
+doi = {10.1021/jacs.6b12265},
+    abstract = { We report electric field values relevant to the reactant and transition states of designed Kemp eliminases KE07 and KE70 and their improved variants from laboratory directed evolution (LDE), using atomistic simulations with the AMOEBA polarizable force field. We find that the catalytic base residue contributes the most to the electric field stabilization of the transition state of the LDE variants of the KE07 and KE70 enzymes, whereas the electric fields of the remainder of the enzyme and solvent disfavor the catalytic reaction in both cases. By contrast, we show that the electrostatic environment plays a large and stabilizing role for the naturally occurring enzyme ketosteroid isomerase (KSI). These results suggest that LDE is ultimately a limited strategy for improving de novo enzymes since it is largely restricted to optimization of chemical positioning in the active site, thus yielding a ∼3 order magnitude improvement over the uncatalyzed reaction, which we suggest may be an absolute upper bound estimate based on LDE applied to comparable de novo Kemp eliminases and other enzymes like KSI. Instead de novo enzymatic reactions could more productively benefit from optimization of the electrostatics of the protein scaffold in early stages of the computational design, utilizing electric field optimization as guidance. }
+}
+
+@article{doi:10.1021/acscatal.7b03151,
+author = {Vaissier, Valerie and Sharma, Sudhir C. and Schaettle, Karl and Zhang, Taoran and Head-Gordon, Teresa},
+title = {Computational Optimization of Electric Fields for Improving Catalysis of a Designed Kemp Eliminase},
+journal = {ACS Catal.},
+volume = {8},
+number = {1},
+pages = {219-227},
+year = {2018},
+doi = {10.1021/acscatal.7b03151},
+    abstract = { Here we report a computational method to improve efficiency of a de novo designed Kemp eliminase enzyme KE15, by identifying mutations that enhance electric fields and chemical positioning of the substrate that contribute to free energy stabilization of the transition state. Starting from the design that has a kcat/KM of 27 M–1 s–1, the most improved variant introduced four computationally targeted mutations to yield a kcat/KM of 403 M–1 s–1, with almost all of the enzyme improvement realized through a 43-fold improvement in kcat, indicative of a direct impact on the chemical step. This work raises the prospect of computationally designing enzymes that achieve better efficiency with more minimal experimental intervention using electric field optimization as guidance. }
+}
+
+@article{natcat,
+	Abstract = {Although the ubiquitous role that long-ranged electric fields play in catalysis has been recognized, it is seldom used as a primary design parameter in the discovery of new catalytic materials. Here we illustrate how electric fields have been used to computationally optimize biocatalytic performance of a synthetic enzyme, and how they could be used as a unifying descriptor for catalytic design across a range of homogeneous and heterogeneous catalysts. Although focusing on electrostatic environmental effects may open new routes toward the rational optimization of efficient catalysts, much more predictive capacity is required of theoretical methods to have a transformative impact in their computational design ---and thus experimental relevance ---when using electric field alignments in the reactive centres of complex catalytic systems.},
+	Author = {Vaissier Welborn, Valerie and Ruiz Pestana, Luis and Head-Gordon, Teresa},
+	Da = {2018/09/01},
+	Date-Added = {2020-03-27 18:00:08 -0400},
+	Date-Modified = {2020-03-27 18:00:08 -0400},
+	Doi = {10.1038/s41929-018-0109-2},
+	Id = {Welborn2018},
+	Isbn = {2520-1158},
+	Journal = {Nat. Catal.},
+	Pages = {649--655},
+	Title = {Computational optimization of electric fields for better catalysis design},
+	Year = {2018},
+	}
+
+
+%GITHUB REP
+
+@misc{electric,
+  author = {​T. Barnes, J. Nash and V. Vaissier Welborn},
+  title = {ELECTRIC: Electric fields Leveraged from multipole Expansion Calculations in Tinker Rapid Interface Code},
+  year = {2020},
+  publisher = {​GitHub},
+  journal = {​GitHub repository},
+  url = {​https://github.com/WelbornGroup/ELECTRIC.git}
+}
+
