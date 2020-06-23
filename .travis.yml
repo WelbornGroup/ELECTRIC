@@ -30,10 +30,8 @@ matrix:
         - cd Tinker_ELECTRIC/dev
         - ./full_build.sh
         - cd ../../
-        - ls Tinker_ELECTRIC/build
 
       install:
-        - echo "Install"
         - cmake .
         - make
 
@@ -42,11 +40,8 @@ matrix:
         - BASE_PATH=$(pwd)
         - echo $BASE_PATH
         - echo "${BASE_PATH}/MDI_EF_Analysis/MDI_EF_Analysis.py" > ${BASE_PATH}/test/locations/ELECTRIC
-        - cat ${BASE_PATH}/test/locations/ELECTRIC
         - echo "${BASE_PATH}/Tinker_ELECTRIC/build/tinker/source/dynamic.x" > ${BASE_PATH}/test/locations/Tinker
-        - echo "Script"
 
         # Run pytest
         - cd MDI_EF_Analysis
         - pytest --ignore=mdi
-        - cat pytest/bench5/proj_totfield.csv
