@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/taylor-a-barnes/MDI_EF_Analysis.svg?branch=master)](https://travis-ci.com/taylor-a-barnes/MDI_EF_Analysis)
+
 # ELECTRIC
 
 The `ELECTRIC` driver has been written by Taylor Barnes and Jessica Nash, from the MoLSSI. 
