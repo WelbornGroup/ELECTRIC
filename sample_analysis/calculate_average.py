@@ -7,8 +7,6 @@ import numpy as np
 
 import argparse
 
-import matplotlib.pyplot as plt
-
 parser = argparse.ArgumentParser()
 
 parser.add_argument('-filename', help='The projected electric field file to calculate the average for',

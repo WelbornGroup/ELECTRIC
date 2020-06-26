@@ -5,7 +5,6 @@ Print out information about residues found in pdb file
 from util import print_info
 
 import argparse
-import numpy as np
 
 
 if __name__ == "__main__":
