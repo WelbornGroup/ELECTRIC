@@ -105,3 +105,14 @@ venv.bak/
 # Emacs
 *~
 #*
+
+# CMake stuff
+*CMakeFiles*
+cmake_install.cmake
+Makefile
+CMakeCache.txt
+*.cmake
+
+# Generated test files 
+test/*/work
+ELECTRIC/pytest/bench5/proj_totfield.csv
