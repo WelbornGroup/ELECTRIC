@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.com/taylor-a-barnes/MDI_EF_Analysis.svg?branch=master)](https://travis-ci.com/taylor-a-barnes/MDI_EF_Analysis)
+[![Build Status](https://travis-ci.com/WelbornGroup/ELECTRIC.svg?branch=master)](https://travis-ci.com/WelbornGroup/ELECTRIC)
 
 # ELECTRIC
 
@@ -7,7 +7,7 @@ The `ELECTRIC` driver has been written by Taylor Barnes and Jessica Nash, from t
 
 ## Overview
 
-This repository contains a driver that uses the [MolSSI Driver Interface](https://github.com/MolSSI/MDI_Library) to perform electric field analysis of [Tinker](https://dasher.wustl.edu/tinker/) trajectories which use the AMOEBA forcefield. This currently works as a post-processing tool, meaning that you run simulations as normal using Tinker, then analyze the trajectories using
+This repository contains a driver that uses the [MolSSI Driver Interface](https://github.com/MolSSI-MDI/MDI_Library) to perform electric field analysis of [Tinker](https://dasher.wustl.edu/tinker/) trajectories which use the AMOEBA forcefield. This currently works as a post-processing tool, meaning that you run simulations as normal using Tinker, then analyze the trajectories using
 MDI-enabled Tinker and this driver.
 
 Using this tool, you can calculate the electric field along a bond or between atoms due to molecules or residues in the system.
@@ -19,7 +19,7 @@ We recommend installing these packages via Conda:
 
     conda install -c conda-forge numpy pandas texinfo matplotlib
 
-The repository includes a copy of the [MDI Library](https://github.com/MolSSI/MDI_Library), which is built using CMake, as described below.
+The repository includes a copy of the [MDI Library](https://github.com/MolSSI-MDI/MDI_Library), which is built using CMake, as described below.
 
 ## Installation
 
