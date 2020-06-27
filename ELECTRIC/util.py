@@ -86,7 +86,8 @@ def print_info(pdb_file):
     {pdb_file} processed. 
     Found {len(atom_residues)} atoms and {atom_residues[-1]} residues.\n'''
 
-    residue_index = np.where(atom_residues[:-1] != atom_residues[1:])[0]+1
+    # Add two because this gives the index before the change (1), another because atom numbering starts at 1, and indexing starts at 0.
+    residue_index = np.where(atom_residues[:-1] != atom_residues[1:])[0] + 2 
 
     report += F'{"Residue Number":<20} {"Starting atom":<20} {"Residue Name":<20}\n'
     report += F'{"1":^20} {"1":^20} {names[0]:^20}\n'
