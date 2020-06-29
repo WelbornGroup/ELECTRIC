@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.com/WelbornGroup/ELECTRIC.svg?branch=master)](https://travis-ci.com/WelbornGroup/ELECTRIC)
+[![codecov](https://codecov.io/gh/WelbornGroup/ELECTRIC/branch/master/graph/badge.svg)](https://codecov.io/gh/WelbornGroup/ELECTRIC)
 [![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/WelbornGroup/ELECTRIC.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/WelbornGroup/ELECTRIC/context:python)
 
 # ELECTRIC
