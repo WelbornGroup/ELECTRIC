@@ -1,5 +1,3 @@
-import sys
-import os
 import time
 import argparse
 import numpy as np
@@ -214,7 +212,6 @@ if __name__ == "__main__":
     #
     ###########################################################################
 
-    start = time.time()
     # Get the number of atoms
     mdi.MDI_Send_Command("<NATOMS", engine_comm[0])
     natoms_engine = mdi.MDI_Recv(1, mdi.MDI_INT, engine_comm[0])
