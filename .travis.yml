@@ -47,6 +47,6 @@ matrix:
 
         # Run pytest
         - cd ELECTRIC/pytest
-        - pytest -vv --cov-report=xml --cov=ELECTRIC
+        - pytest -vv --cov-report=xml --cov=ELECTRIC --cov=util
         - ls -a -l
         - bash <(curl -s https://codecov.io/bash)
