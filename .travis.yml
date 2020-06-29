@@ -3,6 +3,9 @@ python:
   - "3.6"
 sudo: required
 
+env:
+  - CODECOV_TOKEN="8b90eeee-10a0-46aa-be29-f2680364ea1a"
+
 matrix:
   include:
     - os: linux
@@ -44,4 +47,6 @@ matrix:
 
         # Run pytest
         - cd ELECTRIC/pytest
-        - pytest
+        - pytest -vv --cov-report=xml --cov=ELECTRIC
+        - ls -a -l
+        - bash <(curl -s https://codecov.io/bash)
