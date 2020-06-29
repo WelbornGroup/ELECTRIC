@@ -57,30 +57,30 @@ def test_report():
     reference_report = '''Found 566 atoms and 25 residues.
 Residue Number       Starting atom        Residue Name        
          1                    1                    DC         
-         2                    16                   DG         
-         3                    38                   DC         
-         4                    57                   DG         
-         5                    79                   DA         
-         6                   100                   DA         
-         7                   121                   DT         
-         8                   141                   DT         
-         9                   161                   DC         
-         10                  180                   DG         
-         11                  202                   DC         
-         12                  221                   DG         
-         13                  243                   DC         
-         14                  259                   DG         
-         15                  281                   DC         
-         16                  300                   DG         
-         17                  322                   DA         
-         18                  343                   DA         
-         19                  364                   DT         
-         20                  384                   DT         
-         21                  404                   DC         
-         22                  423                   DG         
-         23                  445                   DC         
-         24                  464                   DG         
-         25                  486                solvent       '''
+         2                    17                   DG         
+         3                    39                   DC         
+         4                    58                   DG         
+         5                    80                   DA         
+         6                   101                   DA         
+         7                   122                   DT         
+         8                   142                   DT         
+         9                   162                   DC         
+         10                  181                   DG         
+         11                  203                   DC         
+         12                  222                   DG         
+         13                  244                   DC         
+         14                  260                   DG         
+         15                  282                   DC         
+         16                  301                   DG         
+         17                  323                   DA         
+         18                  344                   DA         
+         19                  365                   DT         
+         20                  385                   DT         
+         21                  405                   DC         
+         22                  424                   DG         
+         23                  446                   DC         
+         24                  465                   DG         
+         25                  487                solvent       '''
 
     num_lines_reference = len(reference_report.split('\n'))
 
