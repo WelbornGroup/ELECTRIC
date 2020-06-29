@@ -80,8 +80,7 @@ Residue Number       Starting atom        Residue Name
          22                  424                   DG         
          23                  446                   DC         
          24                  465                   DG         
-         25                  487                solvent       
-'''
+         25                  487                solvent       '''
 
     num_lines_reference = len(reference_report.split('\n'))
 
