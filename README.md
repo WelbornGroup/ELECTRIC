@@ -4,7 +4,7 @@
 
 # ELECTRIC
 
-The `ELECTRIC` driver has been written by Taylor Barnes and Jessica Nash, from the [MolSSI](https://molssi.org/). 
+The `ELECTRIC` driver has been written by Jessica Nash and Taylor Barnes, from the [MolSSI](https://molssi.org/). 
 
 
 ## Overview
