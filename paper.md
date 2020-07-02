@@ -12,7 +12,7 @@ authors:
   - name: Taylor Barnes
     orcid: 0000-0001-9396-1094
     affiliation: "1, 2" 
-  - name: Valerie Vaissier Welborn
+  - name: Valerie Vaissier Welborn^[Corresponding author]
     orcid: 0000-0003-0834-4441
     affiliation: 2 
 affiliations:
@@ -63,6 +63,6 @@ where $E^{ij}_\text{proj}$ is the electric field projected onto bond $ij$ and $\
 
 # Acknowledgements
 
-We would like to thank Yi Zheng for producing AMOEBA Tinker trajectories to test `ELECTRIC`.
+The authors thank Yi Zheng for producing AMOEBA Tinker trajectories to test `ELECTRIC` and the Virginia Tech Department Faculty Start-up Funds for financial support.
 
 # References
