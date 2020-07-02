@@ -12,7 +12,7 @@ authors:
   - name: Taylor Barnes
     orcid: 0000-0001-9396-1094
     affiliation: "1, 2" 
-  - name: Valerie Vaissier Welborn^[Corresponding author]
+  - name: Valerie Vaissier Welborn^[Corresponding author, vwelborn@vt.edu]
     orcid: 0000-0003-0834-4441
     affiliation: 2 
 affiliations:
