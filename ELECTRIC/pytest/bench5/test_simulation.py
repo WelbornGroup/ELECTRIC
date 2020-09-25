@@ -19,7 +19,7 @@ def format_return(input_string):
 def test_bench5():
     # get the name of the codes
     driver_path = os.path.join(mypath, "../../ELECTRIC.py")
-    engine_path = os.path.join(mypath, "../../../Tinker_ELECTRIC/build/tinker/source/dynamic.x")
+    engine_path = os.path.join(mypath, "../../../modules/Tinker/build/tinker/source/dynamic.x")
 
     # run the calculation
     driver_proc = subprocess.Popen([sys.executable, driver_path, 
