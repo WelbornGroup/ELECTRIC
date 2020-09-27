@@ -47,9 +47,9 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 import os
 import sys
 
-# At the top.
-from jupyter_sphinx_theme import *
-init_theme()
+import sphinx_rtd_theme
+
+html_theme = "sphinx_rtd_theme"
 
 # These folders are copied to the documentation's HTML output
 html_static_path = ['_static']
@@ -61,9 +61,7 @@ html_static_path = ['_static']
 # Custom directives
 sys.path.append(os.path.abspath("./_ext"))
 
-extensions = ['moleculeView']
-
-todo_include_todos = True
+extensions = ["moleculeView", "sphinx_rtd_theme",]
 
 def setup(app):
     app.add_js_file('https://3dmol.org/build/3Dmol-min.js')

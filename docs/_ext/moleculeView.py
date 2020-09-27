@@ -1,3 +1,5 @@
+import json
+
 from docutils import nodes
 from docutils.parsers.rst import Directive
 
@@ -30,6 +32,8 @@ def html_visit_output_node(self, node):
         "data-backgroundcolor": "white",
         "width": "400px",
         "height": "300px",
+        "data-style": "stick",
+        "data-style-color": None
     }
 
     if 'data-pdb' not in node.settings and 'data-href' not in node.settings:
@@ -39,6 +43,7 @@ def html_visit_output_node(self, node):
         raise ValueError("You should only specify one molecule file to visualize.")
 
     for k, v in node.settings.items():
+        k = k.strip()
         defaults[k] = v.strip()
 
     source_string = ''
@@ -48,8 +53,16 @@ def html_visit_output_node(self, node):
     elif 'data-href' in defaults:
         source_string = F'data-href={defaults["data-href"]}'
 
+    if defaults['data-style-color']:
+        data_style = { defaults['data-style'] : {"color": defaults['data-style-color']}}
+        data_style = json.dumps(data_style)
+    else:
+        data_style = defaults['data-style']
+
+    print(data_style)
+
     self.body.append(F"""    
-         <center><div style="height: {defaults['height']}; width: {defaults['width']}; position: relative;" class='viewer_3Dmoljs' {source_string} data-backgroundcolor='0xffffff' data-style='stick'></div></center>""")
+         <center><div style="height: {defaults['height']}; width: {defaults['width']}; position: relative;" class='viewer_3Dmoljs' {source_string} data-backgroundcolor='0xffffff' data-style='{data_style}'></div></center>""")
 
 def html_depart_output_node(self, node):
     pass

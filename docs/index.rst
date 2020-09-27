@@ -10,6 +10,7 @@ ELECTRIC
    :maxdepth: 2
    :caption: Contents:
 
+   installation
    tutorial
 
 
