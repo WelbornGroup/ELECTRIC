@@ -125,7 +125,7 @@ You use ELECTRIC from the command line. Consider the following bash script provi
     ${TINKER_LOC} 1l2y -k no_ewald.key -mdi "-role ENGINE -name NO_EWALD -method TCP -port 8022 -hostname localhost"  10 1.0 0.002 2 300.00 > no_ewald.log &
 
     #launch driver
-    python ${DRIVER_LOC} -snap 1l2y_npt.arc -probes "93 94" -mdi "-role DRIVER -name driver -method TCP -port 8022" --byres 1l2y_solvated.pdb  --equil 160 --stride 2 &
+    python ${DRIVER_LOC} -snap 1l2y_npt.arc -probes "93 94" -mdi "-role DRIVER -name driver -method TCP -port 8022" --byres 1l2y_solvated.pdb  --equil 140 --stride 2 &
 
     wait
 
@@ -147,14 +147,14 @@ In the next command (line `21`), we launch ELECTRIC.
 
 .. code-block:: bash   
 
-    python ${DRIVER_LOC} -snap 1l2y_npt.arc -probes "78 93 94"  -mdi "-role DRIVER -name driver -method TCP -port 8022" --byres 1l2y_solvated.pdb  --equil 160 --stride 2 &
+    python ${DRIVER_LOC} -snap 1l2y_npt.arc -probes "78 93 94"  -mdi "-role DRIVER -name driver -method TCP -port 8022" --byres 1l2y_solvated.pdb  --equil 140 --stride 2 &
 
 Here, we first give the location of our ELECTRIC driver. We indicate our trajectory file using the `-snap` argument with the filename to analyze, followed by MDI options.
 
 Probe Atoms 
 ++++++++++++
 
-To run an ELECTRIC calculation, you must give the indices of your probe atoms. You should obtain these from the `xyz` file you use to launch MDI-enabled Tinker (note that this could be different than your pdb file if hydrogens are handled differently). Note that the index you use here should match the number given in the first column of your xyz file. The projection of the electric field at the midpoint of these two atoms will be reported for each analyzed frame. If you indicate more than two probes, all pairwise fields will be reported (ie, if using "78 93 94", you will get "78 and 93", "78 and 94" and "93 and 94"). You can see the atoms we have chosen as probes highlighted below:
+To run an ELECTRIC calculation, you must give the indices of your probe atoms. The probe atoms are the atoms where you choose to analyze the electric field. You should obtain the number of the probe atoms from the `xyz` file you use to launch MDI-enabled Tinker (note that this could be different than your pdb file if hydrogens are handled differently). Note that the index you use here should match the number given in the first column of your xyz file. The projection of the electric field at the midpoint of these two atoms will be reported for each analyzed frame. If you indicate more than two probes, all pairwise fields will be reported (ie, if using "78 93 94", you will get "78 and 93", "78 and 94" and "93 and 94"). You can see the atoms we have chosen as probes highlighted below:
 
 .. moleculeView:: 
     
@@ -166,7 +166,7 @@ To run an ELECTRIC calculation, you must give the indices of your probe atoms. Y
     data-select1: serial:78,93,94
     data-style1: sphere
 
-The argument `--byres` gives information about how we would like the electric field reported. When we use the `--byres` argument, it should be followed by a pdb which contains residue information for the system you are studying. When using this argument, electric field contributions from each residue will be reported. Other options are `--byatom` top report electric field contributions from each atom, and `--bymol` to report electric field contributions from each molecule. 
+The argument `--byres` gives information to ELECTRIC about how we would like the electric field reported. When we use the `--byres` argument, it should be followed by a pdb which contains residue information for the system you are studying. When using this argument, electric field contributions from each residue will be reported. Other options are `--byatom` top report electric field contributions from each atom, and `--bymol` to report electric field contributions from each molecule. 
 
 When using `--byres`, solvent should be at the end of the `xyz`/`pdb` file. Solvent (ions and water) will be grouped together into a single residue.
 
@@ -174,7 +174,7 @@ When using `--byres`, solvent should be at the end of the `xyz`/`pdb` file. Solv
 
     When using the `byres` option, you should verify that the residues in your pdb file match what you expect for your xyz file. You can do this with the utility function `residue_report.py`. ELECTRIC will check that the `xyz` and `pdb` have the same number of atoms. However, all residue information will come from the PDB, so make sure the residue information in your provided PDB is as you expect.
 
-Finally, we arguments which gives information about the frame we want to analyze. Using `--equil 160` tells ELECTRIC to skip the first 160 frames for analysis, and `--stride 2` tells ELECTRIC to analyze every other frame after 160.
+Finally, we give arguments which gives information about the frame we want to analyze. Using `--equil 140` tells ELECTRIC to skip the first 140 frames for analysis, and `--stride 2` tells ELECTRIC to analyze every other frame.
 
 Running the calculation
 -----------------------
@@ -183,17 +183,16 @@ After you have prepared your files, you can run analysis using the command
 
 .. code-block:: bash
 
-    ./run_analysis.sh 
+    ./run_analysis.sh > analysis.out &
 
 This will launch ELECTRIC. Again, using the ampersand `&` will run this in the background. Now, you just have to wait for your analysis to finish running.
 
 Analyzing Results from ELECTRIC
 ###############################
 
-This analysis will output a csv file with the electric field information `proj_totfield.csv` in the work folder. You can see the output from the analysis we just ran, below.
+This analysis will output a csv file with the electric field information `proj_totfield.csv` in the `work` folder. 
 
-
-You are free to analyze this as you like, but we recommend using `pandas`. A script to perform averaging of probe pairs across frames is provided in `ELECTRIC/sample_analysis/calculate_average.py`. You can see a binder with results from this tutorial here_.
+You are free to analyze this as you like, but we recommend using `pandas`. A script to perform averaging of probe pairs across frames is provided in `ELECTRIC/sample_analysis/calculate_average.py`. You can see a binder with results from this tutorial `here`_.
 
 .. _1l2y: https://www.rcsb.org/structure/1l2y
 .. _installation:
