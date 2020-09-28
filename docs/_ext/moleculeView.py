@@ -1,3 +1,7 @@
+"""
+Directive for using 3dmoljs to view molecules in Sphinx Documentaton.
+"""
+
 from docutils import nodes
 from docutils.parsers.rst import Directive
 

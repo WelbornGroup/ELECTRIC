@@ -32,7 +32,7 @@ ELECTRIC is a post-processing analysis, meaning that you should first run your s
 
 To get started with ELECTRIC, we will need to prepare our input files. We will need:
     - a molecular dynamics trajectory
-    - a Tinker input file which does not have periodic boundaries or Ewald summation
+    - a Tinker input file (usually called a key file) which does not have settings for periodic boundaries or Ewald summation
     - the forcefield parameter file
     - a bash script file 
 
@@ -44,9 +44,10 @@ This file contains the force field parameters for the simulation you have run. I
 
 Tinker input file
 ^^^^^^^^^^^^^^^^^
-Next, we must prepare an input file which tells Tinker settings for our calculation. This input file should be a modified version of the one which you used to run your initial simulation. Consider the input file, `tinker.key` used to obtain this trajectory:
+Next, we must prepare an input file which tells Tinker settings for our calculation. This input file should be a modified version of the one which you used to run your initial simulation. Consider the input file, `tinker.key` used to obtain this trajectory. The parameter file in the previous step is given on line 2.
 
 .. code-block:: text
+    :linenos:
 
     parameters amoebabio18.prm 
     openmp-threads 16
@@ -72,11 +73,11 @@ Next, we must prepare an input file which tells Tinker settings for our calculat
     printout 1000
 
 
-The input file used for this simulation uses both periodic boundaries and an Ewald summation for electrostatics. During a Tinker simulation using AMOEBA, electric fields are calculated in order to calculate the induced dipoles at each step. In order to get electric field contributions from specific residues, we must calculate the electric field using the real space interactions only (no periodic boundaries or Ewald). 
+The input file used for this simulation uses periodic boundaries and an Ewald summation for electrostatics. During a Tinker simulation using AMOEBA, electric fields are calculated in order to calculate the induced dipoles at each step. In order to get electric field contributions from specific residues, we must calculate the electric field using the real space interactions only (no periodic boundaries or Ewald). 
 
 Remove settings related to cutoffs (`cutoff` keyword), periodic boundaries (`a-axis`, `b-axis`, `c-axis`) and Ewald summation (`ewald`). You can also remove settings having to do with neighbor lists (`neighbor-list`), as they are not needed and can cause an error for this calculation if included.
 
-The modifed input file for ELECTRIC is given below. Save this file with the name `no_ewald.key`.
+The modifed input file for ELECTRIC is given below. This file is saved in the data directory with the name `noewald.key`.
 
 .. code-block:: text
 
@@ -96,9 +97,9 @@ The modifed input file for ELECTRIC is given below. Save this file with the name
     printout 100
 
 
-Bash script
-^^^^^^^^^^^
-This file will launch MDI-enabled Tinker and the ELECTRIC driver. When you run an ELECTRIC analysis, ELECTRIC parses your given trajectory and options and sends snapshots to Tinker. The MDI-enabled version of Tinker then calculates the electric field information for that snapshot, as would usually be calculated during a molecular dynamics simulation. 
+Bash script - run_analysis.sh
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+When you run analysis uisng ELECTRIC, ELECTRIC parses your given trajectory sends snapshots to Tinker for electric field calculation. The MDI-enabled version of Tinker then calculates the electric field information for that snapshot, as would usually be calculated during a molecular dynamics simulation. 
 
 You use ELECTRIC from the command line. Consider the following bash script provided for analysis, `run_analysis.sh`. We will explain this script in detail.
 
@@ -129,7 +130,11 @@ You use ELECTRIC from the command line. Consider the following bash script provi
 
     wait
 
-In lines `2` and `3`, you should change the location to your installed ELECTRIC.py file and MDI-enabled `dynamic.x`. The next section removes the folder called `work` if it exists. This `bash` script is written to put all analysis files into a folder called `work` to keep our original files clean. We copy everything from `data` into the folder `work`. This folder (`work`) is where this analysis will run. Note that this part of the tutorial is completely stylistic. The authors prefer this method to keep files separated.
+.. note:: 
+
+    For this tutorial, we use the approach of having all data needed for analysis in a directory called `data`. During analysis, we copy everything from `data` into a folder `work`. This part of the tutorial is stylistic. The authors prefer this method to keep files separated, and original files unaltered.
+
+In lines `2` and `3`, you should change the location to your installed ELECTRIC.py file and MDI-enabled `dynamic.x`. The next section removes the folder called `work` if it exists. This `bash` script is written to put all analysis files into a folder called `work` to keep our original files clean. 
 
 MDI-enabled Tinker is launched on line `18` with the command
 
@@ -137,7 +142,7 @@ MDI-enabled Tinker is launched on line `18` with the command
 
     ${TINKER_LOC} 1l2y -k no_ewald.key -mdi "-role ENGINE -name NO_EWALD -method TCP -port 8022 -hostname localhost"  10 1.0 0.002 2 300.00 > no_ewald.log &
 
-The first thing on this line, `${TINKER_LOC}` fills in the location for `dynamic.x` which you put in line 2. Next, `1l2y` is the file name (without an extension) of the xyz file for this calculation (provided vile `12ly.xyz`). You should have this from your original simulation. However, make sure that there is no box information on line two of this `xyz` file, as this could cause Tinker to use periodic boundaries. Next, we give the input file (key file) we have prepared in the previous step using `-k no_ewald.key`. Then, we give our MDI options. The given options should work for most analysis. After the MDI options are some Tinker input options. For our analysis, it will not really matter what we put here since we are running calculations on one snapshot at a time. However, you must have these present for Tinker to run. Very importantly, note the ampersand (`&`) at the end of this line. This will launch Tinker in the background, where it will be waiting for commands from ELECTRIC.
+The first thing on this line, `${TINKER_LOC}` fills in the location for `dynamic.x` which you put in line 2. Next, `1l2y` is the file name (without an extension) of the xyz file for this calculation (provided vile `12ly.xyz`). You should have this from your original simulation. However, make sure that there is no box information on line two of this `xyz` file, as this could cause Tinker to use periodic boundaries. Next, we give the input file (key file) we have prepared in the previous step using `-k noewald.key`. Then, we give our MDI options. The given options should work for most analysis. After the MDI options are some Tinker input options. For our analysis, it will not really matter what we put here since we are running calculations on one snapshot at a time. However, you must have these present for Tinker to run. Very importantly, note the ampersand (`&`) at the end of this line. This will launch Tinker in the background, where it will be waiting for commands from ELECTRIC.
 
 .. warning::
     
@@ -154,7 +159,9 @@ Here, we first give the location of our ELECTRIC driver. We indicate our traject
 Probe Atoms 
 ++++++++++++
 
-To run an ELECTRIC calculation, you must give the indices of your probe atoms. The probe atoms are the atoms where you choose to analyze the electric field. You should obtain the number of the probe atoms from the `xyz` file you use to launch MDI-enabled Tinker (note that this could be different than your pdb file if hydrogens are handled differently). Note that the index you use here should match the number given in the first column of your xyz file. The projection of the electric field at the midpoint of these two atoms will be reported for each analyzed frame. If you indicate more than two probes, all pairwise fields will be reported (ie, if using "78 93 94", you will get "78 and 93", "78 and 94" and "93 and 94"). You can see the atoms we have chosen as probes highlighted below:
+To run an ELECTRIC calculation, you must give the indices of your probe atoms. The probe atoms are the atoms which are used as 'probes' for the electric field. ELECTRIC reports the projected total electric field at the midpoint between all probe atom pairs. This allows you to calculate electric fields along bonds `as reported in literature`_
+
+You should obtain the number of the probe atoms from the `xyz` file you use to launch MDI-enabled Tinker. Note that the index you use here should match the number given in the first column of your xyz file. The projection of the electric field at the midpoint of these two atoms will be reported for each analyzed frame. If you indicate more than two probes, all pairwise fields will be reported (ie, if using "78 93 94", you will get "78 and 93", "78 and 94" and "93 and 94"). You can see the atoms we have chosen as probes highlighted below:
 
 .. moleculeView:: 
     
@@ -190,10 +197,26 @@ This will launch ELECTRIC. Again, using the ampersand `&` will run this in the b
 Analyzing Results from ELECTRIC
 ###############################
 
-This analysis will output a csv file with the electric field information `proj_totfield.csv` in the `work` folder. 
+ELECTRIC will output a csv file with the electric field information `proj_totfield.csv` in the `work` folder. Below, we show results (numbers rounded for clarity) for probes 78 and 93 from `proj_totfield.csv`. When these numbers are reported, they are the electric field in Mv/cm projected along the vector pointing from atom 1 to atom 2 due to each residue.
 
-You are free to analyze this as you like, but we recommend using `pandas`. A script to perform averaging of probe pairs across frames is provided in `ELECTRIC/sample_analysis/calculate_average.py`. You can see a binder with results from this tutorial `here`_.
+.. datatable::
+
+    csv_file: data/proj_totfield.csv
+
+
+You are free to analyze this as you like, but we recommend using `pandas`_ to process the csv file. A script to perform averaging of probe pairs across frames is provided in `ELECTRIC/sample_analysis/calculate_average.py`. For example, you can run this script
+
+.. code-block :: bash
+
+    python PATH/TO/calculate_average.py -filename work/proj_totfield.csv
+
+This will output a file with the average projected field for each residue pair. In our case, three files should be output: `78 _and_93.csv`, `78_and_94.csv`, and `93_and_94.csv`. The output for the `78_and_93.csv` is shown in the table below:
+
+.. datatable::
+
+    csv_file: data/78_and_93.csv
 
 .. _1l2y: https://www.rcsb.org/structure/1l2y
-.. _installation:
+.. _installation: installation.html
 .. _`tutorial repository`: http://www.github.com/janash/ELECTRIC_tutorial
+.. _pandas: https://pandas.pydata.org/

@@ -51,9 +51,6 @@ import sphinx_rtd_theme
 
 html_theme = "sphinx_rtd_theme"
 
-# These folders are copied to the documentation's HTML output
-html_static_path = ['_static']
-
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
@@ -61,7 +58,10 @@ html_static_path = ['_static']
 # Custom directives
 sys.path.append(os.path.abspath("./_ext"))
 
-extensions = ["moleculeView", "sphinx_rtd_theme",]
+extensions = ["moleculeView", "dataTables", "sphinx_rtd_theme",]
 
 def setup(app):
     app.add_js_file('https://3dmol.org/build/3Dmol-min.js')
+    app.add_js_file('https://code.jquery.com/jquery-3.5.1.min.js')
+    app.add_js_file('https://cdn.datatables.net/1.10.22/js/jquery.dataTables.js')
+    app.add_css_file('https://cdn.datatables.net/1.10.22/css/jquery.dataTables.css')
