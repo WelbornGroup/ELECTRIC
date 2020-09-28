@@ -1,0 +1,4 @@
+[submodule "modules/Tinker"]
+	path = modules/Tinker
+	url = https://github.com/MolSSI-MDI/Tinker.git
+	branch = mdi

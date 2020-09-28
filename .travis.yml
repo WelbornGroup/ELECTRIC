@@ -28,23 +28,10 @@ matrix:
         # Install dependencies
         - conda install -c conda-forge numpy pandas pytest pytest-cov
 
-        # Install Tinker
-        - git clone https://github.com/WelbornGroup/Tinker_ELECTRIC.git
-        - cd Tinker_ELECTRIC/dev
-        - ./full_build.sh
-        - cd ../../
-
       install:
-        - cmake .
-        - make
+        - ./build.sh
 
       script:
-        # Set location of codes
-        - BASE_PATH=$(pwd)
-        - echo $BASE_PATH
-        - echo "${BASE_PATH}/ELECTRIC/ELECTRIC.py" > ${BASE_PATH}/test/locations/ELECTRIC
-        - echo "${BASE_PATH}/Tinker_ELECTRIC/build/tinker/source/dynamic.x" > ${BASE_PATH}/test/locations/Tinker
-
         # Run pytest
         - cd ELECTRIC/pytest
         - pytest -vv --cov-report=xml --cov=ELECTRIC --cov=util
