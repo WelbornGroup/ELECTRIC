@@ -73,7 +73,7 @@ Next, we must prepare an input file which tells Tinker settings for our calculat
     printout 1000
 
 
-The input file used for this simulation uses periodic boundaries and an Ewald summation for electrostatics. During a Tinker simulation using AMOEBA, electric fields are calculated in order to calculate the induced dipoles at each step. In order to get electric field contributions from specific residues, we must calculate the electric field using the real space interactions only (no periodic boundaries or Ewald). 
+The input file used for this simulation uses periodic boundaries and an Ewald summation for electrostatics. During a Tinker simulation using AMOEBA, electric fields are evaluated in order to calculate the induced dipoles at each step. In order to get electric field contributions from specific residues, we must calculate the electric field using the real space interactions only (no periodic boundaries or Ewald). 
 
 Remove settings related to cutoffs (`cutoff` keyword), periodic boundaries (`a-axis`, `b-axis`, `c-axis`) and Ewald summation (`ewald`). You can also remove settings having to do with neighbor lists (`neighbor-list`), as they are not needed and can cause an error for this calculation if included.
 
@@ -126,7 +126,7 @@ You use ELECTRIC from the command line. Consider the following bash script provi
     ${TINKER_LOC} 1l2y -k no_ewald.key -mdi "-role ENGINE -name NO_EWALD -method TCP -port 8022 -hostname localhost"  10 1.0 0.002 2 300.00 > no_ewald.log &
 
     #launch driver
-    python ${DRIVER_LOC} -snap 1l2y_npt.arc -probes "93 94" -mdi "-role DRIVER -name driver -method TCP -port 8022" --byres 1l2y_solvated.pdb  --equil 140 --stride 2 &
+    python ${DRIVER_LOC} -snap 1l2y_npt.arc -probes "93 94" -mdi "-role DRIVER -name driver -method TCP -port 8022" --byres 1l2y_solvated.pdb  --equil 120 --stride 2 &
 
     wait
 
@@ -134,7 +134,9 @@ You use ELECTRIC from the command line. Consider the following bash script provi
 
     For this tutorial, we use the approach of having all data needed for analysis in a directory called `data`. During analysis, we copy everything from `data` into a folder `work`. This part of the tutorial is stylistic. The authors prefer this method to keep files separated, and original files unaltered.
 
-In lines `2` and `3`, you should change the location to your installed ELECTRIC.py file and MDI-enabled `dynamic.x`. The next section removes the folder called `work` if it exists. This `bash` script is written to put all analysis files into a folder called `work` to keep our original files clean. 
+In lines `2` and `3`, you should change the location to your installed ELECTRIC.py file and MDI-enabled `dynamic.x`. Recall from the installation instructions that you can find these in the ELECTRIC directory in the files ELECTRIC/test/locations/ELECTRIC and ELECTRIC/test/locations/Tinker_ELECTRIC. 
+
+The next section removes the folder called `work` if it exists. This `bash` script is written to put all analysis files into a folder called `work` to keep our original files clean. 
 
 MDI-enabled Tinker is launched on line `18` with the command
 
@@ -152,14 +154,14 @@ In the next command (line `21`), we launch ELECTRIC.
 
 .. code-block:: bash   
 
-    python ${DRIVER_LOC} -snap 1l2y_npt.arc -probes "78 93 94"  -mdi "-role DRIVER -name driver -method TCP -port 8022" --byres 1l2y_solvated.pdb  --equil 140 --stride 2 &
+    python ${DRIVER_LOC} -snap 1l2y_npt.arc -probes "78 93 94"  -mdi "-role DRIVER -name driver -method TCP -port 8022" --byres 1l2y_solvated.pdb  --equil 120 --stride 2 &
 
 Here, we first give the location of our ELECTRIC driver. We indicate our trajectory file using the `-snap` argument with the filename to analyze, followed by MDI options.
 
 Probe Atoms 
 ++++++++++++
 
-To run an ELECTRIC calculation, you must give the indices of your probe atoms. The probe atoms are the atoms which are used as 'probes' for the electric field. ELECTRIC reports the projected total electric field at the midpoint between all probe atom pairs. This allows you to calculate electric fields along bonds `as reported in literature`_
+To run an ELECTRIC calculation, you must give the indices of your probe atoms. The probe atoms are the atoms which are used as 'probes' for the electric field. ELECTRIC reports the projected total electric field at the midpoint between all probe atom pairs. This allows you to calculate electric fields along bonds `as reported in literature <https://pubs.acs.org/doi/10.1021/jacs.9b05323>`_.
 
 You should obtain the number of the probe atoms from the `xyz` file you use to launch MDI-enabled Tinker. Note that the index you use here should match the number given in the first column of your xyz file. The projection of the electric field at the midpoint of these two atoms will be reported for each analyzed frame. If you indicate more than two probes, all pairwise fields will be reported (ie, if using "78 93 94", you will get "78 and 93", "78 and 94" and "93 and 94"). You can see the atoms we have chosen as probes highlighted below:
 
@@ -181,7 +183,7 @@ When using `--byres`, solvent should be at the end of the `xyz`/`pdb` file. Solv
 
     When using the `byres` option, you should verify that the residues in your pdb file match what you expect for your xyz file. You can do this with the utility function `residue_report.py`. ELECTRIC will check that the `xyz` and `pdb` have the same number of atoms. However, all residue information will come from the PDB, so make sure the residue information in your provided PDB is as you expect.
 
-Finally, we give arguments which gives information about the frame we want to analyze. Using `--equil 140` tells ELECTRIC to skip the first 140 frames for analysis, and `--stride 2` tells ELECTRIC to analyze every other frame.
+Finally, we give arguments which gives information about the frame we want to analyze. Using `--equil 120` tells ELECTRIC to skip the first 120 frames for analysis, and `--stride 2` tells ELECTRIC to analyze every other frame.
 
 Running the calculation
 -----------------------

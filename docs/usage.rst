@@ -1,70 +1,17 @@
-[![Build Status](https://travis-ci.com/WelbornGroup/ELECTRIC.svg?branch=master)](https://travis-ci.com/WelbornGroup/ELECTRIC)
-[![codecov](https://codecov.io/gh/WelbornGroup/ELECTRIC/branch/master/graph/badge.svg)](https://codecov.io/gh/WelbornGroup/ELECTRIC)
-[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/WelbornGroup/ELECTRIC.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/WelbornGroup/ELECTRIC/context:python)
+Usage
+=====
 
-# ELECTRIC
+Information Flow
+----------------
 
-The `ELECTRIC` driver has been written by Jessica Nash and Taylor Barnes, from the [MolSSI](https://molssi.org/). 
+ELECTRIC is a post-processing tool for simulations running with the AMOEBA polarizable force field using the Tinker software package.
+
+.. image:: images/inputs_and_outputs.svg
+   :width: 600
 
 
-## Overview
-
-This repository contains a driver that uses the [MolSSI Driver Interface](https://github.com/MolSSI-MDI/MDI_Library) to perform electric field analysis of [Tinker](https://dasher.wustl.edu/tinker/) trajectories which use the AMOEBA forcefield. This currently works as a post-processing tool, meaning that you run simulations as normal using Tinker, then analyze the trajectories using
-MDI-enabled Tinker and this driver.
-
-Using this tool, you can calculate the electric field along a bond or between atoms due to molecules or residues in the system.
-
-### Compiling MDI-Tinker and ELECTRIC
-
-Installation of ELECTRIC and MDI-enabled Tinker are bundled in one convenient build script. 
-
-To install ELECTRIC and MDI-enabled Tinker, you should have cmake and a fortran compiler installed. Then, you can download and build ELECTRIC and MDI-enabled Tinker using the following command in your terminal. Make sure you are in the directory where you want your ELECTRIC driver to be. You should note this location, because you will need to specify the path to some files built during this process in order to perform analysis.
-
-```
-git clone --recurse-submodules https://github.com/WelbornGroup/ELECTRIC.git
-cd ELECTRIC
-./build.sh
-```
-
-This will download and build ELECTRIC and MDI-enabled Tinker. 
-
-Upon successfull building, you will have the ELECTRIC driver in ELECTRIC/ELECTRIC/ELECTRIC.py, and the needed Tinker executable (dynamic.x) in ELECTRIC/modules/Tinker/build/tinker/source/dynamic.x . The location of these files can be found in text files in ELECTRIC/test/locations/ELECTRIC and ELECTRIC/test/locations/Tinker_ELECTRIC. You will need these for using ELECTRIC.
-
-### Python Dependencies
-
-In order to run ELECTRIC, you will need to be in a python environment which has numpy and pandas installed. We recommend installing these packages in a conda environment created for ELECTRIC analysis.
-
-``` 
-conda install -c conda-forge numpy pandas
-```
-
-## Testing
-
-You can now run a quick test of the driver by changing directory to the `ELECTRIC/test/bench5` directory and running the `tcp.sh` script:
-
-    ./tcp.sh
-
-This script will run a short Tinker dynamics simulation that includes periodic boundary conditions. This command is on line 20 of the provided file. This is a standard Tinker call, as you would normally run a simulation. If you are performing post processing on a simulation, you will not use this line.
-
-```
-${TINKER_LOC} bench5 -k bench5.key 10 1.0 0.001999 2 300.00 > Dynamics.log
-```
-
-The script then launches an instance of Tinker as an MDI engine, which will request a connection to the driver and then listen for commands from the driver. This command is similar to running a simulation with Tinker, except that it uses a modified Tinker input file (more on this below), and adds an additional command line argument which passes information to MDI (`-mdi "role ENGINE -name NO_EWALD -method TCP -port 8022 -hostname localhost"`):
-
-```
-{TINKER_LOC} bench5 -k no_ewald.key -mdi "-role ENGINE -name NO_EWALD -method TCP -port 8022 -hostname localhost" 10 1.0 0.001999 2 300.00 > no_ewald.log &
-```
-
-The script will then launch an instance of the driver in the background, which will listen for connections from an MDI engine:
-
-```
-python ${DRIVER_LOC} -probes "1 40" -snap bench5.arc -mdi "-role DRIVER -name driver -method TCP -port 8022" --bymol &
-```
-
-The driver's output should match the reference output file (`proj_totfield.csv`) in the `sample_analysis` directory.
-
-## Usage
+Procedure
+---------
 
 In general, running a calculation with the driver requires the following steps:
 
@@ -78,13 +25,15 @@ This keyfile should be identical to the one used in Step 1, except that it **mus
 3. **Launch one (or more; see the `-nengines` option below) instance(s) of Tinker as an MDI engine, using the keyfile created in Step 2.**  
 This is done in the same way you launch a normal Tinker simulation (by launching the `dynamic.x` executable) except that the `-mdi` command-line option is added. However, it is **very important** that the reference coordinates you use do not have periodic boundary information. So, if when you originally ran the simulation you started it with a snapshot from a previous simulation run, make sure to create a new snapshot to launch the simulation from which does not include box information on line 2.
 
-  The argument to the `-mdi` command-line option details how Tinker should connect to the driver; its possible arguments are described in the [MDI documentation](https://molssi.github.io/MDI_Library/html/library_page.html#library_launching_sec).
-  When in doubt, we recommend doing `-mdi "-role ENGINE -name NO_EWALD -method TCP -port 8021 -hostname localhost"`
-  When run as an engine, Tinker should be launched in the background; this is done by adding an ampersand (`&`) at the end of the launch line.
+The argument to the `-mdi` command-line option details how Tinker should connect to the driver; its possible arguments are described in the `MDI documentation`_ .
+When in doubt, we recommend doing `-mdi "-role ENGINE -name NO_EWALD -method TCP -port 8021 -hostname localhost"`
+When run as an engine, Tinker should be launched in the background; this is done by adding an ampersand (`&`) at the end of the launch line.
 
-4. Launch the driver.
+4. **Launch the driver**
 The driver accepts a variety of command-line options, which are described in detail below.
 One possible launch command would be:
+
+.. code-block:: bash
 
     `python ${DRIVER_LOC} -probes "1 2 10" -snap coordinates.arc -mdi "-role DRIVER -name driver -method TCP -port 8021" --byres ke15.pdb --equil 51 -nengines 15 &`
 
@@ -93,6 +42,8 @@ The output will be written to `proj_totfield.csv`.
 
 It is useful to write a script that performs Steps 3 and 4, especially if the calculations are intended to be run on a shared cluster.
 Such a script might look like:
+
+.. code-block:: bash
 
     # location of required codes
     DRIVER_LOC=$(cat ../locations/ELECTRIC)
@@ -115,13 +66,20 @@ Such a script might look like:
 
     wait
 
-## Command-Line Options
+You can read more below, or you can try out the tutorial_ to run a calculation yourself.
+
+Command-Line Options
+--------------------
 
 You can see command line arguments for this driver using the following command from the top level of this repositry:
+
+.. code-block:: bash
 
     python ELECTRIC/ELECTRIC.py --help
 
 Here is the help information for the command line arguments:
+
+.. code-block:: text
 
     usage: ELECTRIC.py [-h] -mdi MDI -snap SNAP -probes PROBES
                               [-nengines NENGINES] [--equil EQUIL]
@@ -163,7 +121,8 @@ Here is the help information for the command line arguments:
                           should be calculated with electric field contributions
                           given per molecule. (default: False)
 
-## Output
+Output
+------
 
 The driver will output a file called `proj_totfield.csv`. This is a CSV file which contains data on the projected electric field at the point between each probe atom due to each fragment , depending on input (`--byres` for by residue, `--bymol` for by molecule, or by atom if neither argument is given.). Each column will contain a header which indicates which probe atoms the measurement is between, followed by the frame number, while the rows will be the electric field at the mean location between the probe atoms due to a particular fragment
 
@@ -185,4 +144,5 @@ Since this calculation was run using `--bymol`, there are 216 rows, one for each
 
 The first entry, column `1 and 40 - frame 0`, header `molecule 1`, gives the projected total electric field at the midway point between `atom 1` and `atom 40` due to `molecule 1`. The electric field has been projected along the vector which points from `atom 1` to `atom 40`. The projection will always be along the vector from atom 1 to atom 2. You can reverse the sign of the number if you would like the vector to point the opposite way.
 
-A sample script which calculates the time average for each probe pair is given in the directory `sample_analysis`.
+.. _tutorial: tutorial.html
+.. _`MDI documentation`: https://molssi.github.io/MDI_Library/html/library_page.html#library_launching_sec
