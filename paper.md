@@ -16,9 +16,9 @@ authors:
     orcid: 0000-0003-0834-4441
     affiliation: 2 
 affiliations:
- - name: The Molecular Sciences Software Institute
+ - name: The Molecular Sciences Software Institute, 1880 Pratt Drive, Suite 1100, Blacksburg, VA 24060
    index: 1
- - name: Department of Chemistry, Virginia Tech
+ - name: Department of Chemistry, Davidson Hall, Virginia Tech, 1040 Drillfield Drive, Blacksburg, VA 24061
    index: 2
 date: July 1, 2020
 bibliography: paper.bib
