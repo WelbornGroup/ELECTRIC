@@ -9,7 +9,6 @@ ELECTRIC is a post-processing tool for simulations running with the AMOEBA polar
 .. image:: images/inputs_and_outputs.svg
    :width: 600
 
-
 Procedure
 ---------
 
@@ -44,7 +43,13 @@ The output will be written to `proj_totfield.csv`.
 It is useful to write a script that performs Steps 3 and 4, especially if the calculations are intended to be run on a shared cluster.
 Such a script might look like:
 
+.. _example:
+
+Example Script
+^^^^^^^^^^^^^^
+
 .. code-block:: bash
+    :linenos:
 
     # location of required codes
     DRIVER_LOC=$(cat ../locations/ELECTRIC)
@@ -109,6 +114,24 @@ For the example, headers are:
 Since this calculation was run using :code:`--bymol`, there are 216 rows, one for each molecule in the system.
 
 The first entry, column :code:`1 and 40 - frame 1`, header :code:`molecule 1`, gives the projected total electric field at the midway point between :code:`atom 1` and :code:`atom 40` due to :code:`molecule 1`. The electric field has been projected along the vector which points from :code:`atom 1` to :code:`atom 40`. The projection will always be along the vector from atom 1 to atom 2. You can reverse the sign of the number if you would like the vector to point the opposite way.
+
+
+Running ELECTRIC in Parallel
+-----------------------------
+
+.. note::
+
+    You must have mpi4py installed to run ELECTRIC in parallel. You can install it from conda
+    
+    .. code-block:: bash
+
+        conda install -c anaconda mpi4py
+
+ELECTRIC is parallelized using MPI4Py. You can take advantage of this parallelization by making sure MPI4Py is installed and using more than one ELECTRIC engine using the :code:`-nengines` command. Note that if you are using the :code:`-nengines` argument with a number greater than one, you must launch the equivalent number of Tinker instances. In the :ref:`example`, this is acheived by setting a variable :code:`nengines` and using this number to launch Tinker instances in a loop (:code:`lines 12-15`) and inputting the same variable into the ELECTRIC launch on :code:`line 18`.
+
+.. warning::
+
+    Launching an uneven number of MDI-Tinker and ELECTRIC instances will result in your calculation hanging. Make sure that you launch an equivalent number of MDI-Tinker instances to your :code:`-nengines` argument.
 
 .. _tutorial: tutorial.html
 .. _`MDI documentation`: https://molssi.github.io/MDI_Library/html/library_page.html#library_launching_sec
