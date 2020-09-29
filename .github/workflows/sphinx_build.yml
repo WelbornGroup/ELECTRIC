@@ -34,7 +34,7 @@ jobs:
         # that.
     # Push if this is a push to master.
     - name: Push changes
-      if: ${{ github.event_name == 'pull_request' }}
+      if: ${{ github.event_name == 'push' }}
       uses: ad-m/github-push-action@master
       with:
         branch: gh-pages
