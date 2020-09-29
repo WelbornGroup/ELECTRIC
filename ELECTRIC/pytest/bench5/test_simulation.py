@@ -61,7 +61,7 @@ def test_bench5_equil():
                                     "-probes", "1 40", "-snap", "bench5.arc", 
                                     "-mdi", "-role DRIVER -name driver -method TCP -port 8021"
                                     "--bymol", 
-                                    "--equil", "3"],
+                                    "--equil", "2"],
                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=mypath)
     engine_proc = subprocess.Popen([engine_path, "bench5", "-k", "no_ewald.key", 
                                     "-mdi", "-role ENGINE -name NO_EWALD -method TCP -port 8021 -hostname localhost",
@@ -101,7 +101,7 @@ def test_bench5_equil_stride():
                                     "-probes", "1 40", "-snap", "bench5.arc", 
                                     "-mdi", "-role DRIVER -name driver -method TCP -port 8021"
                                     "--bymol", 
-                                    "--equil", "3",
+                                    "--equil", "1",
                                     "--stride", "2"],
                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=mypath)
     engine_proc = subprocess.Popen([engine_path, "bench5", "-k", "no_ewald.key", 

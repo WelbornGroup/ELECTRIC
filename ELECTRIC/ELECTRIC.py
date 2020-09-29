@@ -159,7 +159,7 @@ if __name__ == "__main__":
 
     optional.add_argument("--equil", help='''The number of frames to skip performing analysis on
                 at the beginning of the trajectory file (given by the -snap argument)
-                For example, using --equil 50 will result in analysis starting on frame 50 of the trajectory.''',
+                For example, using --equil 50 will result in analysis starting after frame 50 of the trajectory, (in other words, the first frame which will be analyzed is frame 50 + stride).''',
                 type=int, default=0)
 
     optional.add_argument("--stride", help='''The number of frames to skip between
@@ -331,7 +331,7 @@ if __name__ == "__main__":
         header=None, delim_whitespace=True, names=range(15),
         skiprows=skip_line, index_col=None), 1):
 
-        if snap_num > equil - 1:
+        if snap_num > equil:
             if (snap_num - equil) % stride == 0:
 
                 icomm = itask % nengines
