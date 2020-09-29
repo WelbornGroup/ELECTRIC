@@ -116,3 +116,6 @@ CMakeCache.txt
 # Generated test files 
 test/*/work
 ELECTRIC/pytest/bench5/proj_totfield.csv
+
+# Documentation builds
+_build/

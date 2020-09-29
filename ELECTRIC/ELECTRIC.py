@@ -1,10 +1,9 @@
 import time
-import argparse
 import numpy as np
 import pandas as pd
 
 
-from util import process_pdb, index_fragments
+from util import process_pdb, index_fragments, create_parser
 
 
 # Use local MDI build
@@ -15,7 +14,6 @@ try:
     use_mpi4py = True
 except ImportError:
     use_mpi4py = False
-
 
 # Get the MPI communicator
 if use_mpi4py:
@@ -126,56 +124,8 @@ if __name__ == "__main__":
     ###########################################################################
 
     start = time.time()
-    # Handle arguments with argparse
-    parser = argparse.ArgumentParser(add_help=False,
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    required = parser.add_argument_group('required arguments')
-    optional = parser.add_argument_group('optional arguments')
-
-    # Add back help
-    optional.add_argument(
-        '-h',
-        '--help',
-        action='help',
-        help='show this help message and exit'
-    )
-
-    required.add_argument("-mdi", help="flags for mdi", type=str, required=True)
-    required.add_argument("-snap", help="The file name of the trajectory to analyze.", type=str,
-        required=True)
-
-    required.add_argument("-probes", help='''Atom indices which are probes for
-                the electric field calculations. For example, if you would like
-                to calculate the electric field along the bond between atoms 1 and 2,
-                you would use `-probes "1 2"`.''', type=str, required=True)
-
-    optional.add_argument("-nengines", help="""This option allows the driver to
-                farm tasks out to multiple Tinker engines simultaneously, enabling
-                parallelization of the electric field analysis computation.
-                The argument to this option **must** be equal to the number of
-                Tinker engines that are launched along with the driver.""", type=int,
-                default=1)
-
-
-    optional.add_argument("--equil", help='''The number of frames to skip performing analysis on
-                at the beginning of the trajectory file (given by the -snap argument)
-                For example, using --equil 50 will result in analysis starting after frame 50 of the trajectory, (in other words, the first frame which will be analyzed is frame 50 + stride).''',
-                type=int, default=0)
-
-    optional.add_argument("--stride", help='''The number of frames to skip between
-                analysis calculations. For example, using --stride 2 would
-                result in analysis of every other frame in the trajectory.''',
-                type=int, default=1)
-
-    optional.add_argument("--byres", help='''Flag which indicates electric field
-                at the probe atoms should be calculated with electric field contributions given
-                per residue. If --byres is indicated, the argument should be followed
-                by the filename for a pdb file which gives residues.''')
-
-    optional.add_argument("--bymol", help='''Flag which indicates electric field
-                at the probe atoms should be calculated with electric field contributions given
-                per molecule.''', action="store_true")
-
+    
+    parser = create_parser()
     args = parser.parse_args()
     nengines = args.nengines
     equil = args.equil

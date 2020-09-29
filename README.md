@@ -14,72 +14,29 @@ MDI-enabled Tinker and this driver.
 
 Using this tool, you can calculate the electric field along a bond or between atoms due to molecules or residues in the system.
 
-## Requirements:
+### Compiling MDI-Tinker and ELECTRIC
 
-This analysis uses the NumPy [NumPy](https://numpy.org/) and [pandas](https://pandas.pydata.org/) Python packages.
-We recommend installing these packages via Conda:
+Installation of ELECTRIC and MDI-enabled Tinker are bundled in one convenient build script. 
 
-    conda install -c conda-forge numpy pandas texinfo matplotlib
+To install ELECTRIC and MDI-enabled Tinker, you should have cmake and a fortran compiler installed. Then, you can download and build ELECTRIC and MDI-enabled Tinker using the following command in your terminal. Make sure you are in the directory where you want your ELECTRIC driver to be. You should note this location, because you will need to specify the path to some files built during this process in order to perform analysis.
 
-The repository includes a copy of the [MDI Library](https://github.com/MolSSI-MDI/MDI_Library), which is built using CMake, as described below.
+```
+git clone --recurse-submodules https://github.com/WelbornGroup/ELECTRIC.git
+cd ELECTRIC
+./build.sh
+```
 
-## Installation
+This will download and build ELECTRIC and MDI-enabled Tinker. 
 
-### Compiling MDI-enabled Tinker to use with ELECTRIC
+Upon successfull building, you will have the ELECTRIC driver in ELECTRIC/ELECTRIC/ELECTRIC.py, and the needed Tinker executable (dynamic.x) in ELECTRIC/modules/Tinker/build/tinker/source/dynamic.x . The location of these files can be found in text files in ELECTRIC/test/locations/ELECTRIC and ELECTRIC/test/locations/Tinker_ELECTRIC. You will need these for using ELECTRIC.
 
-Running calculations with this driver will require an [MDI-enabled fork](https://github.com/WelbornGroup/Tinker_ELECTRIC.git) of Tinker.
-This can be acquired using:
+### Python Dependencies
 
-    git clone https://github.com/WelbornGroup/Tinker_ELECTRIC.git 
+In order to run ELECTRIC, you will need to be in a python environment which has numpy and pandas installed. We recommend installing these packages in a conda environment created for ELECTRIC analysis.
 
-The above clone should be compiled before running calculations with the driver. First, navigate into the cloned repository. 
-
-    cd Tinker_ELECTRIC
-
-For convenience, we have provided build scripts in the dev folder. You can either build Tinker in the normal manner, or you can do:
-
-    cd dev
-    ./full_build.sh
-
-Your compiled files are now in `../build/tinker`. 
-
-Only the `dynamic.x` Tinker executable is required by this driver. You will need the location of `dynamic.x` for subsequent installation steps. This file is in `../build/tinker/source/dynamic.x`. To find the full location:
-
-    cd ../build/tinker/source
-
-Verify that you have a `dynamic.x` file:
-
-    ls dynamic.x
-
-This should list the file name. Next, note the location of this file by typing.
-
-    pwd
-
-Note the output of this command for the following steps.
-
-### Compiling ELECTRIC, the Electric Field Analysis Driver
-
-You now need to download and compile the code to do electric field analysis. Before cloning the repository, make sure you are no longer in the Tinker repo you just built. If you followed along with the previous steps:
-
-    cd ../../../../
-
-Clone this repository:
-
-    git clone https://github.com/WelbornGroup/ELECTRIC.git
-
-Then build it using CMake:
-
-    cd ELECTRIC
-    cmake .
-    make
-
-
-#### Configuration
-
-You will next need to tell the driver the location of the files you just compiled. This is indicated in a text file in the repository. Edit the file `ELECTRIC/test/locations/ELECTRIC` to provide the **full path** to the `ELECTRIC.py` Python script.
-If you followed the installation instructions above, this file will be in `[...]/ELECTRIC/ELECTRIC/ELECTRIC.py`, where `[...]` should be the path appropriate for your system.
-
-Similarly, edit the file `ELECTRIC/test/locations/Tinker_ELECTRIC` to provide the **full path** to the `dynamic.x` executable you compiled from the Tinker distribution.
+``` 
+conda install -c conda-forge numpy pandas
+```
 
 ## Testing
 
@@ -89,15 +46,21 @@ You can now run a quick test of the driver by changing directory to the `ELECTRI
 
 This script will run a short Tinker dynamics simulation that includes periodic boundary conditions. This command is on line 20 of the provided file. This is a standard Tinker call, as you would normally run a simulation. If you are performing post processing on a simulation, you will not use this line.
 
-    ${TINKER_LOC} bench5 -k bench5.key 10 1.0 0.001999 2 300.00 > Dynamics.log
+```
+${TINKER_LOC} bench5 -k bench5.key 10 1.0 0.001999 2 300.00 > Dynamics.log
+```
 
 The script then launches an instance of Tinker as an MDI engine, which will request a connection to the driver and then listen for commands from the driver. This command is similar to running a simulation with Tinker, except that it uses a modified Tinker input file (more on this below), and adds an additional command line argument which passes information to MDI (`-mdi "role ENGINE -name NO_EWALD -method TCP -port 8022 -hostname localhost"`):
 
-    ${TINKER_LOC} bench5 -k no_ewald.key -mdi "-role ENGINE -name NO_EWALD -method TCP -port 8022 -hostname localhost" 10 1.0 0.001999 2 300.00 > no_ewald.log &
+```
+{TINKER_LOC} bench5 -k no_ewald.key -mdi "-role ENGINE -name NO_EWALD -method TCP -port 8022 -hostname localhost" 10 1.0 0.001999 2 300.00 > no_ewald.log &
+```
 
 The script will then launch an instance of the driver in the background, which will listen for connections from an MDI engine:
 
-    python ${DRIVER_LOC} -probes "1 40" -snap bench5.arc -mdi "-role DRIVER -name driver -method TCP -port 8022" --bymol &
+```
+python ${DRIVER_LOC} -probes "1 40" -snap bench5.arc -mdi "-role DRIVER -name driver -method TCP -port 8022" --bymol &
+```
 
 The driver's output should match the reference output file (`proj_totfield.csv`) in the `sample_analysis` directory.
 
