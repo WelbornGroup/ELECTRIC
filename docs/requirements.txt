@@ -1,2 +1,4 @@
 sphinx_rtd_theme
-pip install sphinx-argparse
+sphinx-argparse
+numpy
+pandas
