@@ -64,4 +64,4 @@ def setup(app):
     app.add_js_file('https://3dmol.org/build/3Dmol-min.js')
     app.add_js_file('https://code.jquery.com/jquery-3.5.1.min.js')
     app.add_js_file('https://cdn.datatables.net/1.10.22/js/jquery.dataTables.js')
-    #app.add_css_file('https://cdn.datatables.net/1.10.22/css/jquery.dataTables.css')
+    app.add_css_file('https://cdn.datatables.net/1.10.22/css/jquery.dataTables.css')
