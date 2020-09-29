@@ -44,14 +44,4 @@ def test_bench5():
     ref_totfield = pd.read_csv(ref_totfield_path)
     proj_totfield = pd.read_csv(proj_totfield_path)
 
-    icolumn = 0
-    for column in ref_totfield.columns:
-        ref = ref_totfield[column]
-        proj = proj_totfield[column]
-
-        if icolumn > 0:
-            for irow in range(len(ref)):
-                diff = abs(proj[irow] - ref[irow])
-                assert diff < error_tolerance
-                
-        icolumn += 1
+    pd.testing.assert_frame_equal(ref_totfield, proj_totfield)
