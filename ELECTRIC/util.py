@@ -2,6 +2,67 @@
 import numpy as np
 import pandas as pd
 
+import argparse
+
+def create_parser():
+    """
+    Create parser to get command line arguments.
+    """
+
+    # Handle arguments with argparse
+    parser = argparse.ArgumentParser(add_help=False,
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    required = parser.add_argument_group('Required Arguments')
+    optional = parser.add_argument_group('optional arguments')
+
+    # Add back help
+    optional.add_argument(
+        '-h',
+        '--help',
+        action='help',
+        help='show this help message and exit'
+    )
+
+    required.add_argument("-mdi", help='flags for mdi. When in doubt, `-mdi "-role ENGINE -name NO_EWALD -method TCP -port 8021 -hostname localhost", type=str, required=True` is a good option.')
+    required.add_argument("-snap", help="The file name of the trajectory to analyze.", type=str,
+        required=True)
+
+    required.add_argument("-probes", help='''
+                Atom indices which are probes for the electric field calculations. 
+                For example, if you would like to calculate the electric field along 
+                the bond between atoms 1 and 2, you would use `-probes "1 2"`.''', type=str, required=True)
+
+    optional.add_argument("-nengines", help="""
+                This option allows the driver to farm tasks out to multiple Tinker 
+                engines simultaneously, enabling parallelization of the electric field analysis 
+                computation. The argument to this option **must** be equal to the number of
+                Tinker engines that are launched along with the driver.""", type=int,
+                default=1)
+
+
+    optional.add_argument("--equil", help='''
+                The number of frames to skip performing analysis on at the beginning of the 
+                trajectory file (given by the -snap argument)
+                For example, using --equil 50 will result in the first 50 frames of the trajectory
+                being skipped.''',
+                type=int, default=0)
+
+    optional.add_argument("--stride", help='''
+                The number of frames to skip between analysis calculations. For example, using --stride 2 would
+                result in analysis of every other frame in the trajectory.''',
+                type=int, default=1)
+
+    optional.add_argument("--byres", help='''Flag which indicates electric field
+                at the probe atoms should be calculated with electric field contributions given
+                per residue. If --byres is indicated, the argument should be followed
+                by the filename for a pdb file which gives residues.''')
+
+    optional.add_argument("--bymol", help='''Flag which indicates electric field
+                at the probe atoms should be calculated with electric field contributions given
+                per molecule.''', action="store_true")
+
+    return parser
+
 
 def process_pdb(file_path, group_solvent=True):
     """

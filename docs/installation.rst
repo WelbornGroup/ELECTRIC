@@ -21,10 +21,11 @@ Upon successful building, you will have the ELECTRIC driver in ELECTRIC/ELECTRIC
 Python Dependencies
 -------------------
 
-In order to run ELECTRIC, you will need to be in a python environment which has numpy and pandas installed. We recommend installing these packages in a conda environment created for ELECTRIC analysis.
+In order to run ELECTRIC, you will need to be in a python environment which has numpy and pandas installed. If you want to run ELECTRIC with more than one engine, you should also install MPI4Py. We recommend installing these packages in a conda environment created for ELECTRIC analysis.
 
 .. code-block:: bash   
 
+    conda install -c anaconda mpi4py
     conda install -c conda-forge numpy pandas
 
 Testing Your Installation
