@@ -159,8 +159,7 @@ if __name__ == "__main__":
 
     optional.add_argument("--equil", help='''The number of frames to skip performing analysis on
                 at the beginning of the trajectory file (given by the -snap argument)
-                For example, using --equil 50 will result in the first 50 frames of the trajectory
-                being skipped.''',
+                For example, using --equil 50 will result in analysis starting after frame 50 of the trajectory, (in other words, the first frame which will be analyzed is frame 50 + stride).''',
                 type=int, default=0)
 
     optional.add_argument("--stride", help='''The number of frames to skip between
@@ -330,10 +329,10 @@ if __name__ == "__main__":
     # Read trajectory and do analysis
     for snap_num, snapshot in enumerate(pd.read_csv(snapshot_filename, chunksize=natoms+skip_line,
         header=None, delim_whitespace=True, names=range(15),
-        skiprows=skip_line, index_col=None)):
+        skiprows=skip_line, index_col=None), 1):
 
-        if snap_num > equil - 1:
-            if snap_num % stride == 0:
+        if snap_num > equil:
+            if (snap_num - equil) % stride == 0:
 
                 icomm = itask % nengines
                 itask_to_snap_num[itask] = snap_num
