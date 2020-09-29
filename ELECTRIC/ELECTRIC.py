@@ -330,7 +330,7 @@ if __name__ == "__main__":
     # Read trajectory and do analysis
     for snap_num, snapshot in enumerate(pd.read_csv(snapshot_filename, chunksize=natoms+skip_line,
         header=None, delim_whitespace=True, names=range(15),
-        skiprows=skip_line, index_col=None)):
+        skiprows=skip_line, index_col=None), 1):
 
         if snap_num > equil - 1:
             if snap_num % stride == 0:
