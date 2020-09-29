@@ -1,1 +1,254 @@
-test
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>ELECTRIC &mdash; ELECTRIC  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <link rel="stylesheet" href="https://cdn.datatables.net/1.10.22/css/jquery.dataTables.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+        <script src="https://3dmol.org/build/3Dmol-min.js"></script>
+        <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+        <script src="https://cdn.datatables.net/1.10.22/js/jquery.dataTables.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Installation" href="installation.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="#" class="icon icon-home" alt="Documentation Home"> ELECTRIC
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="#">ELECTRIC</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="#" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>ELECTRIC</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/index.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="electric">
+<h1>ELECTRIC<a class="headerlink" href="#electric" title="Permalink to this headline">¶</a></h1>
+<p>ELECTRIC: Electric fields Leveraged from multipole Expansion Calculations in Tinker Rapid Interface Code.</p>
+<p>ELECTRIC uses the MolSSI Driver Interface to perform electric field analysis of Tinker trajectories which use the AMOEBA forcefield. This currently works as a post-processing tool, meaning that you run simulations as normal using Tinker, then analyze the trajectories using MDI-enabled Tinker and this driver.</p>
+<p>ELECTRIC is written by Jessica A. Nash and Taylor A. Barnes from <a class="reference external" href="https://molssi.org/">The Molecular Sciences Software Institute</a>, in collaboration with <a class="reference external" href="https://www.valeriewelborn.com/">Prof. Valerie Vassier Welborn</a>.</p>
+<p>Using this tool, you can calculate the electric field along a bond or between atoms due to molecules or residues in the system.</p>
+<p>This method has been reported in the following publications:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://www.nature.com/articles/s41929-018-0109-2">Computational optimization of electric fields for better catalysis design</a>, Nature Catalysis</p></li>
+<li><p><a class="reference external" href="https://pubs.acs.org/doi/10.1021/jacs.9b05323">Fluctuations of Electric Fields in the Active Site of the Enzyme Ketosteroid Isomerase</a>, Journal of the American Chemical Society</p></li>
+<li><p><a class="reference external" href="https://pubs.acs.org/doi/10.1021/acscatal.7b03151">Computational Optimization of Electric Fields for Improving Catalysis of a Designed Kemp Eliminase</a>, ACS Catalysis</p></li>
+</ul>
+<p>You can read about the underlying principles of this analysis in</p>
+<ul class="simple">
+<li><p><a class="reference external" href="https://pubs.acs.org/doi/10.1021/acs.chemrev.8b00399">Computational Design of Synthetic Enzymes</a>, Chemical Reviews</p></li>
+</ul>
+<p>ELECTRIC is now available as an open source software package. To get started, head to the <a class="reference external" href="installation.html">installation</a> instructions, see the <a class="reference external" href="usage.html">usage</a>, or try out the <a class="reference external" href="tutorial.html">tutorial</a>.</p>
+<div class="toctree-wrapper compound">
+<p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#compiling-mdi-tinker-and-electric">Compiling MDI-Tinker and ELECTRIC</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#python-dependencies">Python Dependencies</a></li>
+<li class="toctree-l2"><a class="reference internal" href="installation.html#testing-your-installation">Testing Your Installation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Usage</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#information-flow">Information Flow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#procedure">Procedure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#electric-calculation-settings">ELECTRIC Calculation Settings</a></li>
+<li class="toctree-l2"><a class="reference internal" href="usage.html#output">Output</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#running-an-electric-calculation">Running an ELECTRIC calculation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#analyzing-results-from-electric">Analyzing Results from ELECTRIC</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="installation.html" class="btn btn-neutral float-right" title="Installation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Jessica A. Nash, Taylor A. Barnes, Valerie Vaissier Welborn
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
