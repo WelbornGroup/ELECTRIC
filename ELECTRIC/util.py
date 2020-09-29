@@ -41,10 +41,10 @@ def create_parser():
 
 
     optional.add_argument("--equil", help='''
-                The number of frames to skip performing analysis on at the beginning of the 
-                trajectory file (given by the -snap argument)
-                For example, using --equil 50 will result in the first 50 frames of the trajectory
-                being skipped.''',
+                'The number of frames to skip performing analysis on
+                at the beginning of the trajectory file (given by the -snap argument)
+                For example, using --equil 50 will result in analysis starting after frame 50 of the trajectory, 
+                (in other words, the first frame which will be analyzed is frame 50 + stride).''',
                 type=int, default=0)
 
     optional.add_argument("--stride", help='''
@@ -52,12 +52,14 @@ def create_parser():
                 result in analysis of every other frame in the trajectory.''',
                 type=int, default=1)
 
-    optional.add_argument("--byres", help='''Flag which indicates electric field
+    optional.add_argument("--byres", help='''
+                Flag which indicates electric field
                 at the probe atoms should be calculated with electric field contributions given
                 per residue. If --byres is indicated, the argument should be followed
                 by the filename for a pdb file which gives residues.''')
 
-    optional.add_argument("--bymol", help='''Flag which indicates electric field
+    optional.add_argument("--bymol", help='''
+                Flag which indicates electric field
                 at the probe atoms should be calculated with electric field contributions given
                 per molecule.''', action="store_true")
 
