@@ -91,13 +91,17 @@
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Usage</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#information-flow">Information Flow</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#procedure">Procedure</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#procedure">Procedure</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#example-script">Example Script</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#electric-calculation-settings">ELECTRIC Calculation Settings</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#Required Arguments">Required Arguments</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#Named Arguments">Named Arguments</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#output">Output</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#running-electric-in-parallel">Running ELECTRIC in Parallel</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="tutorial.html">Tutorial</a></li>
@@ -196,7 +200,28 @@ One possible launch command would be:</p>
 <p>The output will be written to <cite>proj_totfield.csv</cite>.</p>
 <p>It is useful to write a script that performs Steps 3 and 4, especially if the calculations are intended to be run on a shared cluster.
 Such a script might look like:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="c1"># location of required codes</span>
+<div class="section" id="example-script">
+<span id="example"></span><h3>Example Script<a class="headerlink" href="#example-script" title="Permalink to this headline">¶</a></h3>
+<div class="highlight-bash notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+ 8
+ 9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="c1"># location of required codes</span>
 <span class="nv">DRIVER_LOC</span><span class="o">=</span><span class="k">$(</span>cat ../locations/ELECTRIC<span class="k">)</span>
 <span class="nv">TINKER_LOC</span><span class="o">=</span><span class="k">$(</span>cat ../locations/Tinker_ELECTRIC<span class="k">)</span>
 
@@ -217,8 +242,9 @@ python <span class="si">${</span><span class="nv">DRIVER_LOC</span><span class="
 
 <span class="nb">wait</span>
 </pre></div>
-</div>
+</td></tr></table></div>
 <p>You can read more below, or you can try out the <a class="reference external" href="tutorial.html">tutorial</a> to run a calculation yourself.</p>
+</div>
 </div>
 <div class="section" id="electric-calculation-settings">
 <span id="electric-settings"></span><h2>ELECTRIC Calculation Settings<a class="headerlink" href="#electric-calculation-settings" title="Permalink to this headline">¶</a></h2>
@@ -311,6 +337,21 @@ per molecule.</p>
 </div>
 <p>Since this calculation was run using <code class="code docutils literal notranslate"><span class="pre">--bymol</span></code>, there are 216 rows, one for each molecule in the system.</p>
 <p>The first entry, column <code class="code docutils literal notranslate"><span class="pre">1</span> <span class="pre">and</span> <span class="pre">40</span> <span class="pre">-</span> <span class="pre">frame</span> <span class="pre">1</span></code>, header <code class="code docutils literal notranslate"><span class="pre">molecule</span> <span class="pre">1</span></code>, gives the projected total electric field at the midway point between <code class="code docutils literal notranslate"><span class="pre">atom</span> <span class="pre">1</span></code> and <code class="code docutils literal notranslate"><span class="pre">atom</span> <span class="pre">40</span></code> due to <code class="code docutils literal notranslate"><span class="pre">molecule</span> <span class="pre">1</span></code>. The electric field has been projected along the vector which points from <code class="code docutils literal notranslate"><span class="pre">atom</span> <span class="pre">1</span></code> to <code class="code docutils literal notranslate"><span class="pre">atom</span> <span class="pre">40</span></code>. The projection will always be along the vector from atom 1 to atom 2. You can reverse the sign of the number if you would like the vector to point the opposite way.</p>
+</div>
+<div class="section" id="running-electric-in-parallel">
+<h2>Running ELECTRIC in Parallel<a class="headerlink" href="#running-electric-in-parallel" title="Permalink to this headline">¶</a></h2>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>You must have mpi4py installed to run ELECTRIC in parallel. You can install it from conda</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda install -c anaconda mpi4py
+</pre></div>
+</div>
+</div>
+<p>ELECTRIC is parallelized using MPI4Py. You can take advantage of this parallelization by making sure MPI4Py is installed and using more than one ELECTRIC engine using the <code class="code docutils literal notranslate"><span class="pre">-nengines</span></code> command. Note that if you are using the <code class="code docutils literal notranslate"><span class="pre">-nengines</span></code> argument with a number greater than one, you must launch the equivalent number of Tinker instances. In the <a class="reference internal" href="#example"><span class="std std-ref">Example Script</span></a>, this is acheived by setting a variable <code class="code docutils literal notranslate"><span class="pre">nengines</span></code> and using this number to launch Tinker instances in a loop (<code class="code docutils literal notranslate"><span class="pre">lines</span> <span class="pre">12-15</span></code>) and inputting the same variable into the ELECTRIC launch on <code class="code docutils literal notranslate"><span class="pre">line</span> <span class="pre">18</span></code>.</p>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Launching an uneven number of MDI-Tinker and ELECTRIC instances will result in your calculation hanging. Make sure that you launch an equivalent number of MDI-Tinker instances to your <code class="code docutils literal notranslate"><span class="pre">-nengines</span></code> argument.</p>
+</div>
 </div>
 </div>
 
