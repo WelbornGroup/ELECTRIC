@@ -22,7 +22,7 @@ If each snapshot was instead written to a different file (i.e., :code:`coordinat
 This keyfile should be identical to the one used in Step 1, except that it **must not** include periodic boundary conditions and **must not** use an Ewald summation. This means that in the :code:`.key` file for running the driver, you should not have an :code:`a-axis` keyword, or keywords related to Ewald.
 
 3. **Launch one (or more; see the `-nengines` option below) instance(s) of Tinker as an MDI engine, using the keyfile created in Step 2.**  
-This is done in the same way you launch a normal Tinker simulation (by launching the :code:`dynamic.x` executable) except that the `-mdi` command-line option is added. However, it is **very important** that the reference coordinates you use do not have periodic boundary information. So, if when you originally ran the simulation you started it with a snapshot from a previous simulation run, make sure to create a new snapshot to launch the simulation from which does not include box information on line 2.
+This is done in the same way you launch a normal Tinker simulation (by launching the :code:`dynamic.x` executable) except that the :code:`-mdi` command-line option is added. However, it is **very important** that the reference coordinates you use do not have periodic boundary information. So, if when you originally ran the simulation you started it with a snapshot from a previous simulation run, make sure to create a new snapshot to launch the simulation from which does not include box information on line 2.
 
 The argument to the :code:`-mdi` command-line option details how Tinker should connect to the driver; its possible arguments are described in the `MDI documentation`_ .
 When in doubt, we recommend doing :code:`-mdi "-role ENGINE -name NO_EWALD -method TCP -port 8021 -hostname localhost"`
@@ -131,7 +131,7 @@ ELECTRIC is parallelized using MPI4Py. You can take advantage of this paralleliz
 
 .. warning::
 
-    Launching an uneven number of MDI-Tinker and ELECTRIC instances will result in your calculation hanging. Make sure that you launch an equivalent number of MDI-Tinker instances to your :code:`-nengines` argument.
+    Launching an unmatching number of MDI-Tinker and ELECTRIC instances will result in your calculation hanging. Make sure that you launch an equivalent number of MDI-Tinker instances to your :code:`-nengines` argument.
 
 .. _tutorial: tutorial.html
 .. _`MDI documentation`: https://molssi.github.io/MDI_Library/html/library_page.html#library_launching_sec
