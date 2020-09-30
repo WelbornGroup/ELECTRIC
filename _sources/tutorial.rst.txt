@@ -11,7 +11,7 @@ This tutorial will walk you through using ELECTRIC to analyze the electric field
         - You are familiar with bash scripts.
 
 
-The pdb code for this protein is 1l2y_, and you can see the structure below. We have chosen a small protein for demonstrative purposes.
+The pdb code for this protein is 1l2y_, and you can see the structure below. We have chosen a small protein for demonstrative purposes. The image below shows only the protein, but our simulation is solvated.
 
 .. moleculeView:: 
     
@@ -44,7 +44,7 @@ This file contains the force field parameters for the simulation you have run. I
 
 Tinker input file
 ^^^^^^^^^^^^^^^^^
-Next, we must prepare an input file which tells Tinker settings for our calculation. This input file should be a modified version of the one which you used to run your initial simulation. Consider the input file, :code:`tinker.key` used to obtain this trajectory. The parameter file in the previous step is given on line 2.
+Next, we must prepare an input file which tells Tinker settings for our calculation. This input file should be a modified version of the one which you used to run your initial simulation. Consider the input file, :code:`tinker.key` used to obtain this trajectory. The parameter file in the previous step is given on :code:`line 1`.
 
 .. code-block:: text
     :linenos:
@@ -75,7 +75,7 @@ Next, we must prepare an input file which tells Tinker settings for our calculat
 
 The input file used for this simulation uses periodic boundaries and an Ewald summation for electrostatics. During a Tinker simulation using AMOEBA, electric fields are evaluated in order to calculate the induced dipoles at each step. In order to get electric field contributions from specific residues, we must calculate the electric field using the real space interactions only (no periodic boundaries or Ewald). 
 
-Remove settings related to cutoffs (:code:`cutoff` keyword), periodic boundaries (:code:`a-axis`, :code:`b-axis`,:code: `c-axis`) and Ewald summation (:code:`ewald`). You can also remove settings having to do with neighbor lists (:code:`neighbor-list`), as they are not needed and can cause an error for this calculation if included.
+Remove settings related to cutoffs (:code:`cutoff` keyword), periodic boundaries (:code:`a-axis`, :code:`b-axis`,:code:`c-axis`) and Ewald summation (:code:`ewald`). You can also remove settings having to do with neighbor lists (:code:`neighbor-list`), as they are not needed and can cause an error for this calculation if included.
 
 The modifed input file for ELECTRIC is given below. This file is saved in the data directory with the name :code:`noewald.key`.
 
@@ -99,7 +99,7 @@ The modifed input file for ELECTRIC is given below. This file is saved in the da
 
 Bash script - run_analysis.sh
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-When you run analysis uisng ELECTRIC, ELECTRIC parses your given trajectory sends snapshots to Tinker for electric field calculation. The MDI-enabled version of Tinker then calculates the electric field information for that snapshot, as would usually be calculated during a molecular dynamics simulation. 
+When you run analysis uisng ELECTRIC, ELECTRIC parses your given trajectory sends snapshots to Tinker for electric field calculation. The MDI-enabled version of Tinker then calculates the electric field information for that snapshot. 
 
 You use ELECTRIC from the command line. Consider the following bash script provided for analysis, :code:`run_analysis.sh`. We will explain this script in detail.
 
@@ -134,7 +134,7 @@ You use ELECTRIC from the command line. Consider the following bash script provi
 
     For this tutorial, we use the approach of having all data needed for analysis in a directory called `data`. During analysis, we copy everything from :code:`data` into a folder :code:`work`. This part of the tutorial is stylistic. The authors prefer this method to keep files separated, and original files unaltered.
 
-In lines :code:`2` and :code:`3`, you should change the location to your installed ELECTRIC.py file and MDI-enabled :code:`dynamic.x`. Recall from the installation instructions that you can find these in the ELECTRIC directory in the files ELECTRIC/test/locations/ELECTRIC and ELECTRIC/test/locations/Tinker_ELECTRIC. 
+In lines :code:`2` and :code:`3`, you should change the location to your installed ELECTRIC.py file and MDI-enabled :code:`dynamic.x`. Recall from the installation instructions that you can find these in the ELECTRIC directory in the files :code:`ELECTRIC/test/locations/ELECTRIC` and :code:`ELECTRIC/test/locations/Tinker_ELECTRIC`. 
 
 The next section removes the folder called :code:`work` if it exists. This bash script is written to put all analysis files into a folder called :code:`work` to keep our original files clean. 
 
@@ -177,7 +177,7 @@ You should obtain the number of the probe atoms from the :code:`xyz` file you us
 
 The argument `--byres` gives information to ELECTRIC about how we would like the electric field reported. When we use the :code:`--byres` argument, it should be followed by a pdb which contains residue information for the system you are studying. When using this argument, electric field contributions from each residue will be reported. Other options are :code:`--byatom` top report electric field contributions from each atom, and :code:`--bymol` to report electric field contributions from each molecule. 
 
-When using :code:`--byres`, solvent should be at the end of the :code:`xyz`/`pdb` file. Solvent (ions and water) will be grouped together into a single residue.
+When using :code:`--byres`, solvent should be at the end of the pdb and xyz files. Solvent (ions and water) will be grouped together into a single residue.
 
 .. warning::
 
