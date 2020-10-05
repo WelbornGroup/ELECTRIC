@@ -21,13 +21,22 @@ if use_mpi4py:
 else:
     mpi_world = None
 
-def mdi_checks(mdi_engine, nengines):
+def connect_to_engines(nengines):
     """
-    Perform checks on the MDI driver we have accepted to make sure it fits this analysis.
+    Accept connection(s) from the MDI engine(s) and perform basic validation of the connection.
+
+    Parameters
+    ---------
+    nengines : int
+        The number of MDI engines to connect to.
+
+    Returns
+    -------
+    engine_comm : a list of MDI_Comm values
     """
     # Confirm that this code is being used as a driver
-    role = mdi_engine.MDI_Get_Role()
-    if not role == mdi_engine.MDI_DRIVER:
+    role = mdi.MDI_Get_Role()
+    if not role == mdi.MDI_DRIVER:
         raise Exception("Must run driver_py.py as a DRIVER")
 
     # Connect to the engine
@@ -41,8 +50,8 @@ def mdi_checks(mdi_engine, nengines):
         comm = engine_comm[iengine]
 
         # Determine the name of the engine
-        mdi_engine.MDI_Send_Command("<NAME", comm)
-        name = mdi_engine.MDI_Recv(mdi.MDI_NAME_LENGTH, mdi.MDI_CHAR, comm)
+        mdi.MDI_Send_Command("<NAME", comm)
+        name = mdi.MDI_Recv(mdi.MDI_NAME_LENGTH, mdi.MDI_CHAR, comm)
         print(F"Engine name: {name}")
 
         if name != "NO_EWALD":
@@ -50,7 +59,33 @@ def mdi_checks(mdi_engine, nengines):
 
     return engine_comm
 
-def collect_task(comm, snapshot_coords, snap_num, output):
+def collect_task(comm, npoles, snapshot_coords, snap_num, output):
+    """
+    Receive all data associated with an engine's task.
+
+    Parameters
+    ---------
+    comm : MDI_Comm
+        The MDI communicator of the engine performing this task.
+
+    npoles : int
+        Number of poles involved in this calculation
+
+    snapshot_coords : NumPy array
+        Nuclear coordinates at the snapshot associated with this task.
+
+    snap_num : int
+        The snapshot associated with this task.
+
+    output : pd.DataFrame()
+        The aggregated data from all tasks.
+
+    Returns
+    -------
+    output : pd.DataFrame()
+        The aggregated data from all tasks, including the data collected by this function.
+    """
+
     mdi.MDI_Recv(3*npoles*len(probes), mdi.MDI_DOUBLE, comm, buf=dfield)
 
     # Get the pairwise UFIELD
@@ -147,7 +182,7 @@ if __name__ == "__main__":
     if args.byres:
         residues = process_pdb(args.byres)[0]
 
-    engine_comm = mdi_checks(mdi, nengines)
+    engine_comm = connect_to_engines(nengines)
 
     # Print the probe atoms
     print(F"Probes: {probes}")
@@ -314,7 +349,7 @@ if __name__ == "__main__":
                 # After every engine has received a task, collect the data
                 if (icomm % nengines) == (nengines - 1):
                     for jcomm in range(nengines):
-                        output = collect_task(engine_comm[jcomm], snapshot_coords[jcomm],
+                        output = collect_task(engine_comm[jcomm], npoles, snapshot_coords[jcomm],
                                               itask_to_snap_num[itask - nengines + jcomm], output)
 
                     elapsed_dfield = time.time() - start_dfield
@@ -322,7 +357,7 @@ if __name__ == "__main__":
 
     # Collect any tasks that have not yet been collected
     for icomm in range ( itask % nengines ):
-        output = collect_task(engine_comm[icomm], snapshot_coords[icomm],
+        output = collect_task(engine_comm[icomm], npoles, snapshot_coords[icomm],
                               itask_to_snap_num[itask - nengines + jcomm], output)
 
     output.to_csv('proj_totfield.csv')
