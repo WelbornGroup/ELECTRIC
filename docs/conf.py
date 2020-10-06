@@ -17,9 +17,9 @@
 
 # -- Project information -----------------------------------------------------
 
-project = 'ELECTRIC'
-copyright = '2020, Jessica A. Nash, Taylor A. Barnes, Valerie Vaissier Welborn'
-author = 'Jessica A. Nash, Taylor A. Barnes, Valerie Vaissier Welborn'
+project = "ELECTRIC"
+copyright = "2020, Jessica A. Nash, Taylor A. Barnes, Valerie Vaissier Welborn"
+author = "Jessica A. Nash, Taylor A. Barnes, Valerie Vaissier Welborn"
 
 
 # -- General configuration ---------------------------------------------------
@@ -27,16 +27,15 @@ author = 'Jessica A. Nash, Taylor A. Barnes, Valerie Vaissier Welborn'
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = [
-]
+extensions = []
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+templates_path = ["_templates"]
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 
 
 # -- Options for HTML output -------------------------------------------------
@@ -58,10 +57,11 @@ html_theme = "sphinx_rtd_theme"
 # Custom directives
 sys.path.append(os.path.abspath("./_ext"))
 
-extensions = ["moleculeView", "dataTables", "sphinx_rtd_theme", 'sphinxarg.ext']
+extensions = ["moleculeView", "dataTables", "sphinx_rtd_theme", "sphinxarg.ext"]
+
 
 def setup(app):
-    app.add_js_file('https://3dmol.org/build/3Dmol-min.js')
-    app.add_js_file('https://code.jquery.com/jquery-3.5.1.min.js')
-    app.add_js_file('https://cdn.datatables.net/1.10.22/js/jquery.dataTables.js')
-    app.add_css_file('https://cdn.datatables.net/1.10.22/css/jquery.dataTables.css')
+    app.add_js_file("https://3dmol.org/build/3Dmol-min.js")
+    app.add_js_file("https://code.jquery.com/jquery-3.5.1.min.js")
+    app.add_js_file("https://cdn.datatables.net/1.10.22/js/jquery.dataTables.js")
+    app.add_css_file("https://cdn.datatables.net/1.10.22/css/jquery.dataTables.css")
