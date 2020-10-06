@@ -32,7 +32,8 @@ def connect_to_engines(nengines):
 
     Returns
     -------
-    engine_comm : a list of MDI_Comm values
+    engine_comm : list
+        a list of MDI_Comm values
     """
     # Confirm that this code is being used as a driver
     role = mdi.MDI_Get_Role()
@@ -59,7 +60,7 @@ def connect_to_engines(nengines):
 
     return engine_comm
 
-def collect_task(comm, npoles, snapshot_coords, snap_num, output):
+def collect_task(comm, npoles, snapshot_coords, snap_num, atoms_pole_numbers, output):
     """
     Receive all data associated with an engine's task.
 
@@ -71,18 +72,21 @@ def collect_task(comm, npoles, snapshot_coords, snap_num, output):
     npoles : int
         Number of poles involved in this calculation
 
-    snapshot_coords : NumPy array
+    snapshot_coords : np.ndarray
         Nuclear coordinates at the snapshot associated with this task.
 
     snap_num : int
         The snapshot associated with this task.
+    
+    atoms_pole_numbers : list
+        A multidimensional list where each element gives the pole indices in that fragment.
 
-    output : pd.DataFrame()
+    output : pd.DataFrame
         The aggregated data from all tasks.
 
     Returns
     -------
-    output : pd.DataFrame()
+    output : pd.DataFrame
         The aggregated data from all tasks, including the data collected by this function.
     """
 
@@ -350,7 +354,7 @@ if __name__ == "__main__":
                 if (icomm % nengines) == (nengines - 1):
                     for jcomm in range(nengines):
                         output = collect_task(engine_comm[jcomm], npoles, snapshot_coords[jcomm],
-                                              itask_to_snap_num[itask - nengines + jcomm], output)
+                                              itask_to_snap_num[itask - nengines + jcomm], atoms_pole_numbers, output)
 
                     elapsed_dfield = time.time() - start_dfield
                     print(F"DField Retrieval:\t {elapsed_dfield}")
