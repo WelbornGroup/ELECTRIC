@@ -124,7 +124,7 @@ You can see command line arguments for this driver using the following command f
 Here is the help information for the command line arguments:
 
     usage: ELECTRIC.py [-h] -mdi MDI -snap SNAP -probes PROBES
-                              [-nengines NENGINES] [--equil EQUIL]
+                              [--nengines NENGINES] [--equil EQUIL]
                               [--stride STRIDE] [--byres BYRES] [--bymol]
 
     required arguments:
@@ -139,7 +139,7 @@ Here is the help information for the command line arguments:
 
     optional arguments:
       -h, --help          show this help message and exit
-      -nengines NENGINES  This option allows the driver to farm tasks out to
+      --nengines NENGINES This option allows the driver to farm tasks out to
                           multiple Tinker engines simultaneously, enabling
                           parallelization of the electric field analysis
                           computation. The argument to this option **must** be
