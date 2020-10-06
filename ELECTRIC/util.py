@@ -244,7 +244,7 @@ def index_fragments(fragment_list, ipoles):
     for fragment in fragments:
         # These are the atom numbers for the atoms in the specified molecules
         fragment_atoms = np.array(np.where(fragment_list == fragment)) + 1
-        # The pole indices for the speified molecule
+        # The pole indices for the specified molecule
         pole_numbers = [ipoles[atom_index - 1] for atom_index in fragment_atoms[0]]
         atoms_pole_numbers.append(np.array(pole_numbers))
 
