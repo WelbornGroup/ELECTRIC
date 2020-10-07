@@ -34,7 +34,7 @@ One possible launch command would be:
 
 .. code-block:: bash
 
-    `python ${DRIVER_LOC} -probes "1 2 10" -snap coordinates.arc -mdi "-role DRIVER -name driver -method TCP -port 8021" --byres ke15.pdb --equil 51 -nengines 15 &`
+    `python ${DRIVER_LOC} -probes "1 2 10" -snap coordinates.arc -mdi "-role DRIVER -name driver -method TCP -port 8021" --byres ke15.pdb --equil 51 --nengines 15 &`
 
 where `DRIVER_LOC` is the path to ELECTRIC.py which you set during the configuration step. See the section :ref:`electric settings` for a detailed explanation of command line arguments for ELECTRIC.
 
@@ -68,7 +68,7 @@ Example Script
     done
 
     # launch the driver
-    python ${DRIVER_LOC} -probes "32 33 59 60" -snap coordinates.arc -mdi "-role DRIVER -name driver -method TCP -port 8021" --byres ke15.pdb --equil 51 -nengines ${nengines} &
+    python ${DRIVER_LOC} -probes "32 33 59 60" -snap coordinates.arc -mdi "-role DRIVER -name driver -method TCP -port 8021" --byres ke15.pdb --equil 51 --nengines ${nengines} &
 
     wait
 

@@ -193,7 +193,7 @@ When run as an engine, Tinker should be launched in the background; this is done
 <p>4. <strong>Launch the driver</strong>
 The driver accepts a variety of command-line options, which are described in detail below.
 One possible launch command would be:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="sb">`</span>python <span class="si">${</span><span class="nv">DRIVER_LOC</span><span class="si">}</span> -probes <span class="s2">&quot;1 2 10&quot;</span> -snap coordinates.arc -mdi <span class="s2">&quot;-role DRIVER -name driver -method TCP -port 8021&quot;</span> --byres ke15.pdb --equil <span class="m">51</span> -nengines <span class="m">15</span> <span class="p">&amp;</span><span class="sb">`</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="sb">`</span>python <span class="si">${</span><span class="nv">DRIVER_LOC</span><span class="si">}</span> -probes <span class="s2">&quot;1 2 10&quot;</span> -snap coordinates.arc -mdi <span class="s2">&quot;-role DRIVER -name driver -method TCP -port 8021&quot;</span> --byres ke15.pdb --equil <span class="m">51</span> --nengines <span class="m">15</span> <span class="p">&amp;</span><span class="sb">`</span>
 </pre></div>
 </div>
 <p>where <cite>DRIVER_LOC</cite> is the path to ELECTRIC.py which you set during the configuration step. See the section <a class="reference internal" href="#electric-settings"><span class="std std-ref">ELECTRIC Calculation Settings</span></a> for a detailed explanation of command line arguments for ELECTRIC.</p>
@@ -238,7 +238,7 @@ Such a script might look like:</p>
 <span class="k">done</span>
 
 <span class="c1"># launch the driver</span>
-python <span class="si">${</span><span class="nv">DRIVER_LOC</span><span class="si">}</span> -probes <span class="s2">&quot;32 33 59 60&quot;</span> -snap coordinates.arc -mdi <span class="s2">&quot;-role DRIVER -name driver -method TCP -port 8021&quot;</span> --byres ke15.pdb --equil <span class="m">51</span> -nengines <span class="si">${</span><span class="nv">nengines</span><span class="si">}</span> <span class="p">&amp;</span>
+python <span class="si">${</span><span class="nv">DRIVER_LOC</span><span class="si">}</span> -probes <span class="s2">&quot;32 33 59 60&quot;</span> -snap coordinates.arc -mdi <span class="s2">&quot;-role DRIVER -name driver -method TCP -port 8021&quot;</span> --byres ke15.pdb --equil <span class="m">51</span> --nengines <span class="si">${</span><span class="nv">nengines</span><span class="si">}</span> <span class="p">&amp;</span>
 
 <span class="nb">wait</span>
 </pre></div>
@@ -250,7 +250,7 @@ python <span class="si">${</span><span class="nv">DRIVER_LOC</span><span class="
 <span id="electric-settings"></span><h2>ELECTRIC Calculation Settings<a class="headerlink" href="#electric-calculation-settings" title="Permalink to this headline">¶</a></h2>
 <p>You can change the options for your electric calculation through command line arguments.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">python</span> <span class="n">ELECTRIC</span><span class="o">.</span><span class="n">py</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">mdi</span> <span class="n">MDI</span><span class="p">]</span> <span class="o">-</span><span class="n">snap</span> <span class="n">SNAP</span> <span class="o">-</span><span class="n">probes</span> <span class="n">PROBES</span>
-                          <span class="p">[</span><span class="o">-</span><span class="n">nengines</span> <span class="n">NENGINES</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">equil</span> <span class="n">EQUIL</span><span class="p">]</span>
+                          <span class="p">[</span><span class="o">--</span><span class="n">nengines</span> <span class="n">NENGINES</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">equil</span> <span class="n">EQUIL</span><span class="p">]</span>
                           <span class="p">[</span><span class="o">--</span><span class="n">stride</span> <span class="n">STRIDE</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">byres</span> <span class="n">BYRES</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">bymol</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -275,7 +275,7 @@ the bond between atoms 1 and 2, you would use <cite>-probes “1 2”</cite>.</p
 <div class="section" id="Named Arguments">
 <h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline">¶</a></h3>
 <dl class="option-list">
-<dt><kbd>-nengines</kbd></dt>
+<dt><kbd>--nengines</kbd></dt>
 <dd><blockquote>
 <div><p>This option allows the driver to farm tasks out to multiple Tinker
 engines simultaneously, enabling parallelization of the electric field analysis
