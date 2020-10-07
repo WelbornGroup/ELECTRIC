@@ -402,6 +402,7 @@ if __name__ == "__main__":
             npoles,
             snapshot_coords[icomm],
             itask_to_snap_num[itask - nengines + jcomm],
+            atoms_pole_numbers,
             output,
         )
 
