@@ -39,7 +39,9 @@ jobs:
         #conda info -a
 
         # Install dependencies
-        conda install -c conda-forge numpy pandas pytest pytest-cov
+        conda install -c conda-forge numpy pandas
+	pip install pytest
+	pip install pytest-cov
 
     - name: Build ELECTRIC with Tinker
       run: |
