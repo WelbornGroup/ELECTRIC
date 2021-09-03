@@ -417,4 +417,4 @@ if __name__ == "__main__":
 
     # Ensure that all ranks have terminated
     if use_mpi4py:
-        MPI.COMM_WORLD.Barrier()
+        mpi_world.Barrier()
