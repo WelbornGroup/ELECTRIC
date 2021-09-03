@@ -19,8 +19,8 @@ jobs:
     - name: Checkout submodules
       uses: textbook/git-checkout-submodule-action@master
 
-    - name: Setup Miniconda
-      uses: conda-incubator/setup-miniconda@v2
+    #- name: Setup Miniconda
+    #  uses: conda-incubator/setup-miniconda@v2
 
     - name: Build dependencies
       run: |
@@ -39,7 +39,9 @@ jobs:
         #conda info -a
 
         # Install dependencies
-        conda install -c conda-forge numpy pandas
+        #conda install -c conda-forge numpy pandas
+	pip install numpy
+	pip install pandas
         pip install pytest
         pip install pytest-cov
 
