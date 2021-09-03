@@ -13,7 +13,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v1
+    - name: Checkout repository
+      uses: actions/checkout@v1
+
+    - name: Checkout submodules
+      uses: textbook/git-checkout-submodule-action@master
 
     - name: Build dependencies
       run: |
@@ -36,7 +40,6 @@ jobs:
 
     - name: Build ELECTRIC with Tinker
       run: |
-        git submodule update --init --recursive
         ./build
 
     - name: Run the pytest tests
