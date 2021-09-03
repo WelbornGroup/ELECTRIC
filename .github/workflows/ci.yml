@@ -40,8 +40,8 @@ jobs:
 
         # Install dependencies
         conda install -c conda-forge numpy pandas
-	pip install pytest
-	pip install pytest-cov
+        pip install pytest
+        pip install pytest-cov
 
     - name: Build ELECTRIC with Tinker
       run: |
