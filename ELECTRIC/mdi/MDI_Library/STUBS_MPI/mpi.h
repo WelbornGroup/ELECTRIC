@@ -12,11 +12,23 @@ typedef int MPI_Fint;
 
 #define MPI_STATUS_IGNORE 0
 #define MPI_COMM_WORLD 0
+#define MPI_COMM_NULL 1
 #define MPI_INT 1
+#define MPI_INT8_T 10
+#define MPI_INT16_T 11
+#define MPI_INT32_T 12
+#define MPI_INT64_T 13
+#define MPI_UINT8_T 14
+#define MPI_UINT16_T 15
+#define MPI_UINT32_T 16
+#define MPI_UINT64_T 17
 #define MPI_DOUBLE 4
+#define MPI_FLOAT 40
 #define MPI_CHAR 5
+#define MPI_BYTE 6
 
 static int MPI_Init( int *argc, char ***argv) { return 0;};
+static int MPI_Initialized( int *flag ) { *flag = 0; return 0;};
 static int MPI_Finalize(void) { return 0; };
 static int MPI_Get_processor_name( char *name, int *resultlen ) {return 0;};
 
@@ -24,6 +36,7 @@ static int MPI_Comm_rank( MPI_Comm comm, int *rank ) { return 0; };
 static int MPI_Comm_size( MPI_Comm comm, int *size ) { return 0; };
 
 static int MPI_Barrier(MPI_Comm comm) { return 0; };
+static int MPI_Bcast(void * buffer, int count, MPI_Datatype datatype, int root, MPI_Comm comm) { return 0; };
 static int MPI_Gather(const void *sendbuf, int sendcount, MPI_Datatype sendtype,
                void *recvbuf, int recvcount, MPI_Datatype recvtype,
                int root, MPI_Comm comm) { return 0; };

@@ -1,3 +1,10 @@
+# Macro to convert strings to lists
+macro(string_to_list _VAR _STR)
+    STRING(REPLACE "  " " " ${_VAR} "${_STR}")
+    STRING(REPLACE " " ";" ${_VAR} "${_STR}")
+endmacro(string_to_list _VAR _STR)
+
+
 ################################# MDI Project ##################################
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)
@@ -15,8 +22,8 @@ if( NOT MPI_FOUND )
 endif()
 
 #confirm that "language" is a valid value
-if( language AND (NOT language STREQUAL "C") AND (NOT language STREQUAL "Fortran") AND (NOT language STREQUAL "Python") )
-   message( FATAL_ERROR "Value of language not recognized. Accepted values are: C; Fortran; Python." )
+if( language AND (NOT language STREQUAL "C") AND (NOT language STREQUAL "CXX") AND (NOT language STREQUAL "Fortran") AND (NOT language STREQUAL "Python") )
+   message( FATAL_ERROR "Value of language not recognized. Accepted values are: C; CXX; Fortran; Python." )
 endif()
 
 #determine whether this is a SHARED or STATIC build
@@ -26,6 +33,14 @@ elseif ( (NOT libtype STREQUAL "STATIC") AND
          (NOT libtype STREQUAL "SHARED") )
    message( FATAL_ERROR "Value of libtype not recognized. Accepted values are: SHARED; STATIC; PACKAGE." )
 endif()
+
+# Set flag for whether to build plugins
+if( ${plugins} )
+  add_definitions(-D_MDI_PLUGIN_SUPPORT=1)
+else()
+  add_definitions(-D_MDI_PLUGIN_SUPPORT=0)
+endif()
+
 
 #construct the list of source files
 list(APPEND sources "mdi.c")
@@ -39,11 +54,27 @@ list(APPEND sources "mdi_tcp.h")
 list(APPEND sources "mdi_tcp.c")
 list(APPEND sources "mdi_test.h")
 list(APPEND sources "mdi_test.c")
-list(APPEND sources "mdi_lib.h")
-list(APPEND sources "mdi_lib.c")
+if( ${plugins} )
+  list(APPEND sources "mdi_lib.h")
+  list(APPEND sources "mdi_lib.c")
+
+  # Either add Python Plugin support, or Python Plugin stubs
+  if ( Python_Development_FOUND )
+    list(APPEND sources "mdi_plug_py.h")
+    list(APPEND sources "mdi_plug_py.c")
+  else()
+    message( WARNING "Could not find Python development libraries.  Compiling without Python plugin support." )
+    list(APPEND sources "${CMAKE_CURRENT_SOURCE_DIR}/STUBS_Python/mdi_plug_py.h")
+    list(APPEND sources "${CMAKE_CURRENT_SOURCE_DIR}/STUBS_Python/mdi_plug_py.c")
+  endif()
+endif()
+
+# Add MPI stubs, if needed
 if( mpi STREQUAL "OFF" )
    list(APPEND sources "${CMAKE_CURRENT_SOURCE_DIR}/STUBS_MPI/mpi.h")
 endif()
+
+# Add Fortran support, if requested
 if( (NOT language) OR (language STREQUAL "Fortran") )
    list(APPEND sources "mdi_f90.F90")
 endif()
@@ -59,6 +90,11 @@ if(WIN32)
   target_link_libraries(mdi wsock32 ws2_32)
 endif()
 
+#link to libdl, which is used for the plugin system
+if(NOT WIN32)
+  target_link_libraries(mdi dl)
+endif()
+
 # gfortran has trouble identifying windows, so use CMake to set the appropriate defines
 if(WIN32)
   add_definitions(-DMDI_WINDOWS=1)
@@ -70,9 +106,12 @@ endif()
 if( mpi STREQUAL "ON" )
 
    #include MPI
+   string_to_list(MPI_C_COMPILE_OPTIONS   "${MPI_C_COMPILE_FLAGS}")
+   string_to_list(MPI_C_LINK_OPTIONS      "${MPI_C_LINK_FLAGS}")
+
    target_include_directories(mdi PRIVATE ${MPI_C_INCLUDE_PATH})
-   target_compile_options(mdi PRIVATE ${MPI_C_COMPILE_FLAGS})
-   target_link_libraries(mdi ${MPI_C_LIBRARIES} ${MPI_C_LINK_FLAGS})
+   target_compile_options(mdi PRIVATE ${MPI_C_COMPILE_OPTIONS})
+   target_link_libraries(mdi ${MPI_C_LIBRARIES} ${MPI_C_LINK_OPTIONS})
 
 elseif( mpi STREQUAL "OFF" )
 
@@ -82,6 +121,18 @@ elseif( mpi STREQUAL "OFF" )
 else()
 
    message( FATAL_ERROR "Value of mpi not recognized. Accepted values are: ON; OFF." )
+
+endif()
+
+# Include and link to Python
+if( Python_Development_FOUND )
+
+   target_include_directories(mdi PRIVATE ${Python_INCLUDE_DIRS})
+   target_link_libraries(mdi ${Python_LIBRARIES})
+
+else()
+
+   target_include_directories(mdi PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/STUBS_Python/)
 
 endif()
 
@@ -134,8 +185,8 @@ if( python_package STREQUAL "ON" )
 
 else()
 
-    set(MDI_INSTALL_INCLUDEDIR ${CMAKE_INSTALL_INCLUDEDIR}/MDI_Library)
-    set(MDI_INSTALL_LIBDIR     ${CMAKE_INSTALL_LIBDIR}/MDI_Library)
+    set(MDI_INSTALL_INCLUDEDIR ${CMAKE_INSTALL_INCLUDEDIR}/mdi)
+    set(MDI_INSTALL_LIBDIR     ${CMAKE_INSTALL_LIBDIR}/mdi)
 
 endif()
 

@@ -1,6 +1,6 @@
 var searchData=
 [
-  ['size',['size',['../structdynamic__array__struct.html#a4c9b2cb6c298d0c5e63458e47ed7fb8e',1,'dynamic_array_struct']]],
-  ['sockfd',['sockfd',['../structcommunicator__struct.html#a9f010a22911cb8a55767c054b0596030',1,'communicator_struct']]],
-  ['stride',['stride',['../structdynamic__array__struct.html#a954737a27d8650b96e8a7167545fc87c',1,'dynamic_array_struct']]]
+  ['name',['name',['../structnode__struct.html#a6d698e34c7c1bc09a8242e441b872bb8',1,'node_struct::name()'],['../structcode__struct.html#a0666f8083ac872f34453966342a05ef0',1,'code_struct::name()']]],
+  ['next_5fcomm',['next_comm',['../structcode__struct.html#addc15d4f02753bd4ae5c8c8e2bd5b7c2',1,'code_struct']]],
+  ['nodes',['nodes',['../structcommunicator__struct.html#a82b093f109b29a9762cd6997787f96da',1,'communicator_struct::nodes()'],['../structcode__struct.html#a213cad27fe198175bd7d7ff983f45289',1,'code_struct::nodes()']]]
 ];

@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['node_5fstruct',['node_struct',['../structnode__struct.html',1,'']]]
+  ['method_5fstruct',['method_struct',['../structmethod__struct.html',1,'']]],
+  ['mpi_5fdata_5fstruct',['mpi_data_struct',['../structmpi__data__struct.html',1,'']]]
 ];

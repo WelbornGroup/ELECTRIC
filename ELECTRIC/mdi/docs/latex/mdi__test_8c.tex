@@ -16,11 +16,29 @@ Dummy communication implementation for testing purposes.
 \doxysubsection*{Functions}
 \begin{DoxyCompactItemize}
 \item 
+\mbox{\Hypertarget{mdi__test_8c_a804120c2285aa9cedbba2e1ca3a13b47}\label{mdi__test_8c_a804120c2285aa9cedbba2e1ca3a13b47}} 
+int \mbox{\hyperlink{mdi__test_8c_a804120c2285aa9cedbba2e1ca3a13b47}{enable\+\_\+test\+\_\+support}} ()
+\begin{DoxyCompactList}\small\item\em Enable support for the T\+E\+ST method. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{mdi__test_8c_a6aae3ed7e5927bd1497bde37bdf91b9e}\label{mdi__test_8c_a6aae3ed7e5927bd1497bde37bdf91b9e}} 
+int \mbox{\hyperlink{mdi__test_8c_a6aae3ed7e5927bd1497bde37bdf91b9e}{test\+\_\+on\+\_\+selection}} ()
+\begin{DoxyCompactList}\small\item\em Callback when the end-\/user selects T\+CP as the method. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{mdi__test_8c_a7b287868cb3fcffc2d3db6ad3793e48a}\label{mdi__test_8c_a7b287868cb3fcffc2d3db6ad3793e48a}} 
+int \mbox{\hyperlink{mdi__test_8c_a7b287868cb3fcffc2d3db6ad3793e48a}{test\+\_\+on\+\_\+accept\+\_\+communicator}} ()
+\begin{DoxyCompactList}\small\item\em Callback when the T\+E\+ST method must accept a communicator. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{mdi__test_8c_ab29fea74235bb351f4c5ea2e227dafef}\label{mdi__test_8c_ab29fea74235bb351f4c5ea2e227dafef}} 
+int \mbox{\hyperlink{mdi__test_8c_ab29fea74235bb351f4c5ea2e227dafef}{test\+\_\+on\+\_\+send\+\_\+command}} (const char $\ast$command, M\+D\+I\+\_\+\+Comm comm, int $\ast$skip\+\_\+flag)
+\begin{DoxyCompactList}\small\item\em Callback when the T\+E\+ST method must send a command. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{mdi__test_8c_ad9925b6c139c7ffa87023d99b705a305}\label{mdi__test_8c_ad9925b6c139c7ffa87023d99b705a305}} 
+int \mbox{\hyperlink{mdi__test_8c_ad9925b6c139c7ffa87023d99b705a305}{test\+\_\+after\+\_\+send\+\_\+command}} (const char $\ast$command, M\+D\+I\+\_\+\+Comm comm)
+\begin{DoxyCompactList}\small\item\em Callback after the T\+E\+ST method has received a command. \end{DoxyCompactList}\item 
+\mbox{\Hypertarget{mdi__test_8c_a15ef74709f96e6fab3b3448574205510}\label{mdi__test_8c_a15ef74709f96e6fab3b3448574205510}} 
+int \mbox{\hyperlink{mdi__test_8c_a15ef74709f96e6fab3b3448574205510}{test\+\_\+on\+\_\+recv\+\_\+command}} (M\+D\+I\+\_\+\+Comm comm)
+\begin{DoxyCompactList}\small\item\em Callback when the T\+E\+ST method must receive a command. \end{DoxyCompactList}\item 
 int \mbox{\hyperlink{mdi__test_8c_ae54d986664004625b74db96c978e9765}{test\+\_\+initialize}} ()
 \begin{DoxyCompactList}\small\item\em Perform initialization of a dummy communicator for testing purposes. \end{DoxyCompactList}\item 
-int \mbox{\hyperlink{mdi__test_8c_abeca111cdef5cccac0ec9332dc180f00}{test\+\_\+send}} (const void $\ast$buf, int count, M\+D\+I\+\_\+\+Datatype datatype, M\+D\+I\+\_\+\+Comm comm)
+int \mbox{\hyperlink{mdi__test_8c_ac4ceb4e587e5fca1fc0c6cf45528fc9f}{test\+\_\+send}} (const void $\ast$buf, int count, M\+D\+I\+\_\+\+Datatype datatype, M\+D\+I\+\_\+\+Comm comm, int msg\+\_\+flag)
 \begin{DoxyCompactList}\small\item\em Dummy function to handle sending data through an M\+DI connection, for testing purposes. \end{DoxyCompactList}\item 
-int \mbox{\hyperlink{mdi__test_8c_a84f4b606828330e7cabbe76a76f476d5}{test\+\_\+recv}} (void $\ast$buf, int count, M\+D\+I\+\_\+\+Datatype datatype, M\+D\+I\+\_\+\+Comm comm)
+int \mbox{\hyperlink{mdi__test_8c_ace91ce647159383e4829bb00f40aa562}{test\+\_\+recv}} (void $\ast$buf, int count, M\+D\+I\+\_\+\+Datatype datatype, M\+D\+I\+\_\+\+Comm comm, int msg\+\_\+flag)
 \begin{DoxyCompactList}\small\item\em Dummy function to handle receiving data through an M\+DI connection, for testing purposes. \end{DoxyCompactList}\end{DoxyCompactItemize}
 
 
@@ -40,11 +58,11 @@ Dummy communication implementation for testing purposes.
 
 Perform initialization of a dummy communicator for testing purposes. 
 
-\mbox{\Hypertarget{mdi__test_8c_a84f4b606828330e7cabbe76a76f476d5}\label{mdi__test_8c_a84f4b606828330e7cabbe76a76f476d5}} 
+\mbox{\Hypertarget{mdi__test_8c_ace91ce647159383e4829bb00f40aa562}\label{mdi__test_8c_ace91ce647159383e4829bb00f40aa562}} 
 \index{mdi\_test.c@{mdi\_test.c}!test\_recv@{test\_recv}}
 \index{test\_recv@{test\_recv}!mdi\_test.c@{mdi\_test.c}}
 \doxysubsubsection{\texorpdfstring{test\_recv()}{test\_recv()}}
-{\footnotesize\ttfamily int test\+\_\+recv (\begin{DoxyParamCaption}\item[{void $\ast$}]{buf,  }\item[{int}]{count,  }\item[{M\+D\+I\+\_\+\+Datatype}]{datatype,  }\item[{M\+D\+I\+\_\+\+Comm}]{comm }\end{DoxyParamCaption})}
+{\footnotesize\ttfamily int test\+\_\+recv (\begin{DoxyParamCaption}\item[{void $\ast$}]{buf,  }\item[{int}]{count,  }\item[{M\+D\+I\+\_\+\+Datatype}]{datatype,  }\item[{M\+D\+I\+\_\+\+Comm}]{comm,  }\item[{int}]{msg\+\_\+flag }\end{DoxyParamCaption})}
 
 
 
@@ -60,12 +78,14 @@ Dummy function to handle receiving data through an M\+DI connection, for testing
 \hline
 \mbox{\texttt{ in}}  & {\em comm} & M\+DI communicator associated with the connection to the sending code. \\
 \hline
+\mbox{\texttt{ in}}  & {\em msg\+\_\+flag} & Type of role this data has within a message. 0\+: Not part of a message. 1\+: The header of a message. 2\+: The body (data) of a message. \\
+\hline
 \end{DoxyParams}
-\mbox{\Hypertarget{mdi__test_8c_abeca111cdef5cccac0ec9332dc180f00}\label{mdi__test_8c_abeca111cdef5cccac0ec9332dc180f00}} 
+\mbox{\Hypertarget{mdi__test_8c_ac4ceb4e587e5fca1fc0c6cf45528fc9f}\label{mdi__test_8c_ac4ceb4e587e5fca1fc0c6cf45528fc9f}} 
 \index{mdi\_test.c@{mdi\_test.c}!test\_send@{test\_send}}
 \index{test\_send@{test\_send}!mdi\_test.c@{mdi\_test.c}}
 \doxysubsubsection{\texorpdfstring{test\_send()}{test\_send()}}
-{\footnotesize\ttfamily int test\+\_\+send (\begin{DoxyParamCaption}\item[{const void $\ast$}]{buf,  }\item[{int}]{count,  }\item[{M\+D\+I\+\_\+\+Datatype}]{datatype,  }\item[{M\+D\+I\+\_\+\+Comm}]{comm }\end{DoxyParamCaption})}
+{\footnotesize\ttfamily int test\+\_\+send (\begin{DoxyParamCaption}\item[{const void $\ast$}]{buf,  }\item[{int}]{count,  }\item[{M\+D\+I\+\_\+\+Datatype}]{datatype,  }\item[{M\+D\+I\+\_\+\+Comm}]{comm,  }\item[{int}]{msg\+\_\+flag }\end{DoxyParamCaption})}
 
 
 
@@ -80,5 +100,7 @@ Dummy function to handle sending data through an M\+DI connection, for testing p
 \mbox{\texttt{ in}}  & {\em datatype} & M\+DI handle (M\+D\+I\+\_\+\+I\+NT, M\+D\+I\+\_\+\+D\+O\+U\+B\+LE, M\+D\+I\+\_\+\+C\+H\+AR, etc.) corresponding to the type of data to be sent. \\
 \hline
 \mbox{\texttt{ in}}  & {\em comm} & M\+DI communicator associated with the intended recipient code. \\
+\hline
+\mbox{\texttt{ in}}  & {\em msg\+\_\+flag} & Type of role this data has within a message. 0\+: Not part of a message. 1\+: The header of a message. 2\+: The body (data) of a message. \\
 \hline
 \end{DoxyParams}

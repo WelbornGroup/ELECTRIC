@@ -77,18 +77,48 @@ $(function() {
 
 <p>Implementation of library-based communication.  
 <a href="#details">More...</a></p>
-<div class="textblock"><code>#include &lt;stdio.h&gt;</code><br />
+<div class="textblock"><code>#include &lt;errno.h&gt;</code><br />
+<code>#include &lt;stdint.h&gt;</code><br />
+<code>#include &lt;stdio.h&gt;</code><br />
 <code>#include &lt;stdlib.h&gt;</code><br />
 <code>#include &lt;string.h&gt;</code><br />
 <code>#include &lt;signal.h&gt;</code><br />
-<code>#include &lt;errno.h&gt;</code><br />
 <code>#include &quot;mdi.h&quot;</code><br />
 <code>#include &quot;<a class="el" href="mdi__lib_8h_source.html">mdi_lib.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="mdi__global_8h_source.html">mdi_global.h</a>&quot;</code><br />
 <code>#include &quot;<a class="el" href="mdi__general_8h_source.html">mdi_general.h</a>&quot;</code><br />
+<code>#include &quot;<a class="el" href="mdi__plug__py_8h_source.html">mdi_plug_py.h</a>&quot;</code><br />
+<code>#include &lt;dlfcn.h&gt;</code><br />
 </div><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
+<tr class="memitem:ad7abe35c94a10f7dd9f040df674dba70"><td class="memItemLeft" align="right" valign="top"><a id="ad7abe35c94a10f7dd9f040df674dba70"></a>
+int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mdi__lib_8c.html#ad7abe35c94a10f7dd9f040df674dba70">enable_plug_support</a> ()</td></tr>
+<tr class="memdesc:ad7abe35c94a10f7dd9f040df674dba70"><td class="mdescLeft">&#160;</td><td class="mdescRight">Enable support for the PLUG method. <br /></td></tr>
+<tr class="separator:ad7abe35c94a10f7dd9f040df674dba70"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a34394b3dbbaeefacfde090e639b82edd"><td class="memItemLeft" align="right" valign="top"><a id="a34394b3dbbaeefacfde090e639b82edd"></a>
+int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mdi__lib_8c.html#a34394b3dbbaeefacfde090e639b82edd">plug_on_selection</a> ()</td></tr>
+<tr class="memdesc:a34394b3dbbaeefacfde090e639b82edd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Callback when the end-user selects PLUG as the method. <br /></td></tr>
+<tr class="separator:a34394b3dbbaeefacfde090e639b82edd"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aeb75c19aec47e0a2bbfca541fc7b367d"><td class="memItemLeft" align="right" valign="top"><a id="aeb75c19aec47e0a2bbfca541fc7b367d"></a>
+int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mdi__lib_8c.html#aeb75c19aec47e0a2bbfca541fc7b367d">plug_on_accept_communicator</a> ()</td></tr>
+<tr class="memdesc:aeb75c19aec47e0a2bbfca541fc7b367d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Callback when the PLUG method must accept a communicator. <br /></td></tr>
+<tr class="separator:aeb75c19aec47e0a2bbfca541fc7b367d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ae55dc0e0110270471bb359602f56a6fc"><td class="memItemLeft" align="right" valign="top"><a id="ae55dc0e0110270471bb359602f56a6fc"></a>
+int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mdi__lib_8c.html#ae55dc0e0110270471bb359602f56a6fc">plug_on_send_command</a> (const char *command, MDI_Comm comm, int *skip_flag)</td></tr>
+<tr class="memdesc:ae55dc0e0110270471bb359602f56a6fc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Callback when the PLUG method must send a command. <br /></td></tr>
+<tr class="separator:ae55dc0e0110270471bb359602f56a6fc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a06553ad67f75bba59f571d7e4bc38926"><td class="memItemLeft" align="right" valign="top"><a id="a06553ad67f75bba59f571d7e4bc38926"></a>
+int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mdi__lib_8c.html#a06553ad67f75bba59f571d7e4bc38926">plug_after_send_command</a> (const char *command, MDI_Comm comm)</td></tr>
+<tr class="memdesc:a06553ad67f75bba59f571d7e4bc38926"><td class="mdescLeft">&#160;</td><td class="mdescRight">Callback after the PLUG method has received a command. <br /></td></tr>
+<tr class="separator:a06553ad67f75bba59f571d7e4bc38926"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a6d94420b38e4dcd7008498385fbea604"><td class="memItemLeft" align="right" valign="top"><a id="a6d94420b38e4dcd7008498385fbea604"></a>
+int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mdi__lib_8c.html#a6d94420b38e4dcd7008498385fbea604">plug_on_recv_command</a> (MDI_Comm comm)</td></tr>
+<tr class="memdesc:a6d94420b38e4dcd7008498385fbea604"><td class="mdescLeft">&#160;</td><td class="mdescRight">Callback when the PLUG method must receive a command. <br /></td></tr>
+<tr class="separator:a6d94420b38e4dcd7008498385fbea604"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a1a1ab96bea21c7b704373638570a70b4"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mdi__lib_8c.html#a1a1ab96bea21c7b704373638570a70b4">library_launch_plugin</a> (const char *plugin_name, const char *options, void *mpi_comm_ptr, MDI_Driver_node_callback_t driver_node_callback, void *driver_callback_object)</td></tr>
+<tr class="memdesc:a1a1ab96bea21c7b704373638570a70b4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Launch an MDI plugin.  <a href="#a1a1ab96bea21c7b704373638570a70b4">More...</a><br /></td></tr>
+<tr class="separator:a1a1ab96bea21c7b704373638570a70b4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a3a7d422a4cce77e23f0f2b0c64431830"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mdi__lib_8c.html#a3a7d422a4cce77e23f0f2b0c64431830">library_initialize</a> ()</td></tr>
 <tr class="memdesc:a3a7d422a4cce77e23f0f2b0c64431830"><td class="mdescLeft">&#160;</td><td class="mdescRight">Perform initialization of a communicator for library-based communication.  <a href="#a3a7d422a4cce77e23f0f2b0c64431830">More...</a><br /></td></tr>
 <tr class="separator:a3a7d422a4cce77e23f0f2b0c64431830"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -107,12 +137,12 @@ Functions</h2></td></tr>
 <tr class="memitem:a4dc4e78fb4ebf75990666e46dc437b97"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mdi__lib_8c.html#a4dc4e78fb4ebf75990666e46dc437b97">library_execute_command</a> (MDI_Comm comm)</td></tr>
 <tr class="memdesc:a4dc4e78fb4ebf75990666e46dc437b97"><td class="mdescLeft">&#160;</td><td class="mdescRight">Execute a command through a communicator.  <a href="#a4dc4e78fb4ebf75990666e46dc437b97">More...</a><br /></td></tr>
 <tr class="separator:a4dc4e78fb4ebf75990666e46dc437b97"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:abd3c91ddb377fabb1840030cf724c609"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mdi__lib_8c.html#abd3c91ddb377fabb1840030cf724c609">library_send</a> (const void *buf, int count, MDI_Datatype datatype, MDI_Comm comm)</td></tr>
-<tr class="memdesc:abd3c91ddb377fabb1840030cf724c609"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function to handle sending data through an MDI connection, using library-based communication.  <a href="#abd3c91ddb377fabb1840030cf724c609">More...</a><br /></td></tr>
-<tr class="separator:abd3c91ddb377fabb1840030cf724c609"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:a2bd5be68ab9eeee27db5f35c27636f61"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mdi__lib_8c.html#a2bd5be68ab9eeee27db5f35c27636f61">library_recv</a> (void *buf, int count, MDI_Datatype datatype, MDI_Comm comm)</td></tr>
-<tr class="memdesc:a2bd5be68ab9eeee27db5f35c27636f61"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function to handle receiving data through an MDI connection, using library-based communication.  <a href="#a2bd5be68ab9eeee27db5f35c27636f61">More...</a><br /></td></tr>
-<tr class="separator:a2bd5be68ab9eeee27db5f35c27636f61"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ab37ea0386655641a3f07f9ea14863c11"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mdi__lib_8c.html#ab37ea0386655641a3f07f9ea14863c11">library_send</a> (const void *buf, int count, MDI_Datatype datatype, MDI_Comm comm, int msg_flag)</td></tr>
+<tr class="memdesc:ab37ea0386655641a3f07f9ea14863c11"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function to handle sending data through an MDI connection, using library-based communication.  <a href="#ab37ea0386655641a3f07f9ea14863c11">More...</a><br /></td></tr>
+<tr class="separator:ab37ea0386655641a3f07f9ea14863c11"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:af6088e90893c28807b1b147a2db1995e"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mdi__lib_8c.html#af6088e90893c28807b1b147a2db1995e">library_recv</a> (void *buf, int count, MDI_Datatype datatype, MDI_Comm comm, int msg_flag)</td></tr>
+<tr class="memdesc:af6088e90893c28807b1b147a2db1995e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function to handle receiving data through an MDI connection, using library-based communication.  <a href="#af6088e90893c28807b1b147a2db1995e">More...</a><br /></td></tr>
+<tr class="separator:af6088e90893c28807b1b147a2db1995e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aec19ca110ab49179a8709637a68124ce"><td class="memItemLeft" align="right" valign="top"><a id="aec19ca110ab49179a8709637a68124ce"></a>
 int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mdi__lib_8c.html#aec19ca110ab49179a8709637a68124ce">communicator_delete_lib</a> (void *comm)</td></tr>
 <tr class="memdesc:aec19ca110ab49179a8709637a68124ce"><td class="mdescLeft">&#160;</td><td class="mdescRight">Function for LIBRARY-specific deletion operations for communicator deletion. <br /></td></tr>
@@ -214,8 +244,56 @@ int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mdi__
 
 </div>
 </div>
-<a id="a2bd5be68ab9eeee27db5f35c27636f61"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#a2bd5be68ab9eeee27db5f35c27636f61">&#9670;&nbsp;</a></span>library_recv()</h2>
+<a id="a1a1ab96bea21c7b704373638570a70b4"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a1a1ab96bea21c7b704373638570a70b4">&#9670;&nbsp;</a></span>library_launch_plugin()</h2>
+
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int library_launch_plugin </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>plugin_name</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>options</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>mpi_comm_ptr</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">MDI_Driver_node_callback_t&#160;</td>
+          <td class="paramname"><em>driver_node_callback</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>driver_callback_object</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Launch an MDI plugin. </p>
+
+</div>
+</div>
+<a id="af6088e90893c28807b1b147a2db1995e"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#af6088e90893c28807b1b147a2db1995e">&#9670;&nbsp;</a></span>library_recv()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -242,7 +320,13 @@ int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mdi__
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">MDI_Comm&#160;</td>
-          <td class="paramname"><em>comm</em>&#160;</td>
+          <td class="paramname"><em>comm</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>msg_flag</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -259,14 +343,15 @@ int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mdi__
     <tr><td class="paramdir">[in]</td><td class="paramname">count</td><td>Number of values (integers, double precision floats, characters, etc.) to be received. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">datatype</td><td>MDI handle (MDI_INT, MDI_DOUBLE, MDI_CHAR, etc.) corresponding to the type of data to be received. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">comm</td><td>MDI communicator associated with the connection to the sending code. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">msg_flag</td><td>Type of role this data has within a message. 0: Not part of a message. 1: The header of a message. 2: The body (data) of a message. </td></tr>
   </table>
   </dd>
 </dl>
 
 </div>
 </div>
-<a id="abd3c91ddb377fabb1840030cf724c609"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#abd3c91ddb377fabb1840030cf724c609">&#9670;&nbsp;</a></span>library_send()</h2>
+<a id="ab37ea0386655641a3f07f9ea14863c11"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab37ea0386655641a3f07f9ea14863c11">&#9670;&nbsp;</a></span>library_send()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -293,7 +378,13 @@ int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mdi__
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">MDI_Comm&#160;</td>
-          <td class="paramname"><em>comm</em>&#160;</td>
+          <td class="paramname"><em>comm</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>msg_flag</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -310,6 +401,7 @@ int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mdi__
     <tr><td class="paramdir">[in]</td><td class="paramname">count</td><td>Number of values (integers, double precision floats, characters, etc.) to be sent. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">datatype</td><td>MDI handle (MDI_INT, MDI_DOUBLE, MDI_CHAR, etc.) corresponding to the type of data to be sent. </td></tr>
     <tr><td class="paramdir">[in]</td><td class="paramname">comm</td><td>MDI communicator associated with the intended recipient code. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">msg_flag</td><td>Type of role this data has within a message. 0: Not part of a message. 1: The header of a message. 2: The body (data) of a message. </td></tr>
   </table>
   </dd>
 </dl>

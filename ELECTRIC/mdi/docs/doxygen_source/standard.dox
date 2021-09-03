@@ -11,6 +11,15 @@ The MDI standard defines the \ref standard_units "units", data types, and format
 
 
 
+\section standard_extension Extending the MDI Standard
+
+Although the MDI Standard has been designed to enable a wide range of potential applications, it is inevitable that some use cases will require functionality that is not yet supported by the standard.
+Typically, supporting such use cases will simply require addition of one or more new \ref command_list "commands" to the MDI Standard.
+Users who find themselves in need of a new MDI command are encouraged to create an <a href="https://github.com/MolSSI-MDI/MDI_Library/issues">issue</a> describing their needs or submit a <a href="https://github.com/MolSSI-MDI/MDI_Library/pulls">pull request</a> suggesting a solution.
+
+
+
+
 \section standard_units Units
 
 All physical quantities communicated through MDI must be expressed in atomic units.
@@ -30,6 +39,7 @@ Their names and when they occur are as follows:
 
 \par
 <b> @DEFAULT </b> - Upon initially connecting to the driver. <br>
+<b> @INIT_MC </b> - Upon initializing a new Monte Carlo simulation. <br>
 <b> @INIT_MD </b> - Upon initializing a new molecular dynamics simulation. <br>
 <b> @INIT_OPTG </b> - Upon initializing a new geometry optimization. <br>
 
@@ -73,7 +83,7 @@ The following constants are defined by the MDI Standard and are accessible throu
 
   - \c MDI_MPI - Identifier for the MPI communication method
   - \c MDI_TCP - Identifier for the TCP communication method
-  - \c MDI_LIB - Identifier for the LIB communication method
+  - \c MDI_LINK - Identifier for the LINK communication method
   - \c MDI_TEST - Identifier for the TEST communication method
   - \c MDI_DRIVER - Identifier for the DRIVER role
   - \c MDI_ENGINE - Identifier for the ENGINE role
@@ -383,6 +393,12 @@ See the descriptions of the different nodes for more details.
 
 
 
+\subsection init_mc @INIT_MC
+
+The engine performs any initialization operations that are necessary before a Monte Carlo simulation can be performed, proceeding to the @INIT_MC node.
+
+
+
 \subsection init_md @INIT_MD
 
 The engine performs any initialization operations that are necessary before a molecular dynamics simulation can be performed, proceeding to the @INIT_MD node.
@@ -440,6 +456,21 @@ If the engine is not at the \c @DEFAULT node, it sends its most recently calcula
 
 
 
+\subsection send_stress <LABELS
+
+The engine sends a label for each atom in its system.
+"Labels" are intended primarily for the purpose of providing a human-readable identifier for each of the atoms, and do not have a standardized physical meaning.
+It is recommended that the labels correspond to the element of each atom (i.e., "H", "He", "Li", etc.), a name associated with atoms of a particular type (i.e., "Carboxyl_Hydrogen", "Methyl_Hydrogen"), or a similarly descriptive term.
+The atom labels may correspond to a number identifier (i.e., "1", "2", "3", etc.) in cases where more descriptive labels are not practical, but note that such labels must be represented using the \c MDI_CHAR data type, as indicated below.
+It is required that atoms having different physical properties (i.e., different force field terms in a molecular mechanics simulation or different nuclear charges in a quantum chemistry simulation) have different labels.
+
+\par
+<b> Data Type: </b> \c MDI_CHAR <br>
+<b> Quantity: </b> \c MDI_LABEL_LENGTH * \c NATOMS <br>
+<b> Format: </b> An array of characters corresponding to the label of each atom in ascending order of atomic index, with each label consisting of \c MDI_LABEL_LENGTH characters and being padded with spaces (" ") where necessary <br>
+
+
+
 \subsection send_lattice >LATTICE
 
 This command, along with the \c >NLATTICE and \c >CLATTICE commands, allows the driver to assign a lattice of point charges to an engine, which incorporates the effects of these charges in all further calculations.
@@ -483,17 +514,6 @@ After initializing MDI and accepting communicators to the engines, the driver ca
 \subsection recv_natoms <NATOMS
 
 The engine sends the driver the number of atoms in the engine's system.
-
-\par
-<b> Data Type: </b> \c MDI_INT <br>
-<b> Quantity: </b> 1
-
-
-
-\subsection recv_ncommands <NCOMMANDS
-
-The engine sends the driver the number of commands the engine supports.
-See also the \c <COMMANDS command.
 
 \par
 <b> Data Type: </b> \c MDI_INT <br>
@@ -677,7 +697,6 @@ The engine sends the version number of the MDI Library to which it is linked to 
 \par
 <b> Data Type: </b> \c MDI_DOUBLE <br>
 <b> Quantity: </b> <c> 1 </c> <br>
-
 
 
 

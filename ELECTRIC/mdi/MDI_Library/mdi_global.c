@@ -7,11 +7,24 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#ifdef _WIN32
+  #include <winsock2.h>
+  #include <windows.h>
+#else
+  #include <unistd.h>
+#endif
+#include <stdint.h>
 #include "mdi_global.h"
 
 /*! \brief Vector containing all codes that have been initiailized on this rank
  * Typically, this will only include a single code, unless the communication method is LIBRARY */
 vector codes;
+
+/*! \brief Vector containing all supported methods */
+vector methods;
+
+/*! \brief ID of the method being used for inter-code communication */
+int selected_method_id = 0;
 
 /*! \brief Index of the active code */
 int current_code = 0;
@@ -21,6 +34,31 @@ int ipi_compatibility = 0;
 
 /*! \brief Flag for whether MDI has been previously initialized */
 int is_initialized = 0;
+
+/*! \brief Flag for whether MDI called MPI_Init */
+int initialized_mpi = 0;
+
+/*! \brief Flag for whether MDI is currently operating in plugin mode */
+int plugin_mode = 0;
+
+/*! \brief Internal copy of MPI_COMM_WORLD, used when MDI initializes MPI */
+MPI_Comm mdi_mpi_comm_world;
+
+/*! \brief Pointer to the MPI_Comm over which a Python plugin should run.
+ * Only used for Python plugins */
+void* python_plugin_mpi_world_ptr = NULL;
+
+/*! \brief Unedited command-line options for currently running plugin */
+char* plugin_unedited_options = NULL;
+
+/*! \brief Command-line options for currently running plugin */
+char* plugin_options = NULL;
+
+/*! \brief Argument count for plugin command-line options */
+int plugin_argc = 0;
+
+/*! \brief Argument vector for plugin command-line options */
+char** plugin_argv = NULL;
 
 /*! \brief Python callback pointer for MPI_Recv */
 int (*mpi4py_recv_callback)(void*, int, int, int, MDI_Comm_Type);
@@ -42,6 +80,12 @@ int (*mpi4py_size_callback)(int);
 
 /*! \brief Python callback pointer for MPI_Comm_barrier */
 int (*mpi4py_barrier_callback)(int);
+
+/*! \brief Size of MPI_COMM_WORLD */
+int world_size = -1;
+
+/*! \brief Rank of this process within MPI_COMM_WORLD */
+int world_rank = -1;
 
 /*! \brief Initialize memory allocation for a vector structure
  *
@@ -75,7 +119,7 @@ int vector_init(vector* v, size_t stride) {
 int vector_push_back(vector* v, void* element) {
   //grow the vector
   if (v->size >= v->capacity) {
-    int new_capacity;
+    size_t new_capacity;
     if ( v->capacity > 0 ) {
       new_capacity = 2 * v->capacity;
     }
@@ -105,14 +149,17 @@ int vector_push_back(vector* v, void* element) {
  */
 int vector_delete(vector* v, int index) {
   // copy the data from the last element to the element that is being deleted
-  memcpy( v->data + (index * v->stride), v->data + ( (v->size - 1) * v->stride ), v->stride );
+  // don't do this if the element being deleted is the last element
+  if ( index + 1 != v->size ) {
+    memcpy( v->data + (index * v->stride), v->data + ( (v->size - 1) * v->stride ), v->stride );
+  }
   v->size--;
 
   // shrink the vector
   if (v->size <= v->capacity / 2) {
-    int new_capacity = v->capacity / 2;
+    size_t new_capacity = v->capacity / 2;
     void* new_data = malloc( v->stride * new_capacity );
-    memcpy(new_data, v->data, v->size * v->stride);
+    memcpy(new_data, v->data, v->stride * v->size );
     free(v->data);
     v->data = new_data;
     v->capacity = new_capacity;
@@ -128,6 +175,7 @@ int vector_delete(vector* v, int index) {
  */
 int vector_free(vector* v) {
   free(v->data);
+  free(v);
   return 0;
 }
 
@@ -206,7 +254,7 @@ int get_callback_index(node* n, const char* callback_name) {
  */
 int free_node_vector(vector* v) {
   int inode = 0;
-  int nnodes = v->size;
+  size_t nnodes = v->size;
   for ( inode = 0; inode < nnodes; inode++ ) {
     node* this_node = vector_get(v, inode);
 
@@ -229,6 +277,21 @@ int new_code() {
   code new_code;
   new_code.returned_comms = 0;
   new_code.next_comm = 1;
+  new_code.intra_MPI_comm = MPI_COMM_WORLD;
+  new_code.language = MDI_LANGUAGE_C;
+
+  // initialize the name and role strings
+  int ichar;
+  for (ichar=0; ichar < NAME_LENGTH; ichar++) {
+    new_code.name[ichar] = '\0';
+    new_code.role[ichar] = '\0';
+  }
+
+  // initialize the character buffer for the plugin path
+  new_code.plugin_path = malloc(PLUGIN_PATH_LENGTH * sizeof(char));
+  for (ichar=0; ichar < PLUGIN_PATH_LENGTH; ichar++) {
+    new_code.plugin_path[ichar] = '\0';
+  }
 
   // initialize the node vector
   vector* node_vec = malloc(sizeof(vector));
@@ -240,10 +303,14 @@ int new_code() {
   vector_init(comms_vec, sizeof(communicator));
   new_code.comms = comms_vec;
 
-  new_code.is_python = 0;
   new_code.is_library = 0;
-  new_code.id = codes.size;
+  new_code.id = (int)codes.size;
+  new_code.called_set_execute_command_func = 0;
   new_code.intra_rank = 0;
+  if (world_rank != -1) {
+    // The Python wrapper has called MDI_Set_World_Rank to set this value
+    new_code.intra_rank = world_rank;
+  }
 
   // Set the MPI callbacks
   //new_code.mdi_mpi_recv = MPI_Recv;
@@ -253,7 +320,7 @@ int new_code() {
   vector_push_back( &codes, &new_code );
 
   // return the index of the new code
-  return codes.size - 1;
+  return (int)codes.size - 1;
 }
 
 
@@ -291,7 +358,7 @@ int delete_code(int code_id) {
       code_index = icode;
 
       // stop searching
-      icode = codes.size;
+      icode = (int)codes.size;
     }
   }
   if ( code_found != 1 ) {
@@ -299,14 +366,17 @@ int delete_code(int code_id) {
     return 1;
   }
 
+  // delete the plugin path
+  free( this_code->plugin_path );
+
   // delete the node vector
   free_node_vector(this_code->nodes);
 
   // delete the comms vector
   int icomm;
-  int ncomms = this_code->comms->size;
+  size_t ncomms = this_code->comms->size;
   for (icomm = 0; icomm < ncomms; icomm++) {
-    communicator* this_comm = vector_get( this_code->comms, this_code->comms->size - 1 );
+    communicator* this_comm = vector_get( this_code->comms, (int)this_code->comms->size - 1 );
     delete_communicator(code_id, this_comm->id);
   }
   vector_free( this_code->comms );
@@ -316,6 +386,70 @@ int delete_code(int code_id) {
 
   return 0;
 }
+
+
+/*! \brief Create a new method structure and add it to the vector of methods
+ * Returns the handle of the new method
+ */
+int new_method(int method_id) {
+  method new_method;
+  new_method.id = (int)methods.size;
+  new_method.method_id = method_id;
+
+  vector_push_back( &methods, &new_method );
+
+  return new_method.id;
+}
+
+
+/*! \brief Get a method from a method handle
+ * Returns a pointer to the method
+ */
+method* get_method(int method_id) {
+  // Search through all of the codes for the one that matches code_id
+  int imethod;
+  for (imethod = 0; imethod < methods.size; imethod++ ) {
+    method* this_method = vector_get(&methods, imethod);
+    if ( this_method->method_id == method_id ) {
+      return this_method;
+    }
+  }
+  mdi_error("Method not supported for this build of the MDI Library");
+  return NULL;
+}
+
+
+/*! \brief Delete a method
+ * Returns 0 on success
+ */
+int delete_method(int method_id) {
+  method* this_method = get_method(method_id);
+
+  // Search through all of the methods for the one that matches method
+  int imethod;
+  int method_index;
+  int method_found = 0;
+  for (imethod = 0; imethod < methods.size; imethod++ ) {
+    method* method = vector_get(&methods, imethod);
+    if ( method->method_id == method_id ) {
+      method_found = 1;
+      method_index = imethod;
+
+      // stop searching
+      imethod = (int)methods.size;
+    }
+  }
+  if ( method_found != 1 ) {
+    mdi_error("Method not found during delete");
+    return 1;
+  }
+
+  // delete the data for this method from the global vector of methods
+  vector_delete(&methods, method_index);
+
+  return 0;
+}
+
 
 
 /*! \brief Create a new communicator structure and add it to the list of communicators
@@ -371,11 +505,11 @@ int delete_communicator(int code_id, MDI_Comm_Type comm_id) {
   communicator* this_comm = get_communicator(code_id, comm_id);
 
   // Search through all of the communicators for the one that matches comm_id
-  int icomm;
-  int comm_index;
+  size_t icomm;
+  size_t comm_index;
   int comm_found = 0;
   for (icomm = 0; icomm < this_code->comms->size; icomm++ ) {
-    communicator* comm = vector_get(this_code->comms, icomm);
+    communicator* comm = vector_get(this_code->comms, (int)icomm);
     if ( comm->id == comm_id ) {
       comm_found = 1;
       comm_index = icomm;
@@ -392,11 +526,15 @@ int delete_communicator(int code_id, MDI_Comm_Type comm_id) {
   // do any method-specific deletion operations
   this_comm->delete(this_comm);
 
+  // in case this communicator's delete function modified the code / comms vectors, update the pointers
+  this_code = get_code(code_id);
+  this_comm = get_communicator(code_id, comm_id);
+
   // delete the node vector
   free_node_vector(this_comm->nodes);
 
   // delete the data for this communicator from the code's vector of communicators
-  vector_delete(this_code->comms, comm_index);
+  vector_delete(this_code->comms, (int)comm_index);
 
   return 0;
 }
@@ -414,13 +552,790 @@ int communicator_delete(void* comm) {
  * \param [in]       message
  *                   Message printed before exiting.
  */
-void mdi_error(const char* message) {
-  if ( errno == 0 || errno == ENOTTY ) {
-    fprintf( stderr, "%s", message );
-    fprintf( stderr, "\n" );
+int file_exists(const char* file_name) {
+#ifdef _WIN32
+  DWORD dwAttrib = GetFileAttributes(file_name);
+  if ( dwAttrib != INVALID_FILE_ATTRIBUTES && !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY) ) {
+    return 1;
   }
   else {
-    perror(message);
+    return 0;
   }
-  //exit(1);
+#else
+  if ( access( file_name, F_OK ) == 0 ) {
+    return 1;
+  }
+  else {
+    return 0;
+  }
+#endif
+}
+
+
+/*! \brief Print error message
+ *
+ * \param [in]       message
+ *                   Message printed before exiting.
+ */
+void mdi_error(const char* message) {
+  fprintf( stderr, "%s\n", message );
+}
+
+
+/*! \brief Print warning message
+ *
+ * \param [in]       message
+ *                   Message printed before exiting.
+ */
+void mdi_warning(const char* message) {
+  fprintf( stderr, "MDI warning: %s\n", message );
+}
+
+
+/*! \brief Get information about an MDI datatype
+ *
+ * \param [in]       datatype
+ *                   MDI datatype.
+ * \param [out]      size
+ *                   Size of the MDI datatype.
+ * \param [out]      base
+ *                   Base type of an MDI datatype.
+ */
+int datatype_info(MDI_Datatype_Type datatype, size_t* size, MDI_Datatype_Type* base) {
+  if ( datatype == MDI_INT_ ) {
+    *size = sizeof(int);
+    *base = MDI_INT_;
+  }
+  else if ( datatype == MDI_INT8_T_ ) {
+    *size = sizeof(int8_t);
+    *base = MDI_INT_;
+  }
+  else if ( datatype == MDI_INT16_T_ ) {
+    *size = sizeof(int16_t);
+    *base = MDI_INT_;
+  }
+  else if ( datatype == MDI_INT32_T_ ) {
+    *size = sizeof(int32_t);
+    *base = MDI_INT_;
+  }
+  else if ( datatype == MDI_INT64_T_ ) {
+    *size = sizeof(int64_t);
+    *base = MDI_INT_;
+  }
+  else if ( datatype == MDI_UINT8_T_ ) {
+    *size = sizeof(uint8_t);
+    *base = MDI_INT_;
+  }
+  else if ( datatype == MDI_UINT16_T_ ) {
+    *size = sizeof(uint16_t);
+    *base = MDI_INT_;
+  }
+  else if ( datatype == MDI_UINT32_T_ ) {
+    *size = sizeof(uint32_t);
+    *base = MDI_INT_;
+  }
+  else if ( datatype == MDI_UINT64_T_ ) {
+    *size = sizeof(uint64_t);
+    *base = MDI_INT_;
+  }
+  else if ( datatype == MDI_DOUBLE_ ) {
+    *size = sizeof(double);
+    *base = MDI_INT_;
+  }
+  else if ( datatype == MDI_CHAR_ ) {
+    *size = sizeof(char);
+    *base = MDI_INT_;
+  }
+  else if ( datatype == MDI_FLOAT_ ) {
+    *size = sizeof(float);
+    *base = MDI_INT_;
+  }
+  else if ( datatype == MDI_BYTE_ ) {
+    *size = sizeof(char);
+    *base = MDI_INT_;
+  }
+  else {
+    mdi_error("Unrecognized datatype in datatype_info.");
+    return 1;
+  }
+  return 0;
+}
+
+
+/*! \brief Get the MPI datatype that corresponds to an MDI datatype
+ *
+ * \param [in]       datatype
+ *                   MDI datatype.
+ * \param [out]      mpitype
+ *                   MPI datatype.
+ */
+int datatype_mpitype(MDI_Datatype_Type datatype, MPI_Datatype* mpitype) {
+  if ( datatype == MDI_INT_ ) {
+    *mpitype = MPI_INT;
+  }
+  else if ( datatype == MDI_INT8_T_ ) {
+    *mpitype = MPI_INT8_T;
+  }
+  else if ( datatype == MDI_INT16_T_ ) {
+    *mpitype = MPI_INT16_T;
+  }
+  else if ( datatype == MDI_INT32_T_ ) {
+    *mpitype = MPI_INT32_T;
+  }
+  else if ( datatype == MDI_INT64_T_ ) {
+    *mpitype = MPI_INT64_T;
+  }
+  else if ( datatype == MDI_UINT8_T_ ) {
+    *mpitype = MPI_UINT8_T;
+  }
+  else if ( datatype == MDI_UINT16_T_ ) {
+    *mpitype = MPI_UINT16_T;
+  }
+  else if ( datatype == MDI_UINT32_T_ ) {
+    *mpitype = MPI_UINT32_T;
+  }
+  else if ( datatype == MDI_UINT64_T_ ) {
+    *mpitype = MPI_UINT64_T;
+  }
+  else if ( datatype == MDI_DOUBLE_ ) {
+    *mpitype = MPI_DOUBLE;
+  }
+  else if ( datatype == MDI_CHAR_ ) {
+    *mpitype = MPI_CHAR;
+  }
+  else if ( datatype == MDI_FLOAT_ ) {
+    *mpitype = MPI_FLOAT;
+  }
+  else if ( datatype == MDI_BYTE_ ) {
+    *mpitype = MPI_BYTE;
+  }
+  else {
+    mdi_error("Unrecognized datatype in datatype_mpitype.");
+    return 1;
+  }
+  return 0;
+}
+
+
+/*! \brief Convert a buffer from one datatype to another */
+int convert_buf_datatype(void* recvbuf_in, MDI_Datatype_Type recvtype,
+			 void* sendbuf_in, MDI_Datatype_Type sendtype,
+			 int count) {
+  int ii;
+
+  if ( sendtype == MDI_INT_ ) {
+    int* sendbuf = (int*) sendbuf_in;
+
+    if ( recvtype == MDI_INT_ ) {
+      int* recvbuf = (int*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (int) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_INT8_T_ ) {
+      int8_t* recvbuf = (int8_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (int8_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_INT16_T_ ) {
+      int16_t* recvbuf = (int16_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (int16_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_INT32_T_ ) {
+      int32_t* recvbuf = (int32_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (int32_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_INT64_T_ ) {
+      int64_t* recvbuf = (int64_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (int64_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_UINT8_T_ ) {
+      uint8_t* recvbuf = (uint8_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (uint8_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_UINT16_T_ ) {
+      uint16_t* recvbuf = (uint16_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (uint16_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_UINT32_T_ ) {
+      uint32_t* recvbuf = (uint32_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (uint32_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_UINT64_T_ ) {
+      uint64_t* recvbuf = (uint64_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (uint64_t) sendbuf[ii];
+      }
+    }
+    else {
+      mdi_error("Unrecognized datatype in convert_buf_datatype.");
+      return 1;
+    }
+    
+  }
+  else if ( sendtype == MDI_INT8_T_ ) {
+    int8_t* sendbuf = (int8_t*) sendbuf_in;
+
+    if ( recvtype == MDI_INT_ ) {
+      int* recvbuf = (int*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (int) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_INT8_T_ ) {
+      int8_t* recvbuf = (int8_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (int8_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_INT16_T_ ) {
+      int16_t* recvbuf = (int16_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (int16_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_INT32_T_ ) {
+      int32_t* recvbuf = (int32_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (int32_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_INT64_T_ ) {
+      int64_t* recvbuf = (int64_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (int64_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_UINT8_T_ ) {
+      uint8_t* recvbuf = (uint8_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (uint8_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_UINT16_T_ ) {
+      uint16_t* recvbuf = (uint16_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (uint16_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_UINT32_T_ ) {
+      uint32_t* recvbuf = (uint32_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (uint32_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_UINT64_T_ ) {
+      uint64_t* recvbuf = (uint64_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (uint64_t) sendbuf[ii];
+      }
+    }
+    else {
+      mdi_error("Unrecognized datatype in convert_buf_datatype.");
+      return 1;
+    }
+
+  }
+  else if ( sendtype == MDI_INT16_T_ ) {
+    int16_t* sendbuf = (int16_t*) sendbuf_in;
+
+    if ( recvtype == MDI_INT_ ) {
+      int* recvbuf = (int*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (int) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_INT8_T_ ) {
+      int8_t* recvbuf = (int8_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (int8_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_INT16_T_ ) {
+      int16_t* recvbuf = (int16_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (int16_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_INT32_T_ ) {
+      int32_t* recvbuf = (int32_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (int32_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_INT64_T_ ) {
+      int64_t* recvbuf = (int64_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (int64_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_UINT8_T_ ) {
+      uint8_t* recvbuf = (uint8_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (uint8_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_UINT16_T_ ) {
+      uint16_t* recvbuf = (uint16_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (uint16_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_UINT32_T_ ) {
+      uint32_t* recvbuf = (uint32_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (uint32_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_UINT64_T_ ) {
+      uint64_t* recvbuf = (uint64_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (uint64_t) sendbuf[ii];
+      }
+    }
+    else {
+      mdi_error("Unrecognized datatype in convert_buf_datatype.");
+      return 1;
+    }
+
+  }
+  else if ( sendtype == MDI_INT32_T_ ) {
+    int32_t* sendbuf = (int32_t*) sendbuf_in;
+
+    if ( recvtype == MDI_INT_ ) {
+      int* recvbuf = (int*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (int) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_INT8_T_ ) {
+      int8_t* recvbuf = (int8_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (int8_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_INT16_T_ ) {
+      int16_t* recvbuf = (int16_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (int16_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_INT32_T_ ) {
+      int32_t* recvbuf = (int32_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (int32_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_INT64_T_ ) {
+      int64_t* recvbuf = (int64_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (int64_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_UINT8_T_ ) {
+      uint8_t* recvbuf = (uint8_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (uint8_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_UINT16_T_ ) {
+      uint16_t* recvbuf = (uint16_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (uint16_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_UINT32_T_ ) {
+      uint32_t* recvbuf = (uint32_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (uint32_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_UINT64_T_ ) {
+      uint64_t* recvbuf = (uint64_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (uint64_t) sendbuf[ii];
+      }
+    }
+    else {
+      mdi_error("Unrecognized datatype in convert_buf_datatype.");
+      return 1;
+    }
+
+  }
+  else if ( sendtype == MDI_INT64_T_ ) {
+    int64_t* sendbuf = (int64_t*) sendbuf_in;
+
+    if ( recvtype == MDI_INT_ ) {
+      int* recvbuf = (int*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (int) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_INT8_T_ ) {
+      int8_t* recvbuf = (int8_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (int8_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_INT16_T_ ) {
+      int16_t* recvbuf = (int16_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (int16_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_INT32_T_ ) {
+      int32_t* recvbuf = (int32_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (int32_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_INT64_T_ ) {
+      int64_t* recvbuf = (int64_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (int64_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_UINT8_T_ ) {
+      uint8_t* recvbuf = (uint8_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (uint8_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_UINT16_T_ ) {
+      uint16_t* recvbuf = (uint16_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (uint16_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_UINT32_T_ ) {
+      uint32_t* recvbuf = (uint32_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (uint32_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_UINT64_T_ ) {
+      uint64_t* recvbuf = (uint64_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (uint64_t) sendbuf[ii];
+      }
+    }
+    else {
+      mdi_error("Unrecognized datatype in convert_buf_datatype.");
+      return 1;
+    }
+
+  }
+  else if ( sendtype == MDI_UINT8_T_ ) {
+    uint8_t* sendbuf = (uint8_t*) sendbuf_in;
+
+    if ( recvtype == MDI_INT_ ) {
+      int* recvbuf = (int*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (int) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_INT8_T_ ) {
+      int8_t* recvbuf = (int8_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (int8_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_INT16_T_ ) {
+      int16_t* recvbuf = (int16_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (int16_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_INT32_T_ ) {
+      int32_t* recvbuf = (int32_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (int32_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_INT64_T_ ) {
+      int64_t* recvbuf = (int64_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (int64_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_UINT8_T_ ) {
+      uint8_t* recvbuf = (uint8_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (uint8_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_UINT16_T_ ) {
+      uint16_t* recvbuf = (uint16_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (uint16_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_UINT32_T_ ) {
+      uint32_t* recvbuf = (uint32_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (uint32_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_UINT64_T_ ) {
+      uint64_t* recvbuf = (uint64_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (uint64_t) sendbuf[ii];
+      }
+    }
+    else {
+      mdi_error("Unrecognized datatype in convert_buf_datatype.");
+      return 1;
+    }
+
+  }
+  else if ( sendtype == MDI_UINT64_T_ ) {
+    uint16_t* sendbuf = (uint16_t*) sendbuf_in;
+
+    if ( recvtype == MDI_INT_ ) {
+      int* recvbuf = (int*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (int) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_INT8_T_ ) {
+      int8_t* recvbuf = (int8_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (int8_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_INT16_T_ ) {
+      int16_t* recvbuf = (int16_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (int16_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_INT32_T_ ) {
+      int32_t* recvbuf = (int32_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (int32_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_INT64_T_ ) {
+      int64_t* recvbuf = (int64_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (int64_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_UINT8_T_ ) {
+      uint8_t* recvbuf = (uint8_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (uint8_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_UINT16_T_ ) {
+      uint16_t* recvbuf = (uint16_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (uint16_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_UINT32_T_ ) {
+      uint32_t* recvbuf = (uint32_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (uint32_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_UINT64_T_ ) {
+      uint64_t* recvbuf = (uint64_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (uint64_t) sendbuf[ii];
+      }
+    }
+    else {
+      mdi_error("Unrecognized datatype in convert_buf_datatype.");
+      return 1;
+    }
+
+  }
+  else if ( sendtype == MDI_UINT64_T_ ) {
+    uint32_t* sendbuf = (uint32_t*) sendbuf_in;
+
+    if ( recvtype == MDI_INT_ ) {
+      int* recvbuf = (int*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (int) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_INT8_T_ ) {
+      int8_t* recvbuf = (int8_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (int8_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_INT16_T_ ) {
+      int16_t* recvbuf = (int16_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (int16_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_INT32_T_ ) {
+      int32_t* recvbuf = (int32_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (int32_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_INT64_T_ ) {
+      int64_t* recvbuf = (int64_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (int64_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_UINT8_T_ ) {
+      uint8_t* recvbuf = (uint8_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (uint8_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_UINT16_T_ ) {
+      uint16_t* recvbuf = (uint16_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (uint16_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_UINT32_T_ ) {
+      uint32_t* recvbuf = (uint32_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (uint32_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_UINT64_T_ ) {
+      uint64_t* recvbuf = (uint64_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (uint64_t) sendbuf[ii];
+      }
+    }
+    else {
+      mdi_error("Unrecognized datatype in convert_buf_datatype.");
+      return 1;
+    }
+
+  }
+  else if ( sendtype == MDI_UINT64_T_ ) {
+    uint64_t* sendbuf = (uint64_t*) sendbuf_in;
+
+    if ( recvtype == MDI_INT_ ) {
+      int* recvbuf = (int*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (int) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_INT8_T_ ) {
+      int8_t* recvbuf = (int8_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (int8_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_INT16_T_ ) {
+      int16_t* recvbuf = (int16_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (int16_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_INT32_T_ ) {
+      int32_t* recvbuf = (int32_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (int32_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_INT64_T_ ) {
+      int64_t* recvbuf = (int64_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (int64_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_UINT8_T_ ) {
+      uint8_t* recvbuf = (uint8_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (uint8_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_UINT16_T_ ) {
+      uint16_t* recvbuf = (uint16_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (uint16_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_UINT32_T_ ) {
+      uint32_t* recvbuf = (uint32_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (uint32_t) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_UINT64_T_ ) {
+      uint64_t* recvbuf = (uint64_t*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (uint64_t) sendbuf[ii];
+      }
+    }
+    else {
+      mdi_error("Unrecognized datatype in convert_buf_datatype.");
+      return 1;
+    }
+
+  }
+  else if ( sendtype == MDI_DOUBLE_ ) {
+    double* sendbuf = (double*) sendbuf_in;
+
+    if ( recvtype == MDI_DOUBLE_ ) {
+      double* recvbuf = (double*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (double) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_FLOAT_ ) {
+      float* recvbuf = (float*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (float) sendbuf[ii];
+      }
+    }
+    else {
+      mdi_error("Unrecognized datatype in convert_buf_datatype.");
+      return 1;
+    }
+
+  }
+  else if ( sendtype == MDI_FLOAT_ ) {
+    float* sendbuf = (float*) sendbuf_in;
+
+    if ( recvtype == MDI_DOUBLE_ ) {
+      double* recvbuf = (double*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (double) sendbuf[ii];
+      }
+    }
+    else if ( recvtype == MDI_FLOAT_ ) {
+      float* recvbuf = (float*) recvbuf_in;
+      for (ii=0; ii < count; ii++) {
+        recvbuf[ii] = (float) sendbuf[ii];
+      }
+    }
+    else {
+      mdi_error("Unrecognized datatype in convert_buf_datatype.");
+      return 1;
+    }
+
+  }
+  else {
+    mdi_error("Unrecognized datatype in convert_buf_datatype.");
+    return 1;
+  }
+
+  return 0;
 }

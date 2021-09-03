@@ -85,17 +85,17 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:af2f6b0553a53f438a26b5d4d094007a8"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mdi__general_8h.html#af2f6b0553a53f438a26b5d4d094007a8">general_init</a> (const char *options, void *world_comm)</td></tr>
-<tr class="memdesc:af2f6b0553a53f438a26b5d4d094007a8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize communication through the MDI library.  <a href="#af2f6b0553a53f438a26b5d4d094007a8">More...</a><br /></td></tr>
-<tr class="separator:af2f6b0553a53f438a26b5d4d094007a8"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a12009556a91d0d280ff6190a6856f5df"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mdi__general_8h.html#a12009556a91d0d280ff6190a6856f5df">general_init</a> (const char *options)</td></tr>
+<tr class="memdesc:a12009556a91d0d280ff6190a6856f5df"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initialize communication through the MDI library.  <a href="#a12009556a91d0d280ff6190a6856f5df">More...</a><br /></td></tr>
+<tr class="separator:a12009556a91d0d280ff6190a6856f5df"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a29ba5cd8b9eb5fc5e1fcbe3576333dec"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mdi__general_8h.html#a29ba5cd8b9eb5fc5e1fcbe3576333dec">general_accept_communicator</a> ()</td></tr>
 <tr class="memdesc:a29ba5cd8b9eb5fc5e1fcbe3576333dec"><td class="mdescLeft">&#160;</td><td class="mdescRight">Accept a new MDI communicator.  <a href="#a29ba5cd8b9eb5fc5e1fcbe3576333dec">More...</a><br /></td></tr>
 <tr class="separator:a29ba5cd8b9eb5fc5e1fcbe3576333dec"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4df1892a55f407c2620357941c60bc03"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mdi__general_8h.html#a4df1892a55f407c2620357941c60bc03">general_send</a> (const void *buf, int count, MDI_Datatype datatype, MDI_Comm comm)</td></tr>
-<tr class="memdesc:a4df1892a55f407c2620357941c60bc03"><td class="mdescLeft">&#160;</td><td class="mdescRight">Send data through the MDI connection.  <a href="#a4df1892a55f407c2620357941c60bc03">More...</a><br /></td></tr>
+<tr class="memdesc:a4df1892a55f407c2620357941c60bc03"><td class="mdescLeft">&#160;</td><td class="mdescRight">Send a message through the MDI connection.  <a href="#a4df1892a55f407c2620357941c60bc03">More...</a><br /></td></tr>
 <tr class="separator:a4df1892a55f407c2620357941c60bc03"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a4eef11edcab5763b906eb5ee84c7ed0c"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mdi__general_8h.html#a4eef11edcab5763b906eb5ee84c7ed0c">general_recv</a> (void *buf, int count, MDI_Datatype datatype, MDI_Comm comm)</td></tr>
-<tr class="memdesc:a4eef11edcab5763b906eb5ee84c7ed0c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Receive data through the MDI connection.  <a href="#a4eef11edcab5763b906eb5ee84c7ed0c">More...</a><br /></td></tr>
+<tr class="memdesc:a4eef11edcab5763b906eb5ee84c7ed0c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Receive a message through the MDI connection.  <a href="#a4eef11edcab5763b906eb5ee84c7ed0c">More...</a><br /></td></tr>
 <tr class="separator:a4eef11edcab5763b906eb5ee84c7ed0c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ac26eef55a46e5a5da1f7a32be5d7bd0f"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mdi__general_8h.html#ac26eef55a46e5a5da1f7a32be5d7bd0f">general_send_command</a> (const char *buf, MDI_Comm comm)</td></tr>
 <tr class="memdesc:ac26eef55a46e5a5da1f7a32be5d7bd0f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Send a command of length <code>MDI_COMMAND_LENGTH</code> through the MDI connection.  <a href="#ac26eef55a46e5a5da1f7a32be5d7bd0f">More...</a><br /></td></tr>
@@ -166,7 +166,7 @@ int(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mdi
 </div><div class="memdoc">
 
 <p>Accept a new MDI communicator. </p>
-<p>The function returns an MDI_Comm that describes a connection between two codes. If no new communicators are available, the function returns <code>MDI_NULL_COMM</code>. </p>
+<p>The function returns an MDI_Comm that describes a connection between two codes. If no new communicators are available, the function returns <code>MDI_COMM_NULL</code>. </p>
 
 </div>
 </div>
@@ -208,8 +208,8 @@ int(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mdi
 
 </div>
 </div>
-<a id="af2f6b0553a53f438a26b5d4d094007a8"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#af2f6b0553a53f438a26b5d4d094007a8">&#9670;&nbsp;</a></span>general_init()</h2>
+<a id="a12009556a91d0d280ff6190a6856f5df"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a12009556a91d0d280ff6190a6856f5df">&#9670;&nbsp;</a></span>general_init()</h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -218,18 +218,8 @@ int(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mdi
           <td class="memname">int general_init </td>
           <td>(</td>
           <td class="paramtype">const char *&#160;</td>
-          <td class="paramname"><em>options</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
+          <td class="paramname"><em>options</em></td><td>)</td>
           <td></td>
-          <td class="paramtype">void *&#160;</td>
-          <td class="paramname"><em>world_comm</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
         </tr>
       </table>
 </div><div class="memdoc">
@@ -239,7 +229,6 @@ int(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mdi
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramdir">[in]</td><td class="paramname">options</td><td>Options describing the communication method used to connect to codes. </td></tr>
-    <tr><td class="paramdir">[in,out]</td><td class="paramname">world_comm</td><td>On input, the MPI communicator that spans all of the codes. On output, the MPI communicator that spans the single code corresponding to the calling rank. Only used if the "-method MPI" option is provided. </td></tr>
   </table>
   </dd>
 </dl>
@@ -284,7 +273,7 @@ int(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mdi
       </table>
 </div><div class="memdoc">
 
-<p>Receive data through the MDI connection. </p>
+<p>Receive a message through the MDI connection. </p>
 <p>If running with MPI, this function must be called only by rank <code>0</code>. The function returns <code>0</code> on a success.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
@@ -374,7 +363,7 @@ int(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mdi
       </table>
 </div><div class="memdoc">
 
-<p>Send data through the MDI connection. </p>
+<p>Send a message through the MDI connection. </p>
 <p>If running with MPI, this function must be called only by rank <code>0</code>. The function returns <code>0</code> on a success.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
@@ -473,7 +462,7 @@ int(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mdi
 <p>The function returns the node vector for the communicator.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
-    <tr><td class="paramdir">[in]</td><td class="paramname">comm</td><td>MDI communicator of the engine. If comm is set to MDI_NULL_COMM, the function will return the node vector for the calling engine. </td></tr>
+    <tr><td class="paramdir">[in]</td><td class="paramname">comm</td><td>MDI communicator of the engine. If comm is set to MDI_COMM_NULL, the function will return the node vector for the calling engine. </td></tr>
   </table>
   </dd>
 </dl>

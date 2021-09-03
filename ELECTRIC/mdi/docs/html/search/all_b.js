@@ -1,8 +1,10 @@
 var searchData=
 [
-  ['register_5fcallback',['register_callback',['../mdi__general_8c.html#a25f8f401438a3ea84bc29f60bf7984a6',1,'register_callback(vector *node_vec, const char *node_name, const char *callback_name):&#160;mdi_general.c'],['../mdi__general_8h.html#a25f8f401438a3ea84bc29f60bf7984a6',1,'register_callback(vector *node_vec, const char *node_name, const char *callback_name):&#160;mdi_general.c']]],
-  ['register_5fcommand',['register_command',['../mdi__general_8c.html#ab039ef24caf27fd91a25b809b24ebccd',1,'register_command(vector *node_vec, const char *node_name, const char *command_name):&#160;mdi_general.c'],['../mdi__general_8h.html#ab039ef24caf27fd91a25b809b24ebccd',1,'register_command(vector *node_vec, const char *node_name, const char *command_name):&#160;mdi_general.c']]],
-  ['register_5fnode',['register_node',['../mdi__general_8c.html#a13565a7590af2e05f10a55bb7cf5cbff',1,'register_node(vector *node_vec, const char *node_name):&#160;mdi_general.c'],['../mdi__general_8h.html#a13565a7590af2e05f10a55bb7cf5cbff',1,'register_node(vector *node_vec, const char *node_name):&#160;mdi_general.c']]],
-  ['returned_5fcomms',['returned_comms',['../structcode__struct.html#aadd2a0711072e4bf29c73c7e599e23b9',1,'code_struct']]],
-  ['role',['role',['../structcode__struct.html#afbdb208181e10943f51aa0266953dc04',1,'code_struct']]]
+  ['name',['name',['../structnode__struct.html#a6d698e34c7c1bc09a8242e441b872bb8',1,'node_struct::name()'],['../structcode__struct.html#a0666f8083ac872f34453966342a05ef0',1,'code_struct::name()']]],
+  ['new_5fcode',['new_code',['../mdi__global_8c.html#a85db1717518f106b85b41bb98963a11e',1,'new_code():&#160;mdi_global.c'],['../mdi__global_8h.html#a85db1717518f106b85b41bb98963a11e',1,'new_code():&#160;mdi_global.c']]],
+  ['new_5fcommunicator',['new_communicator',['../mdi__global_8c.html#ad59915f6116d24ff6553770ec547ae6f',1,'new_communicator(int code_id, int method):&#160;mdi_global.c'],['../mdi__global_8h.html#ad59915f6116d24ff6553770ec547ae6f',1,'new_communicator(int code_id, int method):&#160;mdi_global.c']]],
+  ['new_5fmethod',['new_method',['../mdi__global_8c.html#a3b00d42805e039c46d31a67dd21b2d0a',1,'new_method(int method_id):&#160;mdi_global.c'],['../mdi__global_8h.html#a3b00d42805e039c46d31a67dd21b2d0a',1,'new_method(int method_id):&#160;mdi_global.c']]],
+  ['next_5fcomm',['next_comm',['../structcode__struct.html#addc15d4f02753bd4ae5c8c8e2bd5b7c2',1,'code_struct']]],
+  ['node_5fstruct',['node_struct',['../structnode__struct.html',1,'']]],
+  ['nodes',['nodes',['../structcommunicator__struct.html#a82b093f109b29a9762cd6997787f96da',1,'communicator_struct::nodes()'],['../structcode__struct.html#a213cad27fe198175bd7d7ff983f45289',1,'code_struct::nodes()']]]
 ];
