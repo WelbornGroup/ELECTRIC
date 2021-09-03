@@ -17,6 +17,9 @@ readlink_f() {
   echo $real_path/$filename
 }
 
+# Enable building shared libraries on Cray systems
+export CRAYPE_LINK_TYPE=dynamic
+
 # If the C compiler has been set, ensure that its value propagates to any other scripts
 [[ ! -z "${CC}" ]] && export CC=${CC}
 
