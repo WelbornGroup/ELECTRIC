@@ -40,8 +40,8 @@ jobs:
 
         # Install dependencies
         #conda install -c conda-forge numpy pandas
-	pip install numpy
-	pip install pandas
+        pip install numpy
+        pip install pandas
         pip install pytest
         pip install pytest-cov
 
