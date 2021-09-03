@@ -17,12 +17,20 @@ readlink_f() {
   echo $real_path/$filename
 }
 
+# If the C compiler has been set, ensure that its value propagates to any other scripts
+[[ ! -z "${CC}" ]] && export CC=${CC}
 
+# If the Fortran compiler has been set, ensure that its value propagates to any other scripts
+[[ ! -z "${FC}" ]] && export FC=${FC}
+
+# Compile the Tinker submodule
 cd modules/Tinker/dev
 ./full_build.sh
 cd ../build/tinker/source
 readlink_f dynamic.x > ../../../../../test/locations/Tinker_ELECTRIC
 cd ../../../../../
+
+# Compile ELECTRIC
 cmake .
 make
 cd ELECTRIC
