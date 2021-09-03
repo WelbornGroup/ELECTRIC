@@ -31,10 +31,10 @@ rm bench5.arc
 srun -N 1 -n 1 ${TINKER_LOC} bench5 -k bench5.key 10 1.0 0.001999 2 300.00 > Dynamics.log
 
 #launch driver
-echo 0 python ${DRIVER_LOC} -probes \'1 40\' -snap bench5.arc -mdi \'-role DRIVER -name driver -method MPI\' --bymol > srun.conf
+echo 0 python ${DRIVER_LOC} -probes \'1 40\' -snap bench5.arc -mdi \'-role DRIVER -name driver -method MPI -out driver.out\' --bymol > srun.conf
 
 #launch Tinker using EWALD
-echo 1 ${TINKER_LOC} bench5 -k no_ewald.key -mdi \'-role ENGINE -name NO_EWALD -method MPI\' 10 1.0 0.001999 2 300.00 > no_ewald.log >> srun.conf
+echo 1 ${TINKER_LOC} bench5 -k no_ewald.key -mdi \'-role ENGINE -name NO_EWALD -method MPI -out no_ewald.log\' 10 1.0 0.001999 2 300.00 >> srun.conf
 
 #launch the calculation
 srun -n 2 --multi-prog srun.conf
