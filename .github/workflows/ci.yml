@@ -40,7 +40,7 @@ jobs:
 
     - name: Build ELECTRIC with Tinker
       run: |
-        ./build
+        ./build.sh
 
     - name: Run the pytest tests
       env:
