@@ -39,7 +39,8 @@ def test_index_fragments():
         np.array([1, 2, 3]),
         np.array([4, 5]),
         np.array([6, 7]),
-        np.array([8, 9, 10])])
+        np.array([8, 9, 10])],
+        dtype=object)
 
     assert len(expected_index) == len(pole_index_by_fragment)
 
