@@ -34,10 +34,9 @@ This can be done when calling the `build.sh` script.
 For example, to compile on NERSC's Cori system, you can do:
 ```
 module load PrgEnv-gnu
-CC=cc FC=ftn ./build.sh
 git clone --recurse-submodules https://github.com/WelbornGroup/ELECTRIC.git
 cd ELECTRIC
-./build.sh
+CC=cc FC=ftn ./build.sh
 ```
 
 Upon successfull building, you will have the ELECTRIC driver in ELECTRIC/ELECTRIC/ELECTRIC.py, and the needed Tinker executable (dynamic.x) in ELECTRIC/modules/Tinker/build/tinker/source/dynamic.x . The location of these files can be found in text files in ELECTRIC/test/locations/ELECTRIC and ELECTRIC/test/locations/Tinker_ELECTRIC. You will need these for using ELECTRIC.
