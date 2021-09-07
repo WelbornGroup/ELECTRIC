@@ -1,7 +1,6 @@
 import time
 import numpy as np
 import pandas as pd
-import sys
 
 
 from util import process_pdb, index_fragments, create_parser
