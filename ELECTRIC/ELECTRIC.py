@@ -1,6 +1,7 @@
 import time
 import numpy as np
 import pandas as pd
+import sys
 
 
 from util import process_pdb, index_fragments, create_parser
@@ -9,13 +10,7 @@ from util import process_pdb, index_fragments, create_parser
 # Use local MDI build
 import mdi.MDI_Library as mdi
 
-try:
-    from mpi4py import MPI
-
-    use_mpi4py = True
-
-except ImportError:
-    use_mpi4py = False
+use_mpi4py = False
 
 # Get the MPI communicator
 if use_mpi4py:
@@ -178,11 +173,7 @@ if __name__ == "__main__":
     stride = args.stride
 
     # Process args for MDI
-    mdi.MDI_Init(args.mdi, mpi_world)
-
-    if use_mpi4py:
-        mpi_world = mdi.MDI_Get_Intra_Code_MPI_Comm()
-        world_rank = mpi_world.Get_rank()
+    mdi.MDI_Init(args.mdi)
 
     snapshot_filename = args.snap
     probes = [int(x) for x in args.probes.split()]
