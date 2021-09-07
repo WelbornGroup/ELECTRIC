@@ -134,6 +134,7 @@ This approach is likely to be preferable when running on large supercomputing cl
 
 Note that on systems that manage MPI jobs using SLURM, it is necessary to use `srun` to launch jobs rather than direct calls to `mpiexec`.
 Example scripts for launching on NERSC's Cori system are provided at `ELECTRIC/test/bench5/cori.sh` (for running with a single instance of Tinker) and `ELECTRIC/test/bench5/cori5.sh` (for running with multiple instances of Tinker).
+Before running one of these scripts, you will need to change the `--account` SBATCH option to your own account.
 
 
 
