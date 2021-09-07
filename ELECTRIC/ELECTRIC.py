@@ -45,7 +45,7 @@ def connect_to_engines(nengines):
         name = mdi.MDI_Recv(mdi.MDI_NAME_LENGTH, mdi.MDI_CHAR, comm)
         print(f"Engine name: {name}")
 
-        if name != "NO_EWALD":
+        if name[:8] != "NO_EWALD":
             raise Exception("Unrecognized engine name", name)
 
     return engine_comm
@@ -384,7 +384,7 @@ if __name__ == "__main__":
             engine_comm[icomm],
             npoles,
             snapshot_coords[icomm],
-            itask_to_snap_num[itask - nengines + jcomm],
+            itask_to_snap_num[itask - nengines + icomm],
             atoms_pole_numbers,
             output,
         )
