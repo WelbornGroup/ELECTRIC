@@ -1,5 +1,6 @@
 \hypertarget{mdi_standard_standard_overview}{}\doxysection{Overview}\label{mdi_standard_standard_overview}
-The M\+DI Standard provides a straightforward, A\+P\+I-\/like method for enabling interoperability among computational molecular sciences codes. It uses a driver/engine model in which a driver code controls the high-\/level program flow of one or more engine codes. The driver exercises this control through the use of \mbox{\hyperlink{mdi_standard_command_list}{commands}} that are defined by the M\+DI Standard. Commands are available that correspond to a variety of tasks, such as \char`\"{}receive a new set of nuclear coordinates from me\char`\"{} (\mbox{\hyperlink{mdi_standard_send_coords}{$>$C\+O\+O\+R\+DS}}), \char`\"{}start an M\+D simulation\char`\"{} (\mbox{\hyperlink{mdi_standard_init_md}{@\+I\+N\+I\+T\+\_\+\+MD}}) and \char`\"{}send me the forces on the nuclei\char`\"{} (\mbox{\hyperlink{mdi_standard_recv_forces}{$<$F\+O\+R\+C\+ES}}). The M\+DI standard defines the \mbox{\hyperlink{mdi_standard_standard_units}{units}}, data types, and formatting of any data communicated between codes in response to a command.\hypertarget{mdi_standard_standard_units}{}\doxysection{Units}\label{mdi_standard_standard_units}
+The M\+DI Standard provides a straightforward, A\+P\+I-\/like method for enabling interoperability among computational molecular sciences codes. It uses a driver/engine model in which a driver code controls the high-\/level program flow of one or more engine codes. The driver exercises this control through the use of \mbox{\hyperlink{mdi_standard_command_list}{commands}} that are defined by the M\+DI Standard. Commands are available that correspond to a variety of tasks, such as \char`\"{}receive a new set of nuclear coordinates from me\char`\"{} (\mbox{\hyperlink{mdi_standard_send_coords}{$>$C\+O\+O\+R\+DS}}), \char`\"{}start an M\+D simulation\char`\"{} (\mbox{\hyperlink{mdi_standard_init_md}{@\+I\+N\+I\+T\+\_\+\+MD}}) and \char`\"{}send me the forces on the nuclei\char`\"{} (\mbox{\hyperlink{mdi_standard_recv_forces}{$<$F\+O\+R\+C\+ES}}). The M\+DI standard defines the \mbox{\hyperlink{mdi_standard_standard_units}{units}}, data types, and formatting of any data communicated between codes in response to a command.\hypertarget{mdi_standard_standard_extension}{}\doxysection{Extending the M\+D\+I Standard}\label{mdi_standard_standard_extension}
+Although the M\+DI Standard has been designed to enable a wide range of potential applications, it is inevitable that some use cases will require functionality that is not yet supported by the standard. Typically, supporting such use cases will simply require addition of one or more new \mbox{\hyperlink{mdi_standard_command_list}{commands}} to the M\+DI Standard. Users who find themselves in need of a new M\+DI command are encouraged to create an \href{https://github.com/MolSSI-MDI/MDI_Library/issues}{\texttt{ issue}} describing their needs or submit a \href{https://github.com/MolSSI-MDI/MDI_Library/pulls}{\texttt{ pull request}} suggesting a solution.\hypertarget{mdi_standard_standard_units}{}\doxysection{Units}\label{mdi_standard_standard_units}
 All physical quantities communicated through M\+DI must be expressed in atomic units. Whenever it is necessary to perform a unit conversion on data communicated through M\+DI, the conversion factor should be obtained through the \mbox{\hyperlink{mdi_8c_aa1ccf61d45e842b50d72084735cb984a}{M\+D\+I\+\_\+\+Conversion\+\_\+\+Factor()}} function. Use of this function ensures self-\/consistency in unit conversions between codes, which is important for avoiding numerical instabilities.\hypertarget{mdi_standard_standard_nodes_sec}{}\doxysection{Nodes}\label{mdi_standard_standard_nodes_sec}
 One of the powerful features of the M\+DI Standard is that it permits drivers to take advantage of existing implementations of time integrators and geometry optimizers in M\+DI engines. In particular, the \mbox{\hyperlink{mdi_standard_init_md}{@\+I\+N\+I\+T\+\_\+\+MD}} and \mbox{\hyperlink{mdi_standard_init_optg}{@\+I\+N\+I\+T\+\_\+\+O\+P\+TG}} commands cause an engine to begin a molecular dynamics trajectory or a geometry optimization, respectively. Upon receiving one of these commands, an engine will perform the corresponding simulation without requiring further instruction from the driver, except that it will pause at certain \char`\"{}nodes\char`\"{} and listen for new commands.
 
@@ -7,6 +8,7 @@ The M\+DI Standard defines several nodes. Their names and when they occur are as
 
 \begin{DoxyParagraph}{}
 {\bfseries{ @\+D\+E\+F\+A\+U\+LT }} -\/ Upon initially connecting to the driver. ~\newline
+ {\bfseries{ @\+I\+N\+I\+T\+\_\+\+MC }} -\/ Upon initializing a new Monte Carlo simulation. ~\newline
  {\bfseries{ @\+I\+N\+I\+T\+\_\+\+MD }} -\/ Upon initializing a new molecular dynamics simulation. ~\newline
  {\bfseries{ @\+I\+N\+I\+T\+\_\+\+O\+P\+TG }} -\/ Upon initializing a new geometry optimization. ~\newline
 
@@ -47,7 +49,7 @@ The following constants are defined by the M\+DI Standard and are accessible thr
 \begin{DoxyItemize}
 \item {\ttfamily M\+D\+I\+\_\+\+M\+PI} -\/ Identifier for the M\+PI communication method
 \item {\ttfamily M\+D\+I\+\_\+\+T\+CP} -\/ Identifier for the T\+CP communication method
-\item {\ttfamily M\+D\+I\+\_\+\+L\+IB} -\/ Identifier for the L\+IB communication method
+\item {\ttfamily M\+D\+I\+\_\+\+L\+I\+NK} -\/ Identifier for the L\+I\+NK communication method
 \item {\ttfamily M\+D\+I\+\_\+\+T\+E\+ST} -\/ Identifier for the T\+E\+ST communication method
 \item {\ttfamily M\+D\+I\+\_\+\+D\+R\+I\+V\+ER} -\/ Identifier for the D\+R\+I\+V\+ER role
 \item {\ttfamily M\+D\+I\+\_\+\+E\+N\+G\+I\+NE} -\/ Identifier for the E\+N\+G\+I\+NE role
@@ -248,7 +250,8 @@ If the engine is not at the {\ttfamily @\+D\+E\+F\+A\+U\+LT}  node, it sends its
  {\bfseries{ Quantity\+: }} {\ttfamily  3 $\ast$ N\+A\+T\+O\+MS } ~\newline
  {\bfseries{ Format\+: }} Sequentially ascending order of atomic index, with the forces for each individual atom being provided in xyz order
 \end{DoxyParagraph}
-\hypertarget{mdi_standard_init_md}{}\doxysubsection{@\+I\+N\+I\+T\+\_\+\+MD}\label{mdi_standard_init_md}
+\hypertarget{mdi_standard_init_mc}{}\doxysubsection{@\+I\+N\+I\+T\+\_\+\+MC}\label{mdi_standard_init_mc}
+The engine performs any initialization operations that are necessary before a Monte Carlo simulation can be performed, proceeding to the @\+I\+N\+I\+T\+\_\+\+MC node.\hypertarget{mdi_standard_init_md}{}\doxysubsection{@\+I\+N\+I\+T\+\_\+\+MD}\label{mdi_standard_init_md}
 The engine performs any initialization operations that are necessary before a molecular dynamics simulation can be performed, proceeding to the @\+I\+N\+I\+T\+\_\+\+MD node.
 
 \begin{DoxyParagraph}{}
@@ -287,6 +290,15 @@ If the engine is not at the {\ttfamily @\+D\+E\+F\+A\+U\+LT}  node, it sends its
 {\bfseries{ Data Type\+: }} {\ttfamily M\+D\+I\+\_\+\+D\+O\+U\+B\+LE} ~\newline
  {\bfseries{ Quantity\+: }} 1
 \end{DoxyParagraph}
+\hypertarget{mdi_standard_send_stress}{}\doxysubsection{$<$\+L\+A\+B\+E\+LS}\label{mdi_standard_send_stress}
+The engine sends a label for each atom in its system. \char`\"{}\+Labels\char`\"{} are intended primarily for the purpose of providing a human-\/readable identifier for each of the atoms, and do not have a standardized physical meaning. It is recommended that the labels correspond to the element of each atom (i.\+e., \char`\"{}\+H\char`\"{}, \char`\"{}\+He\char`\"{}, \char`\"{}\+Li\char`\"{}, etc.), a name associated with atoms of a particular type (i.\+e., \char`\"{}\+Carboxyl\+\_\+\+Hydrogen\char`\"{}, \char`\"{}\+Methyl\+\_\+\+Hydrogen\char`\"{}), or a similarly descriptive term. The atom labels may correspond to a number identifier (i.\+e., \char`\"{}1\char`\"{}, \char`\"{}2\char`\"{}, \char`\"{}3\char`\"{}, etc.) in cases where more descriptive labels are not practical, but note that such labels must be represented using the {\ttfamily M\+D\+I\+\_\+\+C\+H\+AR} data type, as indicated below. It is required that atoms having different physical properties (i.\+e., different force field terms in a molecular mechanics simulation or different nuclear charges in a quantum chemistry simulation) have different labels.
+
+\begin{DoxyParagraph}{}
+{\bfseries{ Data Type\+: }} {\ttfamily M\+D\+I\+\_\+\+C\+H\+AR} ~\newline
+ {\bfseries{ Quantity\+: }} {\ttfamily M\+D\+I\+\_\+\+L\+A\+B\+E\+L\+\_\+\+L\+E\+N\+G\+TH} $\ast$ {\ttfamily N\+A\+T\+O\+MS} ~\newline
+ {\bfseries{ Format\+: }} An array of characters corresponding to the label of each atom in ascending order of atomic index, with each label consisting of {\ttfamily M\+D\+I\+\_\+\+L\+A\+B\+E\+L\+\_\+\+L\+E\+N\+G\+TH} characters and being padded with spaces (\char`\"{} \char`\"{}) where necessary ~\newline
+
+\end{DoxyParagraph}
 \hypertarget{mdi_standard_send_lattice}{}\doxysubsection{$>$\+L\+A\+T\+T\+I\+CE}\label{mdi_standard_send_lattice}
 This command, along with the {\ttfamily $>$N\+L\+A\+T\+T\+I\+CE} and {\ttfamily $>$C\+L\+A\+T\+T\+I\+CE} commands, allows the driver to assign a lattice of point charges to an engine, which incorporates the effects of these charges in all further calculations. After sending this command, the driver sends the charges of each of the point charges to the engine. Prior to sending this command, the driver must have set the number of point charges using the {\ttfamily $>$N\+L\+A\+T\+T\+I\+CE} command.
 
@@ -314,13 +326,6 @@ The engine sends the driver a string that corresponds to the argument of {\ttfam
 \end{DoxyParagraph}
 \hypertarget{mdi_standard_recv_natoms}{}\doxysubsection{$<$\+N\+A\+T\+O\+MS}\label{mdi_standard_recv_natoms}
 The engine sends the driver the number of atoms in the engine\textquotesingle{}s system.
-
-\begin{DoxyParagraph}{}
-{\bfseries{ Data Type\+: }} {\ttfamily M\+D\+I\+\_\+\+I\+NT} ~\newline
- {\bfseries{ Quantity\+: }} 1
-\end{DoxyParagraph}
-\hypertarget{mdi_standard_recv_ncommands}{}\doxysubsection{$<$\+N\+C\+O\+M\+M\+A\+N\+DS}\label{mdi_standard_recv_ncommands}
-The engine sends the driver the number of commands the engine supports. See also the {\ttfamily $<$C\+O\+M\+M\+A\+N\+DS} command.
 
 \begin{DoxyParagraph}{}
 {\bfseries{ Data Type\+: }} {\ttfamily M\+D\+I\+\_\+\+I\+NT} ~\newline
@@ -387,7 +392,7 @@ If the engine is not at the {\ttfamily @\+D\+E\+F\+A\+U\+LT}  node, it sends its
  {\bfseries{ Quantity\+: }} 1
 \end{DoxyParagraph}
 \hypertarget{mdi_standard_pre-forces_node}{}\doxysubsection{@\+P\+R\+E-\/\+F\+O\+R\+C\+ES}\label{mdi_standard_pre-forces_node}
-The engine proceeds to the next {\ttfamily  @\+P\+RE-\/F\+O\+R\+C\+ES } node (see \mbox{\hyperlink{mdi_standard_standard_nodes_sec}{Nodes}}). This command is not valid at the {\ttfamily @\+D\+E\+F\+A\+U\+LT}  node.\hypertarget{mdi_standard_send_stress}{}\doxysubsection{$<$\+S\+T\+R\+E\+SS}\label{mdi_standard_send_stress}
+The engine proceeds to the next {\ttfamily  @\+P\+RE-\/F\+O\+R\+C\+ES } node (see \mbox{\hyperlink{mdi_standard_standard_nodes_sec}{Nodes}}). This command is not valid at the {\ttfamily @\+D\+E\+F\+A\+U\+LT}  node.\hypertarget{mdi_standard_send_stress}{}\doxysubsection{$<$\+L\+A\+B\+E\+LS}\label{mdi_standard_send_stress}
 The engine sends its virial stress tensor to the driver.
 
 \begin{DoxyParagraph}{}

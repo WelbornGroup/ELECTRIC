@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['tcp_5fsocket',['tcp_socket',['../mdi__tcp_8c.html#a58bcdde21e0687d1b5634b673451357a',1,'tcp_socket():&#160;mdi_tcp.c'],['../mdi__tcp_8h.html#a58bcdde21e0687d1b5634b673451357a',1,'tcp_socket():&#160;mdi_tcp.c']]]
+  ['on_5fselection',['on_selection',['../structmethod__struct.html#a821ab723d31f0aa98508e58e730e2ec0',1,'method_struct']]]
 ];

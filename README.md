@@ -27,7 +27,18 @@ cd ELECTRIC
 ./build.sh
 ```
 
-This will download and build ELECTRIC and MDI-enabled Tinker. 
+This will download and build ELECTRIC and MDI-enabled Tinker.
+
+In certain environments, it may be necessary to manually set the compilers.
+This can be done when calling the `build.sh` script.
+For example, to compile on NERSC's Cori system, you can do:
+```
+module load PrgEnv-gnu
+CC=cc FC=ftn ./build.sh
+git clone --recurse-submodules https://github.com/WelbornGroup/ELECTRIC.git
+cd ELECTRIC
+./build.sh
+```
 
 Upon successfull building, you will have the ELECTRIC driver in ELECTRIC/ELECTRIC/ELECTRIC.py, and the needed Tinker executable (dynamic.x) in ELECTRIC/modules/Tinker/build/tinker/source/dynamic.x . The location of these files can be found in text files in ELECTRIC/test/locations/ELECTRIC and ELECTRIC/test/locations/Tinker_ELECTRIC. You will need these for using ELECTRIC.
 
@@ -76,18 +87,18 @@ If each snapshot was instead written to a different file (i.e., `coordinates.001
 2. **Create a new Tinker keyfile.**   
 This keyfile should be identical to the one used in Step 1, except that it **must not** include periodic boundary conditions and **must not** use an Ewald summation. This means that in the `.key` file for running the driver, you should not have an `a-axis` keyword, or keywords related to Ewald.
 
-3. **Launch one (or more; see the `-nengines` option below) instance(s) of Tinker as an MDI engine, using the keyfile created in Step 2.**  
+3. **Launch one (or more; see the `--nengines` option below) instance(s) of Tinker as an MDI engine, using the keyfile created in Step 2.**  
 This is done in the same way you launch a normal Tinker simulation (by launching the `dynamic.x` executable) except that the `-mdi` command-line option is added. However, it is **very important** that the reference coordinates you use do not have periodic boundary information. So, if when you originally ran the simulation you started it with a snapshot from a previous simulation run, make sure to create a new snapshot to launch the simulation from which does not include box information on line 2.
 
   The argument to the `-mdi` command-line option details how Tinker should connect to the driver; its possible arguments are described in the [MDI documentation](https://molssi.github.io/MDI_Library/html/library_page.html#library_launching_sec).
   When in doubt, we recommend doing `-mdi "-role ENGINE -name NO_EWALD -method TCP -port 8021 -hostname localhost"`
   When run as an engine, Tinker should be launched in the background; this is done by adding an ampersand (`&`) at the end of the launch line.
 
-4. Launch the driver.
+4. **Launch the driver.**
 The driver accepts a variety of command-line options, which are described in detail below.
 One possible launch command would be:
 
-    `python ${DRIVER_LOC} -probes "1 2 10" -snap coordinates.arc -mdi "-role DRIVER -name driver -method TCP -port 8021" --byres ke15.pdb --equil 51 -nengines 15 &`
+    `python ${DRIVER_LOC} -probes "1 2 10" -snap coordinates.arc -mdi "-role DRIVER -name driver -method TCP -port 8021" --byres ke15.pdb --equil 51 --nengines 15 &`
 
 where `DRIVER_LOC` is the path to ELECTRIC.py which you set during the configuration step.
 The output will be written to `proj_totfield.csv`.
@@ -112,9 +123,21 @@ Such a script might look like:
     done
 
     # launch the driver
-    python ${DRIVER_LOC} -probes "32 33 59 60" -snap coordinates.arc -mdi "-role DRIVER -name driver -method TCP -port 8021" --byres ke15.pdb --equil 51 -nengines ${nengines} &
+    python ${DRIVER_LOC} -probes "32 33 59 60" -snap coordinates.arc -mdi "-role DRIVER -name driver -method TCP -port 8021" --byres ke15.pdb --equil 51 --nengines ${nengines} &
 
     wait
+
+### Using MPI for communication
+
+In addition to the above examples of using TCP/IP sockets for communication between ELECTRIC and Tinker, it is also possible to establish communication between the codes using the Message Passing Interface (MPI).
+Information about launching codes using MPI communication is available [here](https://molssi-mdi.github.io/MDI_Library/html/library_page.html#library_launching_sec).
+This approach is likely to be preferable when running on large supercomputing clusters.
+
+Note that on systems that manage MPI jobs using SLURM, it is necessary to use `srun` to launch jobs rather than direct calls to `mpiexec`.
+Example scripts for launching on NERSC's Cori system are provided at `ELECTRIC/test/bench5/cori.sh` (for running with a single instance of Tinker) and `ELECTRIC/test/bench5/cori5.sh` (for running with multiple instances of Tinker).
+
+
+
 
 ## Command-Line Options
 

@@ -9,20 +9,6 @@ from util import process_pdb, index_fragments, create_parser
 # Use local MDI build
 import mdi.MDI_Library as mdi
 
-try:
-    from mpi4py import MPI
-
-    use_mpi4py = True
-
-except ImportError:
-    use_mpi4py = False
-
-# Get the MPI communicator
-if use_mpi4py:
-    mpi_world = MPI.COMM_WORLD
-else:
-    mpi_world = None
-
 
 def connect_to_engines(nengines):
     """
@@ -58,7 +44,7 @@ def connect_to_engines(nengines):
         name = mdi.MDI_Recv(mdi.MDI_NAME_LENGTH, mdi.MDI_CHAR, comm)
         print(f"Engine name: {name}")
 
-        if name != "NO_EWALD":
+        if name[:8] != "NO_EWALD":
             raise Exception("Unrecognized engine name", name)
 
     return engine_comm
@@ -178,11 +164,7 @@ if __name__ == "__main__":
     stride = args.stride
 
     # Process args for MDI
-    mdi.MDI_Init(args.mdi, mpi_world)
-
-    if use_mpi4py:
-        mpi_world = mdi.MDI_Get_Intra_Code_MPI_Comm()
-        world_rank = mpi_world.Get_rank()
+    mdi.MDI_Init(args.mdi)
 
     snapshot_filename = args.snap
     probes = [int(x) for x in args.probes.split()]
@@ -401,7 +383,7 @@ if __name__ == "__main__":
             engine_comm[icomm],
             npoles,
             snapshot_coords[icomm],
-            itask_to_snap_num[itask - nengines + jcomm],
+            itask_to_snap_num[itask - ( itask % nengines ) + icomm],
             atoms_pole_numbers,
             output,
         )
@@ -414,7 +396,3 @@ if __name__ == "__main__":
     # Send the "EXIT" command to the engine
     for comm in engine_comm:
         mdi.MDI_Send_Command("EXIT", comm)
-
-    # Ensure that all ranks have terminated
-    if use_mpi4py:
-        MPI.COMM_WORLD.Barrier()

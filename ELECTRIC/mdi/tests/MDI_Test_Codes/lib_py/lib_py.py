@@ -35,12 +35,12 @@ def execute_command_general(command, comm, class_obj):
 class MDIEngine:
     def __init__(self, mdi_options, mpi_comm):
         # Initialize the MDI Library
-        mdi.MDI_Init(mdi_options,mpi_comm)
+        mdi.MDI_Init(mdi_options)
         self.mpi_world = mpi_comm
         self.world_rank = 0
         self.world_size = 1
         if use_mpi4py:
-            self.mpi_world = mdi.MDI_Get_Intra_Code_MPI_Comm()
+            mdi.MDI_MPI_set_world_comm(self.mpi_world)
             self.world_rank = self.mpi_world.Get_rank()
             self.world_size = self.mpi_world.Get_size()
 
@@ -73,9 +73,9 @@ if use_mpi4py:
     mpi_world.Barrier()
 
 # Initialize the MDI Library
-mdi.MDI_Init(sys.argv[2],mpi_world)
+mdi.MDI_Init(sys.argv[2])
 if use_mpi4py:
-    mpi_world = mdi.MDI_Get_Intra_Code_MPI_Comm()
+    mpi_world = mdi.MDI_MPI_get_world_comm()
     world_rank = mpi_world.Get_rank()
     world_size = mpi_world.Get_size()
 else:
@@ -98,17 +98,17 @@ else:
     task_rank = 0
 
 # Check if this connection uses the LIBRARY method
-method = mdi.MDI_LIB
+method = mdi.MDI_LINK
 
 niterations = 10
 for iiteration in range(niterations):
 
     # Create and connect to a library instance that spans the MPI task communicator
-    MDIEngine("-role ENGINE -name MM -method LIB -driver_name driver", mpi_task_comm)
+    MDIEngine("-role ENGINE -name MM -method LINK", mpi_task_comm)
     comm = mdi.MDI_Accept_Communicator()
 
     # Create and connect to a library instance that spans MPI_COMM_WORLD
-    MDIEngine("-role ENGINE -name unsplit -method LIB -driver_name driver", mpi_world)
+    MDIEngine("-role ENGINE -name unsplit -method LINK", mpi_world)
     comm_unsplit = mdi.MDI_Accept_Communicator()
 
     # Communicate with the library instance that spans the MPI task communicator

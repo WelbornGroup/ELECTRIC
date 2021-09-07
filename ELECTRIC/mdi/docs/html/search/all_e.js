@@ -1,8 +1,9 @@
 var searchData=
 [
-  ['vector_5fdelete',['vector_delete',['../mdi__global_8c.html#a0bab71c9dec13cb06e7d5ae0197a04fb',1,'vector_delete(vector *v, int index):&#160;mdi_global.c'],['../mdi__global_8h.html#a0bab71c9dec13cb06e7d5ae0197a04fb',1,'vector_delete(vector *v, int index):&#160;mdi_global.c']]],
-  ['vector_5ffree',['vector_free',['../mdi__global_8c.html#a4efb113e1a013d1de3065394cde82202',1,'vector_free(vector *v):&#160;mdi_global.c'],['../mdi__global_8h.html#a4efb113e1a013d1de3065394cde82202',1,'vector_free(vector *v):&#160;mdi_global.c']]],
-  ['vector_5fget',['vector_get',['../mdi__global_8c.html#a75ffb2ad4233613bd0c97d40b1c68611',1,'vector_get(vector *v, int index):&#160;mdi_global.c'],['../mdi__global_8h.html#a75ffb2ad4233613bd0c97d40b1c68611',1,'vector_get(vector *v, int index):&#160;mdi_global.c']]],
-  ['vector_5finit',['vector_init',['../mdi__global_8c.html#a6c749e461a84e471bcab02d8115a1dfa',1,'vector_init(vector *v, size_t stride):&#160;mdi_global.c'],['../mdi__global_8h.html#a6c749e461a84e471bcab02d8115a1dfa',1,'vector_init(vector *v, size_t stride):&#160;mdi_global.c']]],
-  ['vector_5fpush_5fback',['vector_push_back',['../mdi__global_8c.html#a53e2a90f50c539f8239225d6f39c0213',1,'vector_push_back(vector *v, void *element):&#160;mdi_global.c'],['../mdi__global_8h.html#a53e2a90f50c539f8239225d6f39c0213',1,'vector_push_back(vector *v, void *element):&#160;mdi_global.c']]]
+  ['recv',['recv',['../structcommunicator__struct.html#a5ab265eb6817d2c0edb0cd510af88cf5',1,'communicator_struct']]],
+  ['register_5fcallback',['register_callback',['../mdi__general_8c.html#a25f8f401438a3ea84bc29f60bf7984a6',1,'register_callback(vector *node_vec, const char *node_name, const char *callback_name):&#160;mdi_general.c'],['../mdi__general_8h.html#a25f8f401438a3ea84bc29f60bf7984a6',1,'register_callback(vector *node_vec, const char *node_name, const char *callback_name):&#160;mdi_general.c']]],
+  ['register_5fcommand',['register_command',['../mdi__general_8c.html#ab039ef24caf27fd91a25b809b24ebccd',1,'register_command(vector *node_vec, const char *node_name, const char *command_name):&#160;mdi_general.c'],['../mdi__general_8h.html#ab039ef24caf27fd91a25b809b24ebccd',1,'register_command(vector *node_vec, const char *node_name, const char *command_name):&#160;mdi_general.c']]],
+  ['register_5fnode',['register_node',['../mdi__general_8c.html#a13565a7590af2e05f10a55bb7cf5cbff',1,'register_node(vector *node_vec, const char *node_name):&#160;mdi_general.c'],['../mdi__general_8h.html#a13565a7590af2e05f10a55bb7cf5cbff',1,'register_node(vector *node_vec, const char *node_name):&#160;mdi_general.c']]],
+  ['returned_5fcomms',['returned_comms',['../structcode__struct.html#aadd2a0711072e4bf29c73c7e599e23b9',1,'code_struct']]],
+  ['role',['role',['../structcode__struct.html#afbdb208181e10943f51aa0266953dc04',1,'code_struct']]]
 ];

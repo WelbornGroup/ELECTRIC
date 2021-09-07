@@ -20,7 +20,14 @@
 #include "mdi_tcp.h"
 #include "mdi_global.h"
 
-static int sigint_sockfd;
+static sock_t sigint_sockfd;
+
+/*! \brief Hostname of the driver */
+char* hostname = NULL;
+
+/*! \brief Port over which the driver will listen */
+int port = -1;
+
 /*! \brief SIGINT handler to ensure the socket is closed on termination
  *
  * \param [in]       dummy
@@ -35,18 +42,142 @@ void sigint_handler(int dummy) {
 }
 
 /*! \brief Socket over which a driver will listen for incoming connections */
-int tcp_socket = -1;
+sock_t tcp_socket = -1;
+
+
+
+/*! \brief Enable support for the TCP method */
+int enable_tcp_support() {
+  new_method(MDI_TCP);
+  method* this_method = get_method(MDI_TCP);
+  this_method->on_selection = tcp_on_selection;
+  this_method->on_accept_communicator = tcp_on_accept_communicator;
+  this_method->on_send_command = tcp_on_send_command;
+  this_method->after_send_command = tcp_after_send_command;
+  this_method->on_recv_command = tcp_on_recv_command;
+  return 0;
+}
+
+
+
+/*! \brief Callback when the end-user selects TCP as the method */
+int tcp_on_selection() {
+  if ( is_initialized == 1 ) {
+    mdi_error("MDI_Init called after MDI was already initialized");
+    return 1;
+  }
+
+  code* this_code = get_code(current_code);
+
+  if ( strcmp(this_code->role, "DRIVER") == 0 ) {
+    if ( port == -1 ) {
+      mdi_error("Error in MDI_Init: -port option not provided");
+      return 1;
+    }
+    if ( this_code->intra_rank == 0 ) {
+      tcp_listen(port);
+    }
+    else {
+      // If this isn't rank 0, just set tcp_socket to > 0 so that accept_communicator knows we are using TCP
+      tcp_socket = 1;
+    }
+  }
+  else if ( strcmp(this_code->role,"ENGINE") == 0 ) {
+    if ( hostname == NULL ) {
+      mdi_error("Error in MDI_Init: -hostname option not provided");
+      return 1;
+    }
+    if ( port == -1 ) {
+      mdi_error("Error in MDI_Init: -port option not provided");
+      return 1;
+    }
+    if ( this_code->intra_rank == 0 ) {
+      tcp_request_connection(port, hostname);
+    }
+    else {
+      // If this isn't rank 0, just set tcp_socket to > 0 so that accept_communicator knows we are using TCP
+      if ( this_code->intra_rank != 0 ) {
+	tcp_socket = 1;
+      }
+    }
+  }
+  else {
+    mdi_error("Error in MDI_Init: Role not recognized");
+    return 1;
+  }
+
+  return 0;
+}
+
+
+
+/*! \brief Callback when the TCP method must accept a communicator */
+int tcp_on_accept_communicator() {
+  code* this_code = get_code(current_code);
+
+  // If MDI hasn't returned some connections, do that now
+  if ( this_code->returned_comms < this_code->next_comm - 1 ) {
+    this_code->returned_comms++;
+    return this_code->returned_comms;
+  }
+
+  // Check for any production codes connecting via TCP
+  if ( tcp_socket > 0 ) {
+    // Accept a connection via TCP
+    // NOTE: If this is not intra_rank==0, this will always create a dummy communicator
+    tcp_accept_connection();
+
+    // if MDI hasn't returned some connections, do that now
+    if ( this_code->returned_comms < this_code->comms->size ) {
+      this_code->returned_comms++;
+      return (MDI_Comm)this_code->returned_comms;
+    }
+  }
+
+  // unable to accept any connections
+  return MDI_COMM_NULL;
+}
+
+
+
+/*! \brief Callback when the TCP method must send a command */
+int tcp_on_send_command(const char* command, MDI_Comm comm, int* skip_flag) {
+  return 0;
+}
+
+
+
+/*! \brief Callback after the TCP method has received a command */
+int tcp_after_send_command(const char* command, MDI_Comm comm) {
+  // if the command was "EXIT", delete this communicator
+  if ( ! plugin_mode && strcmp( command, "EXIT" ) == 0 ) {
+    delete_communicator(current_code, comm);
+  }
+
+  return 0;
+}
+
+
+
+/*! \brief Callback when the TCP method must receive a command */
+int tcp_on_recv_command(MDI_Comm comm) {
+  return 0;
+}
+
+
 
 /*! \brief Begin listening for incoming TCP connections
  *
  * \param [in]       port
  *                   Port to listen over
  */
-int tcp_listen(int port) {
+int tcp_listen(int port_in) {
+  code* this_code = get_code(current_code);
+
   int ret;
-  int sockfd;
   struct sockaddr_in serv_addr;
   int reuse_value = 1;
+  sock_t sockfd;
 
 #ifdef _WIN32
   // initialize Winsock
@@ -70,7 +201,7 @@ int tcp_listen(int port) {
   memset( &serv_addr, 0, sizeof(serv_addr) );
   serv_addr.sin_family = AF_INET;
   serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
-  serv_addr.sin_port = htons(port);
+  serv_addr.sin_port = htons(port_in);
 
   // enable reuse of the socket
   ret = setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, (char*) &reuse_value, sizeof(int));
@@ -107,8 +238,9 @@ int tcp_listen(int port) {
  * \param [in]       hostname_ptr
  *                   Hostname of the driver
  */
-int tcp_request_connection(int port, char* hostname_ptr) {
-  int ret, sockfd;
+int tcp_request_connection(int port_in, char* hostname_ptr) {
+  int ret;
+  sock_t sockfd;
 
 #ifdef _WIN32
   // initialize Winsock
@@ -137,7 +269,7 @@ int tcp_request_connection(int port, char* hostname_ptr) {
   driver_address.sin_family = AF_INET;
   driver_address.sin_addr.s_addr = 
     ((struct in_addr *)host_ptr->h_addr_list[0])->s_addr;
-  driver_address.sin_port = htons(port);
+  driver_address.sin_port = htons(port_in);
 
   // connect to the driver
   // if the connection is refused, try again
@@ -159,10 +291,16 @@ int tcp_request_connection(int port, char* hostname_ptr) {
       if ( sock_error == WSAECONNREFUSED ) {
 	// close the socket, so that a new one can be created
 	ret = closesocket(sockfd);
+
+	// wait a short period before attempting to connect again
+	Sleep(1000);
 #else
       if ( errno == ECONNREFUSED ) {
 	// close the socket, so that a new one can be created
 	ret = close(sockfd);
+
+	// wait a short period before attempting to connect again
+	sleep(1);
 #endif
 	if (ret != 0) {
 	  mdi_error("Could not close socket");
@@ -184,6 +322,8 @@ int tcp_request_connection(int port, char* hostname_ptr) {
   MDI_Comm comm_id = new_communicator(this_code->id, MDI_TCP);
   communicator* new_comm = get_communicator(this_code->id, comm_id);
   new_comm->sockfd = sockfd;
+  new_comm->send = tcp_send;
+  new_comm->recv = tcp_recv;
 
 
   // communicate the version number between codes
@@ -193,8 +333,8 @@ int tcp_request_connection(int port, char* hostname_ptr) {
     version[0] = MDI_MAJOR_VERSION;
     version[1] = MDI_MINOR_VERSION;
     version[2] = MDI_PATCH_VERSION;
-    tcp_send(&version[0], 3, MDI_INT, new_comm->id);
-    tcp_recv(&new_comm->mdi_version[0], 3, MDI_INT, new_comm->id);
+    tcp_send(&version[0], 3, MDI_INT, new_comm->id, 0);
+    tcp_recv(&new_comm->mdi_version[0], 3, MDI_INT, new_comm->id, 0);
   }
 
   return 0;
@@ -204,28 +344,44 @@ int tcp_request_connection(int port, char* hostname_ptr) {
 /*! \brief Accept a TCP connection request
  */
 int tcp_accept_connection() {
-  int connection;
+  sock_t connection;
   code* this_code = get_code(current_code);
 
-  connection = accept(tcp_socket, NULL, NULL);
-  if (connection < 0) {
-    mdi_error("Could not accept connection");
-    return 1;
+  if ( this_code->intra_rank == 0 ) { // Running on rank 0
+
+    connection = accept(tcp_socket, NULL, NULL);
+    if (connection < 0) {
+      mdi_error("Could not accept connection");
+      return 1;
+    }
+
+    MDI_Comm comm_id = new_communicator(this_code->id, MDI_TCP);
+    communicator* new_comm = get_communicator(this_code->id, comm_id);
+    new_comm->sockfd = connection;
+    new_comm->send = tcp_send;
+    new_comm->recv = tcp_recv;
+
+    // communicate the version number between codes
+    // only do this if not in i-PI compatibility mode
+    if ( ipi_compatibility != 1 ) {
+      int version[3];
+      version[0] = MDI_MAJOR_VERSION;
+      version[1] = MDI_MINOR_VERSION;
+      version[2] = MDI_PATCH_VERSION;
+      tcp_send(&version[0], 3, MDI_INT, new_comm->id, 0);
+      tcp_recv(&new_comm->mdi_version[0], 3, MDI_INT, new_comm->id, 0);
+    }
+
   }
+  else { // Not running on rank 0
 
-  MDI_Comm comm_id = new_communicator(this_code->id, MDI_TCP);
-  communicator* new_comm = get_communicator(this_code->id, comm_id);
-  new_comm->sockfd = connection;
+    // Simply create a dummy communicator
+    MDI_Comm comm_id = new_communicator(this_code->id, MDI_TCP);
+    communicator* new_comm = get_communicator(this_code->id, comm_id);
+    new_comm->sockfd = connection;
+    new_comm->send = tcp_send;
+    new_comm->recv = tcp_recv;
 
-  // communicate the version number between codes
-  // only do this if not in i-PI compatibility mode
-  if ( ipi_compatibility != 1 ) {
-    int version[3];
-    version[0] = MDI_MAJOR_VERSION;
-    version[1] = MDI_MINOR_VERSION;
-    version[2] = MDI_PATCH_VERSION;
-    tcp_send(&version[0], 3, MDI_INT, new_comm->id);
-    tcp_recv(&new_comm->mdi_version[0], 3, MDI_INT, new_comm->id);
   }
 
   return 0;
@@ -243,8 +399,15 @@ int tcp_accept_connection() {
  *                   MDI handle (MDI_INT, MDI_DOUBLE, MDI_CHAR, etc.) corresponding to the type of data to be sent.
  * \param [in]       comm
  *                   MDI communicator associated with the intended recipient code.
+ * \param [in]       msg_flag
+ *                   Type of role this data has within a message.
+ *                   0: Not part of a message.
+ *                   1: The header of a message.
+ *                   2: The body (data) of a message.
  */
-int tcp_send(const void* buf, int count, MDI_Datatype datatype, MDI_Comm comm) {
+int tcp_send(const void* buf, int count, MDI_Datatype datatype, MDI_Comm comm, int msg_flag) {
+  int ret;
+  
   // only send from rank 0
   code* this_code = get_code(current_code);
   if ( this_code->intra_rank != 0 ) {
@@ -253,60 +416,25 @@ int tcp_send(const void* buf, int count, MDI_Datatype datatype, MDI_Comm comm) {
 
   communicator* this = get_communicator(current_code, comm);
   size_t count_t = count;
-
-  // send message header information
-  // only do this if communicating with MDI version 1.1 or higher
-  int n = 0;
-  size_t total_sent = 0;
-  if ( ( this->mdi_version[0] >= 1 && this->mdi_version[1] >= 1 ) && ipi_compatibility != 1 ) {
-
-    // prepare the header information
-    size_t nheader = 4;
-    int header[nheader];
-    header[0] = 0;        // error flag
-    header[1] = 0;        // placeholder
-    header[2] = datatype; // datatype
-    header[3] = count;    // count
-    void* header_buf = &header[0];
-
-    while ( n >= 0 && total_sent < nheader*sizeof(int) ) {
 #ifdef _WIN32
-      n = send(this->sockfd, (char*)header_buf+total_sent, nheader*sizeof(int)-total_sent, 0);
+  int n = 0;
 #else
-      n = write(this->sockfd, header_buf+total_sent, nheader*sizeof(int)-total_sent);
+  ssize_t n = 0;
 #endif
-      total_sent += n;
-    }
-    if (n < 0) { 
-      mdi_error("Error writing to socket: server has quit or connection broke");
-      return 1;
-    }
-  }
-
 
   // determine the byte size of the data type being sent
   size_t datasize;
-  n = 0;
-  total_sent = 0;
-  if (datatype == MDI_INT) {
-    datasize = sizeof(int);
-  }
-  else if (datatype == MDI_DOUBLE) {
-    datasize = sizeof(double);
-  }
-  else if (datatype == MDI_CHAR) {
-    datasize = sizeof(char);
-  }
-  else {
-    mdi_error("MDI data type not recognized in tcp_send"); 
-    return 1;
-  }
+  MDI_Datatype basetype;
+  ret = datatype_info(datatype, &datasize, &basetype);
+  if ( ret != 0 ) { return ret; }
 
+  n = 0;
+  size_t total_sent = 0;
   while ( n >= 0 && total_sent < count_t*datasize ) {
 #ifdef _WIN32
-    n = send(this->sockfd, (char*)buf+total_sent, count_t*datasize-total_sent, 0);
+    n = send(this->sockfd, (char*)buf+total_sent, (int)(count_t*datasize-total_sent), 0);
 #else
-    n = write(this->sockfd, buf+total_sent, count_t*datasize-total_sent);
+    n = write(this->sockfd, (char*)buf+total_sent, count_t*datasize-total_sent);
 #endif
     total_sent += n;
   }
@@ -319,6 +447,7 @@ int tcp_send(const void* buf, int count, MDI_Datatype datatype, MDI_Comm comm) {
 }
 
 
+
 /*! \brief Receive data through an MDI connection, using TCP
  *
  * \param [in]       buf
@@ -329,100 +458,46 @@ int tcp_send(const void* buf, int count, MDI_Datatype datatype, MDI_Comm comm) {
  *                   MDI handle (MDI_INT, MDI_DOUBLE, MDI_CHAR, etc.) corresponding to the type of data to be received.
  * \param [in]       comm
  *                   MDI communicator associated with the connection to the sending code.
+ * \param [in]       msg_flag
+ *                   Type of role this data has within a message.
+ *                   0: Not part of a message.
+ *                   1: The header of a message.
+ *                   2: The body (data) of a message.
  */
-int tcp_recv(void* buf, int count, MDI_Datatype datatype, MDI_Comm comm) {
+int tcp_recv(void* buf, int count, MDI_Datatype datatype, MDI_Comm comm, int msg_flag) {
+  int ret;
+  
   // only recv from rank 0
   code* this_code = get_code(current_code);
   if ( this_code->intra_rank != 0 ) {
     return 0;
   }
 
-  size_t n, nr;
+#ifdef _WIN32
+  int n, nr;
+#else
+  ssize_t n, nr;
+#endif
   communicator* this = get_communicator(current_code, comm);
   size_t count_t = count;
 
-  // receive message header information
-  // only do this if communicating with MDI version 1.1 or higher
-  if ( ( this->mdi_version[0] >= 1 && this->mdi_version[1] >= 1 ) && ipi_compatibility != 1 ) {
-
-    // prepare buffer to hold header information
-    size_t nheader = 4;
-    int header[nheader];
-    void* header_buf = &header[0];
-
-#ifdef _WIN32
-    n = nr = recv(this->sockfd,(char*)header_buf,nheader*sizeof(int),0);
-#else
-    n = nr = read(this->sockfd,header_buf,nheader*sizeof(int));
-#endif
-
-    while (nr>0 && n<nheader*sizeof(int) ) {
-#ifdef _WIN32
-      nr=recv(this->sockfd,(char*)header_buf+n,nheader*sizeof(int)-n,0);
-#else
-      nr=read(this->sockfd,header_buf+n,nheader*sizeof(int)-n);
-#endif
-      n+=nr;
-    }
-
-    if (n == 0) { 
-      mdi_error("Error reading from socket: server has quit or connection broke");
-      return 1;
-    }
-
-    // get the header information
-    int error_flag = header[0];
-    int placeholder = header[1];
-    int send_datatype = header[2];
-    int send_count = header[3];
-
-    // verify that the error flag is zero
-    if ( error_flag != 0 ) {
-      mdi_error("Error in MDI_Recv: nonzero error flag received");
-      return error_flag;
-    }
-
-    // verify agreement regarding the datatype
-    if ( send_datatype != datatype ) {
-      mdi_error("Error in MDI_Recv: inconsistent datatype");
-      return 1;
-    }
-
-    // verify agreement regarding the count
-    if ( send_count != count ) {
-      mdi_error("Error in MDI_Recv: inconsistent count");
-      return 1;
-    }
-
-  }
-
   // determine the byte size of the data type being sent
   size_t datasize;
-  if (datatype == MDI_INT) {
-    datasize = sizeof(int);
-  }
-  else if (datatype == MDI_DOUBLE) {
-    datasize = sizeof(double);
-  }
-  else if (datatype == MDI_CHAR) {
-    datasize = sizeof(char);
-  }
-  else {
-    mdi_error("MDI data type not recognized in tcp_recv");
-    return 1;
-  }
+  MDI_Datatype basetype;
+  ret = datatype_info(datatype, &datasize, &basetype);
+  if ( ret != 0 ) { return ret; }
 
 #ifdef _WIN32
-  n = nr = recv(this->sockfd,(char*)buf,count_t*datasize,0);
+  n = nr = recv(this->sockfd,(char*)buf,(int)(count_t*datasize),0);
 #else
-  n = nr = read(this->sockfd,buf,count_t*datasize);
+  n = nr = read(this->sockfd,(char*)buf,count_t*datasize);
 #endif
 
   while (nr>0 && n<count_t*datasize ) {
 #ifdef _WIN32
-    nr=recv(this->sockfd,(char*)buf+n,count_t*datasize-n,0);
+    nr=recv(this->sockfd,(char*)buf+n,(int)(count_t*datasize-n),0);
 #else
-    nr=read(this->sockfd,buf+n,count_t*datasize-n);
+    nr=read(this->sockfd,(char*)buf+n,count_t*datasize-n);
 #endif
     n+=nr;
   }

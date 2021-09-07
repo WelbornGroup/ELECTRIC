@@ -3,7 +3,8 @@ PROGRAM DRIVER_F90
 USE mpi
 USE ISO_C_binding
 USE mdi,              ONLY : MDI_Init, MDI_Send, MDI_CHAR, MDI_NAME_LENGTH, &
-     MDI_Accept_Communicator, MDI_Send_Command, MDI_Recv, MDI_Conversion_Factor
+     MDI_Accept_communicator, MDI_Send_command, MDI_Recv, MDI_Conversion_factor, &
+     MDI_MPI_get_world_comm
 USE engine_lib_f90,   ONLY : engine_lib_f90_create
 
 IMPLICIT NONE
@@ -30,7 +31,8 @@ IMPLICIT NONE
 
          ! Initialize the MDI Library
          world_comm = MPI_COMM_WORLD
-         call MDI_Init( mdi_options, world_comm, ierr)
+         call MDI_Init( mdi_options, ierr)
+         call MDI_MPI_get_world_comm( world_comm, ierr )
 
          EXIT
       END IF
@@ -40,7 +42,7 @@ IMPLICIT NONE
 
    ! Test the conversion factors
    conv_expected = 1.8897261254578281
-   call MDI_Conversion_Factor("angstrom", "bohr", conv, ierr)
+   call MDI_Conversion_factor("angstrom", "bohr", conv, ierr)
    IF ( conv .lt. ( conv_expected - 1.0D-6 ) .or. conv .gt. ( conv_expected + 1.0D-6 ) ) THEN
       WRITE(6,*)'ERROR: Incorrect conversion factor'
    END IF
@@ -49,19 +51,21 @@ IMPLICIT NONE
    call MPI_Comm_rank( world_comm, world_rank, ierr );
 
    ! Create an instance of the engine library
-   lib_arg = "-role ENGINE -name MM -method LIB -driver_name driver"
+   lib_arg = "-role ENGINE -name MM -method LINK"
    call engine_lib_f90_create(lib_arg, world_comm)
 
    ! Connct to the engine
-   call MDI_Accept_Communicator(comm, ierr)
+   call MDI_Accept_communicator(comm, ierr)
 
    ! Determine the name of the engine
-   call MDI_Send_Command("<NAME", comm, ierr)
+   call MDI_Send_command("<NAME", comm, ierr)
    call MDI_Recv(message, MDI_NAME_LENGTH, MDI_CHAR, comm, ierr)
 
    WRITE(6,*)'Engine name: ', TRIM(message)
 
-   call MDI_Send_Command("EXIT", comm, ierr)
+   call MDI_Send_command("EXIT", comm, ierr)
+
+   DEALLOCATE( message )
 
    ! Synchronize all MPI ranks
    call MPI_Barrier( world_comm, ierr )
