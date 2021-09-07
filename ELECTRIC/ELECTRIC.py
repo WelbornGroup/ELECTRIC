@@ -384,7 +384,7 @@ if __name__ == "__main__":
             engine_comm[icomm],
             npoles,
             snapshot_coords[icomm],
-            itask_to_snap_num[itask - nengines + icomm],
+            itask_to_snap_num[itask - ( itask % nengines ) + icomm],
             atoms_pole_numbers,
             output,
         )
