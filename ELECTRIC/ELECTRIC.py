@@ -10,14 +10,6 @@ from util import process_pdb, index_fragments, create_parser
 # Use local MDI build
 import mdi.MDI_Library as mdi
 
-use_mpi4py = False
-
-# Get the MPI communicator
-if use_mpi4py:
-    mpi_world = MPI.COMM_WORLD
-else:
-    mpi_world = None
-
 
 def connect_to_engines(nengines):
     """
@@ -405,7 +397,3 @@ if __name__ == "__main__":
     # Send the "EXIT" command to the engine
     for comm in engine_comm:
         mdi.MDI_Send_Command("EXIT", comm)
-
-    # Ensure that all ranks have terminated
-    if use_mpi4py:
-        mpi_world.Barrier()
