@@ -1,35 +1,15 @@
-
-
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
   <meta charset="utf-8" />
-  
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  
-  <title>Tutorial &mdash; ELECTRIC  documentation</title>
-  
-
-  
-  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-  <link rel="stylesheet" href="https://cdn.datatables.net/1.10.22/css/jquery.dataTables.css" type="text/css" />
-
-  
-  
-
-  
-  
-
-  
-
-  
+  <title>Tutorial &mdash; ELECTRIC  documentation</title><link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="https://cdn.datatables.net/1.10.22/css/jquery.dataTables.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
-  
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+  <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
         <script src="_static/jquery.js"></script>
         <script src="_static/underscore.js"></script>
         <script src="_static/doctools.js"></script>
@@ -37,38 +17,19 @@
         <script src="https://3dmol.org/build/3Dmol-min.js"></script>
         <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
         <script src="https://cdn.datatables.net/1.10.22/js/jquery.dataTables.js"></script>
-    
-    <script type="text/javascript" src="_static/js/theme.js"></script>
-
-    
+    <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="prev" title="Usage" href="usage.html" /> 
 </head>
 
-<body class="wy-body-for-nav">
-
-   
+<body class="wy-body-for-nav"> 
   <div class="wy-grid-for-nav">
-    
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-          
-
-          
             <a href="index.html" class="icon icon-home"> ELECTRIC
-          
-
-          
           </a>
-
-          
-            
-            
-          
-
-          
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" />
@@ -76,18 +37,7 @@
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
-
-          
-        </div>
-
-        
-        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
-          
-            
-            
-              
-            
-            
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
@@ -108,73 +58,32 @@
 </li>
 </ul>
 
-            
-          
         </div>
-        
       </div>
     </nav>
 
-    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
-
-      
-      <nav class="wy-nav-top" aria-label="top navigation">
-        
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
           <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
           <a href="index.html">ELECTRIC</a>
-        
       </nav>
 
-
       <div class="wy-nav-content">
-        
         <div class="rst-content">
-        
-          
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<div role="navigation" aria-label="breadcrumbs navigation">
-
+          <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-    
       <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-        
       <li>Tutorial</li>
-    
-    
       <li class="wy-breadcrumbs-aside">
-        
-          
             <a href="_sources/tutorial.rst.txt" rel="nofollow"> View page source</a>
-          
-        
       </li>
-    
   </ul>
-
-  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
-            
+             
   <div class="section" id="tutorial">
-<h1>Tutorial<a class="headerlink" href="#tutorial" title="Permalink to this headline">¶</a></h1>
+<h1>Tutorial<a class="headerlink" href="#tutorial" title="Permalink to this headline"></a></h1>
 <p>This tutorial will walk you through using ELECTRIC to analyze the electric field in a small protein. This tutorial assumes you have ELECTRIC and MDI-enabled Tinker installed. If you don’t, navigate to the <a class="reference external" href="installation.html">installation</a> instructions.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -190,9 +99,9 @@
 </div>
 <p>The pdb code for this protein is <a class="reference external" href="https://www.rcsb.org/structure/1l2y">1l2y</a>, and you can see the structure below. We have chosen a small protein for demonstrative purposes. The image below shows only the protein, but our simulation is solvated.</p>
 <center><div style="height: 300px; width: 300px; position: relative;" class="viewer_3Dmoljs" data-pdb=1l2y data-backgroundcolor="white"  data-style=cartoon:color=spectrum ></div></center><div class="section" id="running-an-electric-calculation">
-<h2>Running an ELECTRIC calculation<a class="headerlink" href="#running-an-electric-calculation" title="Permalink to this headline">¶</a></h2>
+<h2>Running an ELECTRIC calculation<a class="headerlink" href="#running-an-electric-calculation" title="Permalink to this headline"></a></h2>
 <div class="section" id="preparing-files">
-<h3>Preparing Files<a class="headerlink" href="#preparing-files" title="Permalink to this headline">¶</a></h3>
+<h3>Preparing Files<a class="headerlink" href="#preparing-files" title="Permalink to this headline"></a></h3>
 <p>To follow along with this tutorial, clone the <a class="reference external" href="http://www.github.com/janash/ELECTRIC_tutorial">tutorial repository</a>. Included in this repository is folder called <code class="code docutils literal notranslate"><span class="pre">data</span></code>. The <code class="code docutils literal notranslate"><span class="pre">data</span></code> directory has all of the data you will need for this tutorial.</p>
 <p>ELECTRIC is a post-processing analysis, meaning that you should first run your simulations using the AMOEBA forcefield and save the trajectory. After you have a trajectory from Tinker simulation, use ELECTRIC to perform electric field analysis on that trajectory. We will be analyzing the trajectory included in the tutorial repository, <code class="code docutils literal notranslate"><span class="pre">1l2y_npt.arc</span></code>. This trajectory is a text file containing coordinates for a simulation that has already been run.</p>
 <dl class="simple">
@@ -206,11 +115,11 @@
 </dl>
 <p>We already have the molecular dynamics trajectory, so let’s look at each of these additional files.</p>
 <div class="section" id="simulation-parameter-file">
-<h4>Simulation Parameter File<a class="headerlink" href="#simulation-parameter-file" title="Permalink to this headline">¶</a></h4>
+<h4>Simulation Parameter File<a class="headerlink" href="#simulation-parameter-file" title="Permalink to this headline"></a></h4>
 <p>This file contains the force field parameters for the simulation you have run. If you are using this software for analysis, use the same force field you used to run the molecular dynamics simulation. For this tutorial, the parameter file is <code class="code docutils literal notranslate"><span class="pre">amoebabio18.prm</span></code>. We will need this for our Tinker input file (next section).</p>
 </div>
 <div class="section" id="tinker-input-file">
-<h4>Tinker input file<a class="headerlink" href="#tinker-input-file" title="Permalink to this headline">¶</a></h4>
+<h4>Tinker input file<a class="headerlink" href="#tinker-input-file" title="Permalink to this headline"></a></h4>
 <p>Next, we must prepare an input file which tells Tinker settings for our calculation. This input file should be a modified version of the one which you used to run your initial simulation. Consider the input file, <code class="code docutils literal notranslate"><span class="pre">tinker.key</span></code> used to obtain this trajectory. The parameter file in the previous step is given on <code class="code docutils literal notranslate"><span class="pre">line</span> <span class="pre">1</span></code>.</p>
 <div class="highlight-text notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
  2
@@ -278,7 +187,7 @@ printout 100
 </div>
 </div>
 <div class="section" id="bash-script-run-analysis-sh">
-<h4>Bash script - run_analysis.sh<a class="headerlink" href="#bash-script-run-analysis-sh" title="Permalink to this headline">¶</a></h4>
+<h4>Bash script - run_analysis.sh<a class="headerlink" href="#bash-script-run-analysis-sh" title="Permalink to this headline"></a></h4>
 <p>When you run analysis uisng ELECTRIC, ELECTRIC parses your given trajectory sends snapshots to Tinker for electric field calculation. The MDI-enabled version of Tinker then calculates the electric field information for that snapshot.</p>
 <p>You use ELECTRIC from the command line. Consider the following bash script provided for analysis, <code class="code docutils literal notranslate"><span class="pre">run_analysis.sh</span></code>. We will explain this script in detail.</p>
 <div class="highlight-bash notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
@@ -349,7 +258,7 @@ python <span class="si">${</span><span class="nv">DRIVER_LOC</span><span class="
 </div>
 <p>Here, we first give the location of our ELECTRIC driver. We indicate our trajectory file using the <cite>-snap</cite> argument with the filename to analyze, followed by MDI options.</p>
 <div class="section" id="probe-atoms">
-<h5>Probe Atoms<a class="headerlink" href="#probe-atoms" title="Permalink to this headline">¶</a></h5>
+<h5>Probe Atoms<a class="headerlink" href="#probe-atoms" title="Permalink to this headline"></a></h5>
 <p>To run an ELECTRIC calculation, you must give the indices of your probe atoms. The probe atoms are the atoms which are used as ‘probes’ for the electric field. ELECTRIC reports the projected total electric field at the midpoint between all probe atom pairs. This allows you to calculate electric fields along bonds <a class="reference external" href="https://pubs.acs.org/doi/10.1021/jacs.9b05323">as reported in literature</a>.</p>
 <p>You should obtain the number of the probe atoms from the <code class="code docutils literal notranslate"><span class="pre">xyz</span></code> file you use to launch MDI-enabled Tinker. Note that the index you use here should match the number given in the first column of your xyz file. The projection of the electric field at the midpoint of these two atoms will be reported for each analyzed frame. If you indicate more than two probes, all pairwise fields will be reported (ie, if using “78 93 94”, you will get “78 and 93”, “78 and 94” and “93 and 94”). You can see the atoms we have chosen as probes highlighted below:</p>
 <center><div style="height: 300px; width: 300px; position: relative;" class="viewer_3Dmoljs" data-pdb=1l2y data-backgroundcolor="0xffffff"  data-style=cartoon:color=spectrum  data-style1=sphere  data-select1=serial:78,93,94 ></div></center><p>The argument <cite>–byres</cite> gives information to ELECTRIC about how we would like the electric field reported. When we use the <code class="code docutils literal notranslate"><span class="pre">--byres</span></code> argument, it should be followed by a pdb which contains residue information for the system you are studying. When using this argument, electric field contributions from each residue will be reported. Other options are <code class="code docutils literal notranslate"><span class="pre">--byatom</span></code> top report electric field contributions from each atom, and <code class="code docutils literal notranslate"><span class="pre">--bymol</span></code> to report electric field contributions from each molecule.</p>
@@ -396,7 +305,7 @@ Residue Number       Starting atom        Residue Name
 </div>
 </div>
 <div class="section" id="running-the-calculation">
-<h3>Running the calculation<a class="headerlink" href="#running-the-calculation" title="Permalink to this headline">¶</a></h3>
+<h3>Running the calculation<a class="headerlink" href="#running-the-calculation" title="Permalink to this headline"></a></h3>
 <p>After you have prepared your files, you can run analysis using the command</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./run_analysis.sh &gt; analysis.out <span class="p">&amp;</span>
 </pre></div>
@@ -405,7 +314,7 @@ Residue Number       Starting atom        Residue Name
 </div>
 </div>
 <div class="section" id="analyzing-results-from-electric">
-<h2>Analyzing Results from ELECTRIC<a class="headerlink" href="#analyzing-results-from-electric" title="Permalink to this headline">¶</a></h2>
+<h2>Analyzing Results from ELECTRIC<a class="headerlink" href="#analyzing-results-from-electric" title="Permalink to this headline"></a></h2>
 <p>ELECTRIC will output a csv file with the electric field information <code class="code docutils literal notranslate"><span class="pre">proj_totfield.csv</span></code> in the <code class="code docutils literal notranslate"><span class="pre">work</span></code> folder. Below, we show results (numbers rounded for clarity) for probes 78 and 93 from <code class="code docutils literal notranslate"><span class="pre">proj_totfield.csv</span></code>. When these numbers are reported, they are the electric field in Mv/cm projected along the vector pointing from atom 1 to atom 2 due to each residue.</p>
 <table id='table-0' class='display'>
 	<thead>
@@ -721,49 +630,32 @@ Residue Number       Starting atom        Residue Name
 
 
            </div>
-           
           </div>
-          <footer>
-    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="usage.html" class="btn btn-neutral float-left" title="Usage" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>
 
   <div role="contentinfo">
-    <p>
-        &#169; Copyright 2020, Jessica A. Nash, Taylor A. Barnes, Valerie Vaissier Welborn.
-
-    </p>
+    <p>&#169; Copyright 2020, Jessica A. Nash, Taylor A. Barnes, Valerie Vaissier Welborn.</p>
   </div>
-    
-    
-    
-    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
-    
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
     <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
-    
-    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
 
 </footer>
         </div>
       </div>
-
     </section>
-
   </div>
-  
-
-  <script type="text/javascript">
+  <script>
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script>
-
-  
-  
-    
-   
+  </script> 
 
 </body>
 </html>
