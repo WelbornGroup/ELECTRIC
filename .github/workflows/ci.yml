@@ -16,11 +16,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v1
-
-    - name: Checkout submodules
-      uses: textbook/git-checkout-submodule-action@master
+    - name: Checkout repository and submodules
+      uses: actions/checkout@v2
+      with:
+        submodules: recursive
 
     #- name: Setup Miniconda
     #  uses: conda-incubator/setup-miniconda@v2
