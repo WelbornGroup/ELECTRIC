@@ -1,12 +1,27 @@
 import os
 import sys
 import subprocess
-import pytest
 import pandas as pd
-import numpy as np
+
+from functools import wraps
 
 error_tolerance = 0.000001
 mypath = os.path.dirname(__file__)
+
+def check_trajectory(test_function):
+    @wraps(test_function)
+    def _wrapper():
+        with open("bench5.arc") as f:
+            initial = f.read()
+
+        test_function()
+
+        # Get final text of trajectory - test to make sure it has not been modified
+        with open("bench5.arc") as f:
+            final = f.read()
+        
+        assert initial == final, "Input trajectory modified."
+    return _wrapper
 
 def format_return(input_string):
     my_string = input_string.decode('utf-8')
@@ -16,7 +31,9 @@ def format_return(input_string):
 
     return my_string
 
+@check_trajectory
 def test_bench5():
+
     # get the name of the codes
     driver_path = os.path.join(mypath, "../../ELECTRIC.py")
     engine_path = os.path.join(mypath, "../../../modules/Tinker/build/tinker/source/dynamic.x")
@@ -46,7 +63,7 @@ def test_bench5():
 
     pd.testing.assert_frame_equal(ref_totfield, proj_totfield)
 
-
+@check_trajectory
 def test_bench5_equil():
     """
     Test the --equil argument.
@@ -90,6 +107,7 @@ def test_bench5_equil():
 
     pd.testing.assert_frame_equal(ref_totfield, proj_totfield)
 
+@check_trajectory
 def test_bench5_equil_stride():
 
     # get the name of the codes
@@ -131,6 +149,7 @@ def test_bench5_equil_stride():
 
     pd.testing.assert_frame_equal(ref_totfield, proj_totfield)
 
+@check_trajectory
 def test_nengines():
     # get the name of the codes
     driver_path = os.path.join(mypath, "../../ELECTRIC.py")
