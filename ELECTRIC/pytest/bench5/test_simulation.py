@@ -11,13 +11,15 @@ mypath = os.path.dirname(__file__)
 def check_trajectory(test_function):
     @wraps(test_function)
     def _wrapper():
-        with open("bench5.arc") as f:
+        filename = os.path.join(mypath, "bench5.arc")
+
+        with open(filename) as f:
             initial = f.read()
 
         test_function()
 
         # Get final text of trajectory - test to make sure it has not been modified
-        with open("bench5.arc") as f:
+        with open(filename) as f:
             final = f.read()
         
         assert initial == final, "Input trajectory modified."
@@ -37,6 +39,7 @@ def test_bench5():
     # get the name of the codes
     driver_path = os.path.join(mypath, "../../ELECTRIC.py")
     engine_path = os.path.join(mypath, "../../../modules/Tinker/build/tinker/source/dynamic.x")
+    
 
     # run the calculation
     driver_proc = subprocess.Popen([sys.executable, driver_path, 
