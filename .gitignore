@@ -124,3 +124,7 @@ test/locations/Tinker_ELECTRIC
 
 # Documentation builds
 _build/
+
+# ELECTRIC FILES
+ELECTRIC/mdi/MDI_Library/mdi_name
+ELECTRIC/mdi/__init__.py
