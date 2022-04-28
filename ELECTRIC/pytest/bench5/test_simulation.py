@@ -44,7 +44,7 @@ def test_bench5():
     ref_totfield = pd.read_csv(ref_totfield_path)
     proj_totfield = pd.read_csv(proj_totfield_path)
 
-    pd.testing.assert_frame_equal(ref_totfield, proj_totfield)
+    pd.testing.assert_frame_equal(ref_totfield, proj_totfield, check_exact=False, atol=0.001)
 
 
 def test_bench5_equil():
@@ -88,7 +88,7 @@ def test_bench5_equil():
 
     ref_totfield = ref_totfield[proj_totfield.columns]
 
-    pd.testing.assert_frame_equal(ref_totfield, proj_totfield)
+    pd.testing.assert_frame_equal(ref_totfield, proj_totfield, check_exact=False, atol=0.001)
 
 def test_bench5_equil_stride():
 
@@ -129,7 +129,7 @@ def test_bench5_equil_stride():
     # make sure values match reference
     ref_totfield = ref_totfield[proj_totfield.columns]
 
-    pd.testing.assert_frame_equal(ref_totfield, proj_totfield)
+    pd.testing.assert_frame_equal(ref_totfield, proj_totfield, check_exact=False, atol=0.001)
 
 def test_nengines():
     # get the name of the codes
@@ -165,4 +165,4 @@ def test_nengines():
     ref_totfield = pd.read_csv(ref_totfield_path)
     proj_totfield = pd.read_csv(proj_totfield_path)
 
-    pd.testing.assert_frame_equal(ref_totfield, proj_totfield)
+    pd.testing.assert_frame_equal(ref_totfield, proj_totfield, check_exact=False, atol=0.001)
