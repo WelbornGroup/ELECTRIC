@@ -50,7 +50,7 @@ def connect_to_engines(nengines):
     return engine_comm
 
 
-def collect_task(comm, npoles, snapshot_coords, snap_num, atoms_pole_numbers, output):
+def collect_task(comm, npoles, snapshot_coords, snap_num, atoms_pole_numbers, output, project=True):
     """
     Receive all data associated with an engine's task.
 
@@ -115,34 +115,48 @@ def collect_task(comm, npoles, snapshot_coords, snap_num, atoms_pole_numbers, ou
                 dfield_df.loc[i, fragment_string] + ufield_df.loc[i, fragment_string]
             )
 
-    # Pairwise probe calculation - Get avg electric field
-    count = 0
-    for i in range(len(probes)):
-        for j in range(i + 1, len(probes)):
-            avg_field = (totfield_df.iloc[i, 2:] + totfield_df.iloc[j, 2:]) / 2
+    if not project:
+        frame_data = totfield_df.T
 
-            coord1 = totfield_df.loc[i, "Probe Coordinates"]
-            coord2 = totfield_df.loc[j, "Probe Coordinates"]
-            # Unit vector
-            dir_vec = (coord2 - coord1) / np.linalg.norm(coord2 - coord1)
+        frame_data.columns = [f"{probe} - frame {snap_num}" for probe in list(frame_data.loc["Probe Atom"])]
 
-            # print(avg_field)
+        frame_data.drop(["Probe Atom", "Probe Coordinates"], inplace=True)
 
-            efield_at_point = []
-            label = []
-            for column_name, column_value in avg_field.iteritems():
-                efield_at_point.append(
-                    np.dot(column_value, dir_vec) * conversion_factor
-                )
-                label.append(column_name)
-                count += 1
-            series = pd.Series(efield_at_point, index=label)
-            output = pd.concat([output, series], axis=1)
-            cols = list(output.columns)
-            cols[-1] = f"{probes[i]} and {probes[j]} - frame {snap_num}"
-            output.columns = cols
+        frame_data = frame_data * conversion_factor
 
-    return output
+        output = pd.concat([output, frame_data], axis=1)
+
+        return output
+    
+    else:
+
+        # Pairwise probe calculation - Get avg electric field
+        count = 0
+
+        for i in range(len(probes)):
+            for j in range(i + 1, len(probes)):
+                avg_field = (totfield_df.iloc[i, 2:] + totfield_df.iloc[j, 2:]) / 2
+
+                coord1 = totfield_df.loc[i, "Probe Coordinates"]
+                coord2 = totfield_df.loc[j, "Probe Coordinates"]
+                # Unit vector
+                dir_vec = (coord2 - coord1) / np.linalg.norm(coord2 - coord1)
+
+                efield_at_point = []
+                label = []
+                for column_name, column_value in avg_field.items():
+                    efield_at_point.append(
+                        np.dot(column_value, dir_vec) * conversion_factor
+                    )
+                    label.append(column_name)
+                    count += 1
+                series = pd.Series(efield_at_point, index=label)
+                output = pd.concat([output, series], axis=1)
+                cols = list(output.columns)
+                cols[-1] = f"{probes[i]} and {probes[j]} - frame {snap_num}"
+                output.columns = cols
+
+        return output
 
 
 if __name__ == "__main__":
@@ -162,6 +176,7 @@ if __name__ == "__main__":
     nengines = args.nengines
     equil = args.equil
     stride = args.stride
+    project = not args.vector
 
     # Process args for MDI
     mdi.MDI_Init(args.mdi)
@@ -372,6 +387,7 @@ if __name__ == "__main__":
                             itask_to_snap_num[itask - nengines + jcomm],
                             atoms_pole_numbers,
                             output,
+                            project
                         )
 
                     elapsed_dfield = time.time() - start_dfield

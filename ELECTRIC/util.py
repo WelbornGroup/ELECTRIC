@@ -91,6 +91,14 @@ def create_parser():
         action="store_true",
     )
 
+    optional.add_argument(
+        "--vector",
+        help="""
+                Flag which indicates if the electric field should be given as vector components.
+                """,
+        action="store_true",
+    )
+
     return parser
 
 
