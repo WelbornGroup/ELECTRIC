@@ -1,6 +1,5 @@
 [![Build Status](https://travis-ci.com/WelbornGroup/ELECTRIC.svg?branch=master)](https://travis-ci.com/WelbornGroup/ELECTRIC)
 [![codecov](https://codecov.io/gh/WelbornGroup/ELECTRIC/branch/master/graph/badge.svg)](https://codecov.io/gh/WelbornGroup/ELECTRIC)
-[![Language grade: Python](https://img.shields.io/lgtm/grade/python/g/WelbornGroup/ELECTRIC.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/WelbornGroup/ELECTRIC/context:python)
 [![DOI](https://joss.theoj.org/papers/10.21105/joss.02576/status.svg)](https://doi.org/10.21105/joss.02576)
 
 # ELECTRIC
@@ -15,19 +14,27 @@ MDI-enabled Tinker and this driver.
 
 Using this tool, you can calculate the electric field along a bond or between atoms due to molecules or residues in the system.
 
+
 ### Compiling MDI-Tinker and ELECTRIC
 
-Installation of ELECTRIC and MDI-enabled Tinker are bundled in one convenient build script. 
-
-To install ELECTRIC and MDI-enabled Tinker, you should have cmake and a fortran compiler installed. Then, you can download and build ELECTRIC and MDI-enabled Tinker using the following command in your terminal. Make sure you are in the directory where you want your ELECTRIC driver to be. You should note this location, because you will need to specify the path to some files built during this process in order to perform analysis.
+To get started with ELECTRIC, you should first clone this repository:
 
 ```
 git clone --recurse-submodules https://github.com/WelbornGroup/ELECTRIC.git
-cd ELECTRIC
-./build.sh
 ```
 
-This will download and build ELECTRIC and MDI-enabled Tinker.
+If you are using `conda`, you can create an environment with the appropriate dependencies using the provided `environment.yaml` file:
+
+```
+cd ELECTRIC
+conda env create -f environment.yaml
+```
+
+Installation of ELECTRIC and MDI-enabled Tinker are bundled in one convenient build script. 
+
+```
+./build.sh
+```
 
 In certain environments, it may be necessary to manually set the compilers.
 This can be done when calling the `build.sh` script.
@@ -43,11 +50,9 @@ Upon successfull building, you will have the ELECTRIC driver in ELECTRIC/ELECTRI
 
 ### Python Dependencies
 
-In order to run ELECTRIC, you will need to be in a python environment which has numpy and pandas installed. We recommend installing these packages in a conda environment created for ELECTRIC analysis.
-
-``` 
-conda install -c conda-forge numpy pandas
-```
+In order to run ELECTRIC, you will need to be in a python environment which has numpy and pandas installed.
+If you are using `conda`, the provided environment.yaml and created environment will have the necessary dependencies. 
+If you are not using the provided conda environment, you will need to make sure that  you have [NumPy](https://numpy.org/) and [pandas](https://pandas.pydata.org/) installed to use ELECTRIC.
 
 ## Testing
 
@@ -135,8 +140,6 @@ This approach is likely to be preferable when running on large supercomputing cl
 Note that on systems that manage MPI jobs using SLURM, it is necessary to use `srun` to launch jobs rather than direct calls to `mpiexec`.
 Example scripts for launching on NERSC's Cori system are provided at `ELECTRIC/test/bench5/cori.sh` (for running with a single instance of Tinker) and `ELECTRIC/test/bench5/cori5.sh` (for running with multiple instances of Tinker).
 Before running one of these scripts, you will need to change the `--account` SBATCH option to your own account.
-
-
 
 
 ## Command-Line Options
