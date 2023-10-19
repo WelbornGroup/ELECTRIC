@@ -1,0 +1,11 @@
+name: electric
+channels:
+  - conda-forge
+dependencies:
+  - cmake
+  - gfortran
+  - mpi4py
+  - numpy
+  - pandas
+  - jupyterhub
+  - matplotlib

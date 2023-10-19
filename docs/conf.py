@@ -18,7 +18,7 @@
 # -- Project information -----------------------------------------------------
 
 project = "ELECTRIC"
-copyright = "2020, Jessica A. Nash, Taylor A. Barnes, Valerie Vaissier Welborn"
+copyright = "2020-2023, Jessica A. Nash, Taylor A. Barnes, Valerie Vaissier Welborn"
 author = "Jessica A. Nash, Taylor A. Barnes, Valerie Vaissier Welborn"
 
 
@@ -57,7 +57,7 @@ html_theme = "sphinx_rtd_theme"
 # Custom directives
 sys.path.append(os.path.abspath("./_ext"))
 
-extensions = ["moleculeView", "dataTables", "sphinx_rtd_theme", "sphinxarg.ext"]
+extensions = ["moleculeView", "dataTables", "sphinx_rtd_theme", "sphinxarg.ext", "sphinx_copybutton"]
 
 
 def setup(app):
