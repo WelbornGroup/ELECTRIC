@@ -130,7 +130,7 @@ def collect_task(comm, npoles, snapshot_coords, snap_num, atoms_pole_numbers, ou
 
             efield_at_point = []
             label = []
-            for column_name, column_value in avg_field.iteritems():
+            for column_name, column_value in avg_field.items():
                 efield_at_point.append(
                     np.dot(column_value, dir_vec) * conversion_factor
                 )
