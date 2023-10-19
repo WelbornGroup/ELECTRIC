@@ -1,4 +1,5 @@
 sphinx_rtd_theme
 sphinx-argparse
+sphinx-copybutton
 numpy
 pandas
