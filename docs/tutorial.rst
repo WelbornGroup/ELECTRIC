@@ -12,7 +12,7 @@ If you don't, navigate to the installation_ instructions.
         - You are able to download or clone a directory from git.
         - You are familiar with bash scripts.
 
-To begin thee tutorial, first make sure you have your `electric` environment activated:
+To begin the tutorial, first make sure you have your `electric` environment activated:
 
 .. code-block:: bash
 
