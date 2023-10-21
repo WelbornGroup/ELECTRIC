@@ -3,13 +3,13 @@ name: CI
 on: 
   push:
     branches:    
-      - master
+      - main
   pull_request:
     branches:
-      - master
+      - main
   workflow_dispatch:
     branches:
-      - master
+      - main
 
 jobs:
   build:
@@ -17,43 +17,36 @@ jobs:
 
     steps:
     - name: Checkout repository and submodules
-      uses: actions/checkout@v2
+      uses: actions/checkout@v3
       with:
         submodules: recursive
 
-    #- name: Setup Miniconda
-    #  uses: conda-incubator/setup-miniconda@v2
+    - uses: mamba-org/setup-micromamba@v1
+      with:
+        environment-file: environment.yaml
+        environment-name: electric
+        condarc: |
+            channels:
+              - conda-forge
+              - defaults
+        create-args: >- 
+          python=3.11
 
     - name: Build dependencies
+      shell: bash -l {0}
       run: |
-        # Update apt-get
-        sudo apt-get update
-
-        # Install gfortran
-        sudo apt-get install gfortran
-
-        # Install conda
-        #wget http://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
-        #bash miniconda.sh -b -p $HOME/miniconda
-        #export PATH=$HOME/miniconda/bin:$PATH
-        #conda config --set always_yes yes --set changeps1 no
-        #conda update -q conda
-        #conda info -a
-
-        # Install dependencies
-        #conda install -c conda-forge numpy pandas
-        pip install numpy
-        pip install pandas
         pip install pytest
         pip install pytest-cov
 
     - name: Build ELECTRIC with Tinker
+      shell: bash -l {0}
       run: |
         ./build.sh
 
     - name: Run the pytest tests
       env:
         CODECOV_TOKEN: "8b90eeee-10a0-46aa-be29-f2680364ea1a"
+      shell: bash -l {0}
       run: |
         # Run pytest
         cd ELECTRIC/pytest
