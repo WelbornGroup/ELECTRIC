@@ -7,6 +7,7 @@
   <title>Installation &mdash; ELECTRIC  documentation</title>
       <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
       <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+      <link rel="stylesheet" href="_static/copybutton.css" type="text/css" />
       <link rel="stylesheet" href="https://cdn.datatables.net/1.10.22/css/jquery.dataTables.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
@@ -17,6 +18,8 @@
         <script src="_static/documentation_options.js?v=5929fcd5"></script>
         <script src="_static/doctools.js?v=888ff710"></script>
         <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+        <script src="_static/clipboard.min.js?v=a7894cd8"></script>
+        <script src="_static/copybutton.js?v=f281be69"></script>
         <script src="https://3dmol.org/build/3Dmol-min.js"></script>
         <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
         <script src="https://cdn.datatables.net/1.10.22/js/jquery.dataTables.js"></script>
@@ -50,7 +53,6 @@
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Installation</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#compiling-mdi-tinker-and-electric">Compiling MDI-Tinker and ELECTRIC</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#python-dependencies">Python Dependencies</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#testing-your-installation">Testing Your Installation</a></li>
 </ul>
 </li>
@@ -86,39 +88,62 @@
 <h1>Installation<a class="headerlink" href="#installation" title="Link to this heading"></a></h1>
 <section id="compiling-mdi-tinker-and-electric">
 <h2>Compiling MDI-Tinker and ELECTRIC<a class="headerlink" href="#compiling-mdi-tinker-and-electric" title="Link to this heading"></a></h2>
-<p>Installation of ELECTRIC and MDI-enabled Tinker are bundled in one convenient build script.</p>
-<p>To install ELECTRIC and MDI-enabled Tinker, you should have cmake and a fortran compiler installed. Then, you can download and build ELECTRIC and MDI-enabled Tinker using the following command in your terminal. Make sure you are in the directory where you want your ELECTRIC driver to be. You should note this location, because you will need to specify the path to some files built during this process in order to perform analysis.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The following instructions assume that you are using the <a class="reference external" href="https://docs.conda.io/en/latest/">conda</a> package manager and a Linux or Unix based operating system.
+If you are not using <code class="code docutils literal notranslate"><span class="pre">conda</span></code>, you will need to install the dependencies manually.
+If you are using the Windows Operating System, we recommend the Windows Subsystem for Linux (WSL).</p>
+</div>
+<p>To install ELECTRIC and MDI-enabled Tinker, you should have <code class="code docutils literal notranslate"><span class="pre">cmake</span></code> and a Fortran compiler installed.
+If you are using the <cite>conda</cite> package manager, you can clone the repository and use the provided <cite>environment.yaml</cite>
+to create an environment with the required dependencies (including Python packages) using the following command.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>--recurse-submodules<span class="w"> </span>https://github.com/WelbornGroup/ELECTRIC.git
 <span class="nb">cd</span><span class="w"> </span>ELECTRIC
-./build.sh
+conda<span class="w"> </span>create<span class="w"> </span>-f<span class="w"> </span>environment.yaml
 </pre></div>
 </div>
-<p>This will download and build ELECTRIC and MDI-enabled Tinker.</p>
-<p>Upon successful building, you will have the ELECTRIC driver in ELECTRIC/ELECTRIC/ELECTRIC.py, and the needed Tinker executable (dynamic.x) in ELECTRIC/modules/Tinker/build/tinker/source/dynamic.x . The location of these files can be found in text files in ELECTRIC/test/locations/ELECTRIC and ELECTRIC/test/locations/Tinker_ELECTRIC. You will need these for using ELECTRIC.</p>
-</section>
-<section id="python-dependencies">
-<h2>Python Dependencies<a class="headerlink" href="#python-dependencies" title="Link to this heading"></a></h2>
-<p>In order to run ELECTRIC, you will need to be in a python environment which has numpy and pandas installed. If you want to run ELECTRIC with more than one engine, you should also install MPI4Py. We recommend installing these packages in a conda environment created for ELECTRIC analysis.</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>install<span class="w"> </span>-c<span class="w"> </span>anaconda<span class="w"> </span>mpi4py
-conda<span class="w"> </span>install<span class="w"> </span>-c<span class="w"> </span>conda-forge<span class="w"> </span>numpy<span class="w"> </span>pandas
+<p>After the environment is created and installed you should activate it:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>activate<span class="w"> </span>electric
 </pre></div>
 </div>
+<p>After creating and activating your environment, you will have the necessary compilers and libraries required for compilating, installing, and running ELECTRIC.
+Installation of ELECTRIC and MDI-enabled Tinker are bundled in one convenient build script.
+Execute the following command in the top level of your cloned repository to build ELECTRIC and MDI-enabled Tinker:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./build.sh
+</pre></div>
+</div>
+<p>Upon successful building, you will have the ELECTRIC driver in <code class="code docutils literal notranslate"><span class="pre">ELECTRIC/ELECTRIC/ELECTRIC.py</span></code>,
+and the needed Tinker executable (<code class="code docutils literal notranslate"><span class="pre">dynamic.x</span></code>) in ELECTRIC/modules/Tinker/build/tinker/source/dynamic.x .
+The location of these files can be found in text files in <code class="code docutils literal notranslate"><span class="pre">ELECTRIC/test/locations/ELECTRIC</span></code> and <code class="code docutils literal notranslate"><span class="pre">ELECTRIC/test/locations/Tinker_ELECTRIC</span></code>.
+You will need these for using ELECTRIC.</p>
 </section>
 <section id="testing-your-installation">
 <h2>Testing Your Installation<a class="headerlink" href="#testing-your-installation" title="Link to this heading"></a></h2>
-<p>You can now run a quick test of the driver by changing directory to the <cite>ELECTRIC/test/bench5</cite> directory and running the <cite>tcp.sh</cite> script:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>./tcp.sh
+<p>To continue with testing your installation, make sure your <cite>electric</cite> <cite>conda</cite> environment is activated:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>activate<span class="w"> </span>electric
 </pre></div>
 </div>
-<p>This script will run a short Tinker dynamics simulation that includes periodic boundary conditions. This command is on line 20 of the provided file. This is a standard Tinker call, as you would normally run a simulation. If you are performing post processing on a simulation, you will not use this line.</p>
+<p>You can now run a quick test of the driver by changing directory to the <code class="code docutils literal notranslate"><span class="pre">ELECTRIC/test/bench5</span></code> directory and running the <cite>tcp.sh</cite> script:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="nb">cd</span><span class="w"> </span>ELECTRIC/test/bench5
+./tcp.sh
+</pre></div>
+</div>
+<p>This script will run a short Tinker dynamics simulation that includes periodic boundary conditions.
+This command is on line 20 of the provided file. This is a standard Tinker call, as you would normally run a simulation.
+If you are performing post processing on a simulation, you will not use this line.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="si">${</span><span class="nv">TINKER_LOC</span><span class="si">}</span><span class="w"> </span>bench5<span class="w"> </span>-k<span class="w"> </span>bench5.key<span class="w"> </span><span class="m">10</span><span class="w"> </span><span class="m">1</span>.0<span class="w"> </span><span class="m">0</span>.001999<span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="m">300</span>.00<span class="w"> </span>&gt;<span class="w"> </span>Dynamics.log
 </pre></div>
 </div>
-<p>The script then launches an instance of Tinker as an MDI engine, which will request a connection to the driver and then listen for commands from the driver. This command is similar to running a simulation with Tinker, except that it uses a modified Tinker input file (more on this below), and adds an additional command line argument which passes information to MDI (<cite>-mdi “role ENGINE -name NO_EWALD -method TCP -port 8022 -hostname localhost”</cite>):</p>
+<p>The script then launches an instance of Tinker as an MDI engine,
+which will request a connection to the driver and then listen for commands from the driver.
+This command is similar to running a simulation with Tinker, except that it uses a modified Tinker input file
+(more on this below), and adds an additional command line argument which passes information to MDI
+(<cite>-mdi “role ENGINE -name NO_EWALD -method TCP -port 8022 -hostname localhost”</cite>):</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="si">${</span><span class="nv">TINKER_LOC</span><span class="si">}</span><span class="w"> </span>bench5<span class="w"> </span>-k<span class="w"> </span>no_ewald.key<span class="w"> </span>-mdi<span class="w"> </span><span class="s2">&quot;-role ENGINE -name NO_EWALD -method TCP -port 8022 -hostname localhost&quot;</span><span class="w"> </span><span class="m">10</span><span class="w"> </span><span class="m">1</span>.0<span class="w"> </span><span class="m">0</span>.001999<span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="m">300</span>.00<span class="w"> </span>&gt;<span class="w"> </span>no_ewald.log<span class="w"> </span><span class="p">&amp;</span>
 </pre></div>
 </div>
-<p>The script will then launch an instance of the driver in the background, which will listen for connections from an MDI engine:</p>
+<p>The script will then launch an instance of the driver in the background,
+which will listen for connections from an MDI engine:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span><span class="si">${</span><span class="nv">DRIVER_LOC</span><span class="si">}</span><span class="w"> </span>-probes<span class="w"> </span><span class="s2">&quot;1 40&quot;</span><span class="w"> </span>-snap<span class="w"> </span>bench5.arc<span class="w"> </span>-mdi<span class="w"> </span><span class="s2">&quot;-role DRIVER -name driver -method TCP -port 8022&quot;</span><span class="w"> </span>--bymol<span class="w"> </span><span class="p">&amp;</span>
 </pre></div>
 </div>
@@ -137,7 +162,7 @@ conda<span class="w"> </span>install<span class="w"> </span>-c<span class="w"> <
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2020, Jessica A. Nash, Taylor A. Barnes, Valerie Vaissier Welborn.</p>
+    <p>&#169; Copyright 2020-2023, Jessica A. Nash, Taylor A. Barnes, Valerie Vaissier Welborn.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

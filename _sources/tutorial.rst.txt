@@ -1,7 +1,9 @@
 Tutorial
 ========
 
-This tutorial will walk you through using ELECTRIC to analyze the electric field in a small protein. This tutorial assumes you have ELECTRIC and MDI-enabled Tinker installed. If you don't, navigate to the installation_ instructions.
+This tutorial will walk you through using ELECTRIC to analyze the electric field in a small protein. 
+This tutorial assumes you have ELECTRIC and MDI-enabled Tinker installed. 
+If you don't, navigate to the installation_ instructions.
 
 .. note::
     This tutorial will assume the following:
@@ -10,8 +12,16 @@ This tutorial will walk you through using ELECTRIC to analyze the electric field
         - You are able to download or clone a directory from git.
         - You are familiar with bash scripts.
 
+To begin the tutorial, first make sure you have your `electric` environment activated:
 
-The pdb code for this protein is 1l2y_, and you can see the structure below. We have chosen a small protein for demonstrative purposes. The image below shows only the protein, but our simulation is solvated.
+.. code-block:: bash
+
+    conda activate electric
+
+
+The pdb code for this protein is 1l2y_, and you can see the structure below. 
+We have chosen a small protein for demonstrative purposes. 
+The image below shows only the protein, but our simulation is solvated.
 
 .. moleculeView:: 
     
@@ -26,9 +36,13 @@ Running an ELECTRIC calculation
 
 Preparing Files
 ----------------
-To follow along with this tutorial, clone the `tutorial repository`_. Included in this repository is folder called :code:`data`. The :code:`data` directory has all of the data you will need for this tutorial.
+To follow along with this tutorial, clone the `tutorial repository`_. 
+Included in this repository is folder called :code:`data`. The :code:`data` directory has all of the data you will need for this tutorial.
 
-ELECTRIC is a post-processing analysis, meaning that you should first run your simulations using the AMOEBA forcefield and save the trajectory. After you have a trajectory from Tinker simulation, use ELECTRIC to perform electric field analysis on that trajectory. We will be analyzing the trajectory included in the tutorial repository, :code:`1l2y_npt.arc`. This trajectory is a text file containing coordinates for a simulation that has already been run.
+ELECTRIC is a post-processing analysis, meaning that you should first run your simulations using the AMOEBA forcefield and save the trajectory. 
+After you have a trajectory from Tinker simulation, use ELECTRIC to perform electric field analysis on that trajectory. 
+We will be analyzing the trajectory included in the tutorial repository, :code:`1l2y_npt.arc`. 
+This trajectory is a text file containing coordinates for a simulation that has already been run.
 
 To get started with ELECTRIC, we will need to prepare our input files. We will need:
     - a molecular dynamics trajectory
@@ -40,11 +54,15 @@ We already have the molecular dynamics trajectory, so let's look at each of thes
 
 Simulation Parameter File
 ^^^^^^^^^^^^^^^^^^^^^^^^^
-This file contains the force field parameters for the simulation you have run. If you are using this software for analysis, use the same force field you used to run the molecular dynamics simulation. For this tutorial, the parameter file is :code:`amoebabio18.prm`. We will need this for our Tinker input file (next section).
+This file contains the force field parameters for the simulation you have run. If you are using this software for analysis, use the same force field you used to run the molecular dynamics simulation. 
+For this tutorial, the parameter file is :code:`amoebabio18.prm`. We will need this for our Tinker input file (next section).
 
 Tinker input file
 ^^^^^^^^^^^^^^^^^
-Next, we must prepare an input file which tells Tinker settings for our calculation. This input file should be a modified version of the one which you used to run your initial simulation. Consider the input file, :code:`tinker.key` used to obtain this trajectory. The parameter file in the previous step is given on :code:`line 1`.
+Next, we must prepare an input file which tells Tinker settings for our calculation. 
+This input file should be a modified version of the one which you used to run your initial simulation. 
+Consider the input file, :code:`tinker.key` used to obtain this trajectory. 
+The parameter file in the previous step is given on :code:`line 1`.
 
 .. code-block:: text
     :linenos:
@@ -73,11 +91,15 @@ Next, we must prepare an input file which tells Tinker settings for our calculat
     printout 1000
 
 
-The input file used for this simulation uses periodic boundaries and an Ewald summation for electrostatics. During a Tinker simulation using AMOEBA, electric fields are evaluated in order to calculate the induced dipoles at each step. In order to get electric field contributions from specific residues, we must calculate the electric field using the real space interactions only (no periodic boundaries or Ewald). 
+The input file used for this simulation uses periodic boundaries and an Ewald summation for electrostatics. 
+During a Tinker simulation using AMOEBA, electric fields are evaluated in order to calculate the induced dipoles at each step. 
+In order to get electric field contributions from specific residues, we must calculate the electric field using the real space interactions only (no periodic boundaries or Ewald). 
 
-Remove settings related to cutoffs (:code:`cutoff` keyword), periodic boundaries (:code:`a-axis`, :code:`b-axis`,:code:`c-axis`) and Ewald summation (:code:`ewald`). You can also remove settings having to do with neighbor lists (:code:`neighbor-list`), as they are not needed and can cause an error for this calculation if included.
+Remove settings related to cutoffs (:code:`cutoff` keyword), periodic boundaries (:code:`a-axis`, :code:`b-axis`,:code:`c-axis`) and Ewald summation (:code:`ewald`). 
+You can also remove settings having to do with neighbor lists (:code:`neighbor-list`), as they are not needed and can cause an error for this calculation if included.
 
-The modifed input file for ELECTRIC is given below. This file is saved in the data directory with the name :code:`noewald.key`.
+The modifed input file for ELECTRIC is given below. 
+This file is saved in the data directory with the name :code:`noewald.key`.
 
 .. code-block:: text
 
@@ -99,9 +121,12 @@ The modifed input file for ELECTRIC is given below. This file is saved in the da
 
 Bash script - run_analysis.sh
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-When you run analysis uisng ELECTRIC, ELECTRIC parses your given trajectory sends snapshots to Tinker for electric field calculation. The MDI-enabled version of Tinker then calculates the electric field information for that snapshot. 
+When you run analysis uisng ELECTRIC, ELECTRIC parses your given trajectory sends snapshots to Tinker for electric field calculation. 
+The MDI-enabled version of Tinker then calculates the electric field information for that snapshot. 
 
-You use ELECTRIC from the command line. Consider the following bash script provided for analysis, :code:`run_analysis.sh`. We will explain this script in detail.
+You use ELECTRIC from the command line. 
+Consider the following bash script provided for analysis, :code:`run_analysis.sh`. 
+We will explain this script in detail.
 
 .. code-block:: bash
     :linenos:
@@ -134,9 +159,11 @@ You use ELECTRIC from the command line. Consider the following bash script provi
 
     For this tutorial, we use the approach of having all data needed for analysis in a directory called `data`. During analysis, we copy everything from :code:`data` into a folder :code:`work`. This part of the tutorial is stylistic. The authors prefer this method to keep files separated, and original files unaltered.
 
-In lines :code:`2` and :code:`3`, you should change the location to your installed ELECTRIC.py file and MDI-enabled :code:`dynamic.x`. Recall from the installation instructions that you can find these in the ELECTRIC directory in the files :code:`ELECTRIC/test/locations/ELECTRIC` and :code:`ELECTRIC/test/locations/Tinker_ELECTRIC`. 
+In lines :code:`2` and :code:`3`, you should change the location to your installed ELECTRIC.py file and MDI-enabled :code:`dynamic.x`. 
+Recall from the installation instructions that you can find these in the ELECTRIC directory in the files :code:`ELECTRIC/test/locations/ELECTRIC` and :code:`ELECTRIC/test/locations/Tinker_ELECTRIC`. 
 
-The next section removes the folder called :code:`work` if it exists. This bash script is written to put all analysis files into a folder called :code:`work` to keep our original files clean. 
+The next section removes the folder called :code:`work` if it exists. 
+This bash script is written to put all analysis files into a folder called :code:`work` to keep our original files clean. 
 
 MDI-enabled Tinker is launched on :code:`line 18` with the command
 
@@ -144,7 +171,15 @@ MDI-enabled Tinker is launched on :code:`line 18` with the command
 
     ${TINKER_LOC} 1l2y -k no_ewald.key -mdi "-role ENGINE -name NO_EWALD -method TCP -port 8022 -hostname localhost"  10 1.0 0.002 2 300.00 > no_ewald.log &
 
-The first thing on this line, :code:`${TINKER_LOC}` fills in the location for :code:`dynamic.x` which you put in line 2. Next, `1l2y` is the file name (without an extension) of the xyz file for this calculation (provided vile :code:`12ly.xyz`). You should have this from your original simulation. However, make sure that there is no box information on line two of this :code:`xyz` file, as this could cause Tinker to use periodic boundaries. Next, we give the input file (key file) we have prepared in the previous step using :code:`-k noewald.key`. Then, we give our MDI options. The given options should work for most analysis. After the MDI options are some Tinker input options. For our analysis, it will not really matter what we put here since we are running calculations on one snapshot at a time. However, you must have these present for Tinker to run. Very importantly, note the ampersand (:code:`&`) at the end of this line. This will launch Tinker in the background, where it will be waiting for commands from ELECTRIC.
+The first thing on this line, :code:`${TINKER_LOC}` fills in the location for :code:`dynamic.x` which you put in line 2. 
+Next, `1l2y` is the file name (without an extension) of the xyz file for this calculation (provided vile :code:`12ly.xyz`). 
+You should have this from your original simulation. 
+However, make sure that there is no box information on line two of this :code:`xyz` file, as this could cause Tinker to use periodic boundaries. 
+Next, we give the input file (key file) we have prepared in the previous step using :code:`-k noewald.key`. 
+Then, we give our MDI options. 
+The given options should work for most analysis. After the MDI options are some Tinker input options. 
+For our analysis, it will not really matter what we put here since we are running calculations on one snapshot at a time. 
+However, you must have these present for Tinker to run. Very importantly, note the ampersand (:code:`&`) at the end of this line. This will launch Tinker in the background, where it will be waiting for commands from ELECTRIC.
 
 .. warning::
     
@@ -156,12 +191,15 @@ In the next command (:code:`line 21`), we launch ELECTRIC.
 
     python ${DRIVER_LOC} -snap 1l2y_npt.arc -probes "78 93 94"  -mdi "-role DRIVER -name driver -method TCP -port 8022" --byres 1l2y_solvated.pdb  --equil 120 --stride 2 &
 
-Here, we first give the location of our ELECTRIC driver. We indicate our trajectory file using the `-snap` argument with the filename to analyze, followed by MDI options.
+Here, we first give the location of our ELECTRIC driver. 
+We indicate our trajectory file using the `-snap` argument with the filename to analyze, followed by MDI options.
 
 Probe Atoms 
 ++++++++++++
 
-To run an ELECTRIC calculation, you must give the indices of your probe atoms. The probe atoms are the atoms which are used as 'probes' for the electric field. ELECTRIC reports the projected total electric field at the midpoint between all probe atom pairs. This allows you to calculate electric fields along bonds `as reported in literature <https://pubs.acs.org/doi/10.1021/jacs.9b05323>`_.
+To run an ELECTRIC calculation, you must give the indices of your probe atoms. 
+The probe atoms are the atoms which are used as 'probes' for the electric field. ELECTRIC reports the projected total electric field at the midpoint between all probe atom pairs. 
+This allows you to calculate electric fields along bonds `as reported in literature <https://pubs.acs.org/doi/10.1021/jacs.9b05323>`_.
 
 You should obtain the number of the probe atoms from the :code:`xyz` file you use to launch MDI-enabled Tinker. Note that the index you use here should match the number given in the first column of your xyz file. The projection of the electric field at the midpoint of these two atoms will be reported for each analyzed frame. If you indicate more than two probes, all pairwise fields will be reported (ie, if using "78 93 94", you will get "78 and 93", "78 and 94" and "93 and 94"). You can see the atoms we have chosen as probes highlighted below:
 
