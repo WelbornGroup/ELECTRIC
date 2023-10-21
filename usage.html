@@ -1,19 +1,22 @@
 <!DOCTYPE html>
 <html class="writer-html5" lang="en" >
 <head>
-  <meta charset="utf-8" />
+  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Usage &mdash; ELECTRIC  documentation</title><link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+  <title>Usage &mdash; ELECTRIC  documentation</title>
+      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
       <link rel="stylesheet" href="https://cdn.datatables.net/1.10.22/css/jquery.dataTables.css" type="text/css" />
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
-  <script id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
-        <script src="_static/jquery.js"></script>
-        <script src="_static/underscore.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/language_data.js"></script>
+  
+        <script src="_static/jquery.js?v=5d32c60e"></script>
+        <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+        <script src="_static/documentation_options.js?v=5929fcd5"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
         <script src="https://3dmol.org/build/3Dmol-min.js"></script>
         <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
         <script src="https://cdn.datatables.net/1.10.22/js/jquery.dataTables.js"></script>
@@ -29,17 +32,21 @@
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
         <div class="wy-side-nav-search" >
-            <a href="index.html" class="icon icon-home"> ELECTRIC
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            ELECTRIC
           </a>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
-    <input type="text" name="q" placeholder="Search docs" />
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
     <input type="hidden" name="check_keywords" value="yes" />
     <input type="hidden" name="area" value="default" />
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <p class="caption"><span class="caption-text">Contents:</span></p>
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Usage</a><ul>
@@ -49,8 +56,8 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#electric-calculation-settings">ELECTRIC Calculation Settings</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#Required Arguments">Required Arguments</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#Named Arguments">Named Arguments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#required-arguments">Required Arguments</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#named-arguments">Named Arguments</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#output">Output</a></li>
@@ -73,8 +80,8 @@
         <div class="rst-content">
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
-      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
-      <li>Usage</li>
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Usage</li>
       <li class="wy-breadcrumbs-aside">
             <a href="_sources/usage.rst.txt" rel="nofollow"> View page source</a>
       </li>
@@ -84,15 +91,15 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <div class="section" id="usage">
-<h1>Usage<a class="headerlink" href="#usage" title="Permalink to this headline"></a></h1>
-<div class="section" id="information-flow">
-<h2>Information Flow<a class="headerlink" href="#information-flow" title="Permalink to this headline"></a></h2>
+  <section id="usage">
+<h1>Usage<a class="headerlink" href="#usage" title="Link to this heading"></a></h1>
+<section id="information-flow">
+<h2>Information Flow<a class="headerlink" href="#information-flow" title="Link to this heading"></a></h2>
 <p>ELECTRIC is a post-processing tool for simulations running with the AMOEBA polarizable force field using the Tinker software package.</p>
 <a class="reference internal image-reference" href="_images/inputs_and_outputs.svg"><img alt="_images/inputs_and_outputs.svg" src="_images/inputs_and_outputs.svg" width="600" /></a>
-</div>
-<div class="section" id="procedure">
-<h2>Procedure<a class="headerlink" href="#procedure" title="Permalink to this headline"></a></h2>
+</section>
+<section id="procedure">
+<h2>Procedure<a class="headerlink" href="#procedure" title="Link to this heading"></a></h2>
 <p>In general, running a calculation with the driver requires the following steps:</p>
 <p>1. <strong>Run a dynamics simulation with Tinker.</strong>
 This simulation should be run with periodic boundary conditions (if desired), and should print snapshots of its results to a single file (i.e., <code class="code docutils literal notranslate"><span class="pre">coordinates.arc</span></code>).
@@ -107,69 +114,50 @@ When run as an engine, Tinker should be launched in the background; this is done
 <p>4. <strong>Launch the driver</strong>
 The driver accepts a variety of command-line options, which are described in detail below.
 One possible launch command would be:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="sb">`</span>python <span class="si">${</span><span class="nv">DRIVER_LOC</span><span class="si">}</span> -probes <span class="s2">&quot;1 2 10&quot;</span> -snap coordinates.arc -mdi <span class="s2">&quot;-role DRIVER -name driver -method TCP -port 8021&quot;</span> --byres ke15.pdb --equil <span class="m">51</span> --nengines <span class="m">15</span> <span class="p">&amp;</span><span class="sb">`</span>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="sb">`</span>python<span class="w"> </span><span class="si">${</span><span class="nv">DRIVER_LOC</span><span class="si">}</span><span class="w"> </span>-probes<span class="w"> </span><span class="s2">&quot;1 2 10&quot;</span><span class="w"> </span>-snap<span class="w"> </span>coordinates.arc<span class="w"> </span>-mdi<span class="w"> </span><span class="s2">&quot;-role DRIVER -name driver -method TCP -port 8021&quot;</span><span class="w"> </span>--byres<span class="w"> </span>ke15.pdb<span class="w"> </span>--equil<span class="w"> </span><span class="m">51</span><span class="w"> </span>--nengines<span class="w"> </span><span class="m">15</span><span class="w"> </span><span class="p">&amp;</span><span class="sb">`</span>
 </pre></div>
 </div>
 <p>where <cite>DRIVER_LOC</cite> is the path to ELECTRIC.py which you set during the configuration step. See the section <a class="reference internal" href="#electric-settings"><span class="std std-ref">ELECTRIC Calculation Settings</span></a> for a detailed explanation of command line arguments for ELECTRIC.</p>
 <p>The output will be written to <cite>proj_totfield.csv</cite>.</p>
 <p>It is useful to write a script that performs Steps 3 and 4, especially if the calculations are intended to be run on a shared cluster.
 Such a script might look like:</p>
-<div class="section" id="example-script">
-<span id="example"></span><h3>Example Script<a class="headerlink" href="#example-script" title="Permalink to this headline"></a></h3>
-<div class="highlight-bash notranslate"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
- 2
- 3
- 4
- 5
- 6
- 7
- 8
- 9
-10
-11
-12
-13
-14
-15
-16
-17
-18
-19
-20</pre></div></td><td class="code"><div class="highlight"><pre><span></span><span class="c1"># location of required codes</span>
-<span class="nv">DRIVER_LOC</span><span class="o">=</span><span class="k">$(</span>cat ../locations/ELECTRIC<span class="k">)</span>
-<span class="nv">TINKER_LOC</span><span class="o">=</span><span class="k">$(</span>cat ../locations/Tinker_ELECTRIC<span class="k">)</span>
-
-<span class="c1"># number of instances of Tinker to run as an engine</span>
-<span class="nv">nengines</span><span class="o">=</span><span class="m">18</span>
-
-<span class="c1"># set the number of threads used by each code</span>
-<span class="nb">export</span> <span class="nv">OMP_NUM_THREADS</span><span class="o">=</span><span class="m">1</span>
-
-<span class="c1"># launch Tinker as an engine</span>
-<span class="k">for</span> i in <span class="k">$(</span> <span class="nb">eval</span> <span class="nb">echo</span> <span class="o">{</span><span class="m">1</span>..<span class="nv">$nengines</span><span class="o">}</span> <span class="k">)</span>
-<span class="k">do</span>
-<span class="si">${</span><span class="nv">TINKER_LOC</span><span class="si">}</span> coordinates.in -k no_ewald.key -mdi <span class="s2">&quot;-role ENGINE -name NO_EWALD -method TCP -port 8021 -hostname localhost&quot;</span> <span class="m">10</span> <span class="m">1</span>.0 <span class="m">1</span>.0 <span class="m">2</span> <span class="m">300</span> &gt; no_ewald<span class="si">${</span><span class="nv">i</span><span class="si">}</span>.log <span class="p">&amp;</span>
-<span class="k">done</span>
-
-<span class="c1"># launch the driver</span>
-python <span class="si">${</span><span class="nv">DRIVER_LOC</span><span class="si">}</span> -probes <span class="s2">&quot;32 33 59 60&quot;</span> -snap coordinates.arc -mdi <span class="s2">&quot;-role DRIVER -name driver -method TCP -port 8021&quot;</span> --byres ke15.pdb --equil <span class="m">51</span> --nengines <span class="si">${</span><span class="nv">nengines</span><span class="si">}</span> <span class="p">&amp;</span>
-
-<span class="nb">wait</span>
+<section id="example-script">
+<span id="example"></span><h3>Example Script<a class="headerlink" href="#example-script" title="Link to this heading"></a></h3>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="linenos"> 1</span><span class="c1"># location of required codes</span>
+<span class="linenos"> 2</span><span class="nv">DRIVER_LOC</span><span class="o">=</span><span class="k">$(</span>cat<span class="w"> </span>../locations/ELECTRIC<span class="k">)</span>
+<span class="linenos"> 3</span><span class="nv">TINKER_LOC</span><span class="o">=</span><span class="k">$(</span>cat<span class="w"> </span>../locations/Tinker_ELECTRIC<span class="k">)</span>
+<span class="linenos"> 4</span>
+<span class="linenos"> 5</span><span class="c1"># number of instances of Tinker to run as an engine</span>
+<span class="linenos"> 6</span><span class="nv">nengines</span><span class="o">=</span><span class="m">18</span>
+<span class="linenos"> 7</span>
+<span class="linenos"> 8</span><span class="c1"># set the number of threads used by each code</span>
+<span class="linenos"> 9</span><span class="nb">export</span><span class="w"> </span><span class="nv">OMP_NUM_THREADS</span><span class="o">=</span><span class="m">1</span>
+<span class="linenos">10</span>
+<span class="linenos">11</span><span class="c1"># launch Tinker as an engine</span>
+<span class="linenos">12</span><span class="k">for</span><span class="w"> </span>i<span class="w"> </span><span class="k">in</span><span class="w"> </span><span class="k">$(</span><span class="w"> </span><span class="nb">eval</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="o">{</span><span class="m">1</span>..<span class="nv">$nengines</span><span class="o">}</span><span class="w"> </span><span class="k">)</span>
+<span class="linenos">13</span><span class="k">do</span>
+<span class="linenos">14</span><span class="si">${</span><span class="nv">TINKER_LOC</span><span class="si">}</span><span class="w"> </span>coordinates.in<span class="w"> </span>-k<span class="w"> </span>no_ewald.key<span class="w"> </span>-mdi<span class="w"> </span><span class="s2">&quot;-role ENGINE -name NO_EWALD -method TCP -port 8021 -hostname localhost&quot;</span><span class="w"> </span><span class="m">10</span><span class="w"> </span><span class="m">1</span>.0<span class="w"> </span><span class="m">1</span>.0<span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="m">300</span><span class="w"> </span>&gt;<span class="w"> </span>no_ewald<span class="si">${</span><span class="nv">i</span><span class="si">}</span>.log<span class="w"> </span><span class="p">&amp;</span>
+<span class="linenos">15</span><span class="k">done</span>
+<span class="linenos">16</span>
+<span class="linenos">17</span><span class="c1"># launch the driver</span>
+<span class="linenos">18</span>python<span class="w"> </span><span class="si">${</span><span class="nv">DRIVER_LOC</span><span class="si">}</span><span class="w"> </span>-probes<span class="w"> </span><span class="s2">&quot;32 33 59 60&quot;</span><span class="w"> </span>-snap<span class="w"> </span>coordinates.arc<span class="w"> </span>-mdi<span class="w"> </span><span class="s2">&quot;-role DRIVER -name driver -method TCP -port 8021&quot;</span><span class="w"> </span>--byres<span class="w"> </span>ke15.pdb<span class="w"> </span>--equil<span class="w"> </span><span class="m">51</span><span class="w"> </span>--nengines<span class="w"> </span><span class="si">${</span><span class="nv">nengines</span><span class="si">}</span><span class="w"> </span><span class="p">&amp;</span>
+<span class="linenos">19</span>
+<span class="linenos">20</span><span class="nb">wait</span>
 </pre></div>
-</td></tr></table></div>
+</div>
 <p>You can read more below, or you can try out the <a class="reference external" href="tutorial.html">tutorial</a> to run a calculation yourself.</p>
-</div>
-</div>
-<div class="section" id="electric-calculation-settings">
-<span id="electric-settings"></span><h2>ELECTRIC Calculation Settings<a class="headerlink" href="#electric-calculation-settings" title="Permalink to this headline"></a></h2>
+</section>
+</section>
+<section id="electric-calculation-settings">
+<span id="electric-settings"></span><h2>ELECTRIC Calculation Settings<a class="headerlink" href="#electric-calculation-settings" title="Link to this heading"></a></h2>
 <p>You can change the options for your electric calculation through command line arguments.</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">python</span> <span class="n">ELECTRIC</span><span class="o">.</span><span class="n">py</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">mdi</span> <span class="n">MDI</span><span class="p">]</span> <span class="o">-</span><span class="n">snap</span> <span class="n">SNAP</span> <span class="o">-</span><span class="n">probes</span> <span class="n">PROBES</span>
                           <span class="p">[</span><span class="o">--</span><span class="n">nengines</span> <span class="n">NENGINES</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">equil</span> <span class="n">EQUIL</span><span class="p">]</span>
                           <span class="p">[</span><span class="o">--</span><span class="n">stride</span> <span class="n">STRIDE</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">byres</span> <span class="n">BYRES</span><span class="p">]</span> <span class="p">[</span><span class="o">--</span><span class="n">bymol</span><span class="p">]</span>
 </pre></div>
 </div>
-<div class="section" id="Required Arguments">
-<h3>Required Arguments<a class="headerlink" href="#Required Arguments" title="Permalink to this headline"></a></h3>
+<section id="required-arguments">
+<h3>Required Arguments<a class="headerlink" href="#required-arguments" title="Link to this heading"></a></h3>
 <dl class="option-list">
 <dt><kbd>-mdi</kbd></dt>
 <dd><p>flags for mdi. When in doubt, <cite>-mdi “-role ENGINE -name NO_EWALD -method TCP -port 8021 -hostname localhost”, type=str, required=True</cite> is a good option.</p>
@@ -185,9 +173,9 @@ the bond between atoms 1 and 2, you would use <cite>-probes “1 2”</cite>.</p
 </div></blockquote>
 </dd>
 </dl>
-</div>
-<div class="section" id="Named Arguments">
-<h3>Named Arguments<a class="headerlink" href="#Named Arguments" title="Permalink to this headline"></a></h3>
+</section>
+<section id="named-arguments">
+<h3>Named Arguments<a class="headerlink" href="#named-arguments" title="Link to this heading"></a></h3>
 <dl class="option-list">
 <dt><kbd>--nengines</kbd></dt>
 <dd><blockquote>
@@ -231,13 +219,13 @@ per molecule.</p>
 <p>Default: False</p>
 </dd>
 </dl>
-</div>
-</div>
-<div class="section" id="output">
-<h2>Output<a class="headerlink" href="#output" title="Permalink to this headline"></a></h2>
+</section>
+</section>
+<section id="output">
+<h2>Output<a class="headerlink" href="#output" title="Link to this heading"></a></h2>
 <p>The driver will output a file called <code class="code docutils literal notranslate"><span class="pre">proj_totfield.csv</span></code>. This is a CSV file which contains data on the projected electric field at the point between each probe atom due to each fragment , depending on input (<cite>–byres</cite> for by residue, <cite>–bymol</cite> for by molecule, or by atom if neither argument is given.). Each column will contain a header which indicates which probe atoms the measurement is between, followed by the frame number, while the rows will be the electric field at the mean location between the probe atoms due to a particular fragment</p>
 <p>Consider the example (<code class="code docutils literal notranslate"><span class="pre">bench5</span></code>), which was run with the following command:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python <span class="si">${</span><span class="nv">DRIVER_LOC</span><span class="si">}</span> -probes <span class="s2">&quot;1 40&quot;</span> -snap bench5.arc -mdi <span class="s2">&quot;-role DRIVER -name driver -method TCP -port 8022&quot;</span> --bymol
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span><span class="si">${</span><span class="nv">DRIVER_LOC</span><span class="si">}</span><span class="w"> </span>-probes<span class="w"> </span><span class="s2">&quot;1 40&quot;</span><span class="w"> </span>-snap<span class="w"> </span>bench5.arc<span class="w"> </span>-mdi<span class="w"> </span><span class="s2">&quot;-role DRIVER -name driver -method TCP -port 8022&quot;</span><span class="w"> </span>--bymol
 </pre></div>
 </div>
 <p>Here, we have set the probe atoms to be atoms 1 and 40, and we have indicated we want the the electric field between the probe atoms based on contributions by molecule. Headers will be “<cite>i and j - frame n</cite>. Where <cite>i</cite> and <cite>j</cite> are the atom indices of the probes, and <cite>n</cite> is the frame number.</p>
@@ -251,13 +239,13 @@ per molecule.</p>
 </div>
 <p>Since this calculation was run using <code class="code docutils literal notranslate"><span class="pre">--bymol</span></code>, there are 216 rows, one for each molecule in the system.</p>
 <p>The first entry, column <code class="code docutils literal notranslate"><span class="pre">1</span> <span class="pre">and</span> <span class="pre">40</span> <span class="pre">-</span> <span class="pre">frame</span> <span class="pre">1</span></code>, header <code class="code docutils literal notranslate"><span class="pre">molecule</span> <span class="pre">1</span></code>, gives the projected total electric field at the midway point between <code class="code docutils literal notranslate"><span class="pre">atom</span> <span class="pre">1</span></code> and <code class="code docutils literal notranslate"><span class="pre">atom</span> <span class="pre">40</span></code> due to <code class="code docutils literal notranslate"><span class="pre">molecule</span> <span class="pre">1</span></code>. The electric field has been projected along the vector which points from <code class="code docutils literal notranslate"><span class="pre">atom</span> <span class="pre">1</span></code> to <code class="code docutils literal notranslate"><span class="pre">atom</span> <span class="pre">40</span></code>. The projection will always be along the vector from atom 1 to atom 2. You can reverse the sign of the number if you would like the vector to point the opposite way.</p>
-</div>
-<div class="section" id="running-electric-in-parallel">
-<h2>Running ELECTRIC in Parallel<a class="headerlink" href="#running-electric-in-parallel" title="Permalink to this headline"></a></h2>
+</section>
+<section id="running-electric-in-parallel">
+<h2>Running ELECTRIC in Parallel<a class="headerlink" href="#running-electric-in-parallel" title="Link to this heading"></a></h2>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>You must have mpi4py installed to run ELECTRIC in parallel. You can install it from conda</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda install -c anaconda mpi4py
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>conda<span class="w"> </span>install<span class="w"> </span>-c<span class="w"> </span>anaconda<span class="w"> </span>mpi4py
 </pre></div>
 </div>
 </div>
@@ -266,8 +254,8 @@ per molecule.</p>
 <p class="admonition-title">Warning</p>
 <p>Launching an unmatching number of MDI-Tinker and ELECTRIC instances will result in your calculation hanging. Make sure that you launch an equivalent number of MDI-Tinker instances to your <code class="code docutils literal notranslate"><span class="pre">-nengines</span></code> argument.</p>
 </div>
-</div>
-</div>
+</section>
+</section>
 
 
            </div>
