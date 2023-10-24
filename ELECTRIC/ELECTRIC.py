@@ -50,7 +50,7 @@ def connect_to_engines(nengines):
     return engine_comm
 
 
-def collect_task(comm, npoles, snapshot_coords, snap_num, atoms_pole_numbers, output):
+def collect_task(comm, npoles, snapshot_coords, snap_num, atoms_pole_numbers, output, components):
     """
     Receive all data associated with an engine's task.
 
@@ -115,8 +115,28 @@ def collect_task(comm, npoles, snapshot_coords, snap_num, atoms_pole_numbers, ou
                 dfield_df.loc[i, fragment_string] + ufield_df.loc[i, fragment_string]
             )
 
+
+    # Take the transpose of totfield_df. This will take it from having all of the
+    # fragments as columns to having all of the fragments as rows.
+    # After the transpose, the indices will be "Probe Atom", "Probe Coordinates",
+    # followed by the fragment names.
+    frame_data = totfield_df.T
+
+    # Rename the columns to be the probe atom number and the snapshot number.
+    frame_data.columns = [f"{probe} - frame {snap_num}" for probe in list(frame_data.loc["Probe Atom"])]
+
+    # Drop rows that containing probe atom and probe coordinate information.
+    frame_data.drop(["Probe Atom", "Probe Coordinates"], inplace=True)
+
+    # multiply by the conversion factor
+    frame_data = frame_data * conversion_factor
+
+    # Add the data to the output dataframe
+    components = pd.concat([components, frame_data], axis=1)
+
     # Pairwise probe calculation - Get avg electric field
     count = 0
+
     for i in range(len(probes)):
         for j in range(i + 1, len(probes)):
             avg_field = (totfield_df.iloc[i, 2:] + totfield_df.iloc[j, 2:]) / 2
@@ -125,8 +145,6 @@ def collect_task(comm, npoles, snapshot_coords, snap_num, atoms_pole_numbers, ou
             coord2 = totfield_df.loc[j, "Probe Coordinates"]
             # Unit vector
             dir_vec = (coord2 - coord1) / np.linalg.norm(coord2 - coord1)
-
-            # print(avg_field)
 
             efield_at_point = []
             label = []
@@ -142,7 +160,7 @@ def collect_task(comm, npoles, snapshot_coords, snap_num, atoms_pole_numbers, ou
             cols[-1] = f"{probes[i]} and {probes[j]} - frame {snap_num}"
             output.columns = cols
 
-    return output
+        return output, components
 
 
 if __name__ == "__main__":
@@ -302,6 +320,7 @@ if __name__ == "__main__":
 
     start = time.time()
     output = pd.DataFrame()
+    components = pd.DataFrame()
 
     itask = 0
     itask_to_snap_num = {}
@@ -365,13 +384,14 @@ if __name__ == "__main__":
                 # After every engine has received a task, collect the data
                 if (icomm % nengines) == (nengines - 1):
                     for jcomm in range(nengines):
-                        output = collect_task(
+                        output, components = collect_task(
                             engine_comm[jcomm],
                             npoles,
                             snapshot_coords[jcomm],
                             itask_to_snap_num[itask - nengines + jcomm],
                             atoms_pole_numbers,
                             output,
+                            components
                         )
 
                     elapsed_dfield = time.time() - start_dfield
@@ -379,16 +399,18 @@ if __name__ == "__main__":
 
     # Collect any tasks that have not yet been collected
     for icomm in range(itask % nengines):
-        output = collect_task(
+        output, components = collect_task(
             engine_comm[icomm],
             npoles,
             snapshot_coords[icomm],
             itask_to_snap_num[itask - ( itask % nengines ) + icomm],
             atoms_pole_numbers,
             output,
+            components
         )
 
     output.to_csv("proj_totfield.csv")
+    components.to_pickle("proj_components.pkl")
 
     elapsed = time.time() - start
     print(f"Elapsed loop:{elapsed}")  #
