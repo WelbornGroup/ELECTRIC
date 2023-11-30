@@ -88,42 +88,30 @@ def collect_task(comm, npoles, snapshot_coords, snap_num, atoms_pole_numbers, ou
     mdi.MDI_Recv(3 * npoles * len(probes), mdi.MDI_DOUBLE, comm, buf=ufield)
 
     # Sum the appropriate values
-
     columns = ["Probe Atom", "Probe Coordinates"]
-    columns += [f"{by_type} {x}" for x in from_fragment]
+    fragment_labels = [f"{by_type} {x} {n} dimension" for x in from_fragment for n in ["x", "y", "z"]]
+    columns += fragment_labels
     dfield_df = pd.DataFrame(columns=columns, index=range(len(probes)))
     ufield_df = pd.DataFrame(columns=columns, index=range(len(probes)))
     totfield_df = pd.DataFrame(columns=columns, index=range(len(probes)))
+    
+    fields = [ (ufield_df, ufield), (dfield_df, dfield) ]
+   
+    # Loop over the fields and add the data to the dataframes
+    for field_df, field in fields:
+        field_df["Probe Atom"] = probes
+        field_df["Probe Coordinates"] = [ snapshot_coords[probes[i] - 1] for i in range(len(probes)) ]
+        field_at_fragment = np.array([ field[x, atoms_pole_numbers[i] - 1].sum(axis=0) for i in range(len(atoms_pole_numbers)) for x in range(len(probes)) ])
+        field_at_fragment = field_at_fragment.reshape(len(probes), -1)
+        field_df[fragment_labels] = field_at_fragment
 
-    # Get sum at each probe from fragment.
-    for i in range(len(probes)):
-        dfield_df.loc[i, "Probe Atom"] = probes[i]
-        dfield_df.loc[i, "Probe Coordinates"] = snapshot_coords[probes[i] - 1]
-        ufield_df.loc[i, "Probe Atom"] = probes[i]
-        ufield_df.loc[i, "Probe Coordinates"] = snapshot_coords[probes[i] - 1]
-        totfield_df.loc[i, "Probe Atom"] = probes[i]
-        totfield_df.loc[i, "Probe Coordinates"] = snapshot_coords[probes[i] - 1]
+    # The total field is the sum of the induced and direct fields.
+    totfield_df[fragment_labels] = ufield_df[fragment_labels] + dfield_df[fragment_labels]
 
-        for fragment_index, fragment in enumerate(atoms_pole_numbers):
-            fragment_string = f"{by_type} {from_fragment[fragment_index]}"
-            # This uses a numpy array (fragments) for indexing. The fragments
-            # array lists pole indices in that fragment. We subtract 1 because
-            # python indexes from zero.
-            dfield_df.loc[i, fragment_string] = dfield[i, fragment - 1].sum(axis=0)
-            ufield_df.loc[i, fragment_string] = ufield[i, fragment - 1].sum(axis=0)
-            totfield_df.loc[i, fragment_string] = (
-                dfield_df.loc[i, fragment_string] + ufield_df.loc[i, fragment_string]
-            )
-
-
-    # Take the transpose of totfield_df. This will take it from having all of the
-    # fragments as columns to having all of the fragments as rows.
-    # After the transpose, the indices will be "Probe Atom", "Probe Coordinates",
-    # followed by the fragment names.
     frame_data = totfield_df.T
 
     # Rename the columns to be the probe atom number and the snapshot number.
-    frame_data.columns = [f"{probe} - frame {snap_num}" for probe in list(frame_data.loc["Probe Atom"])]
+    frame_data.columns = [f"{probe} - frame {snap_num}" for probe in list(totfield_df.loc["Probe Atom"])]
 
     # Drop rows that containing probe atom and probe coordinate information.
     frame_data.drop(["Probe Atom", "Probe Coordinates"], inplace=True)
@@ -160,7 +148,7 @@ def collect_task(comm, npoles, snapshot_coords, snap_num, atoms_pole_numbers, ou
             cols[-1] = f"{probes[i]} and {probes[j]} - frame {snap_num}"
             output.columns = cols
 
-        return output, components
+    return output, components
 
 
 if __name__ == "__main__":
@@ -180,6 +168,7 @@ if __name__ == "__main__":
     nengines = args.nengines
     equil = args.equil
     stride = args.stride
+    projection = not args.components
 
     # Process args for MDI
     mdi.MDI_Init(args.mdi)
@@ -195,8 +184,8 @@ if __name__ == "__main__":
     if args.byres:
         residues = process_pdb(args.byres)[0]
 
-    engine_comm = connect_to_engines(nengines)
 
+    engine_comm = connect_to_engines(nengines)
     # Print the probe atoms
     print(f"Probes: {probes}")
 
@@ -411,6 +400,7 @@ if __name__ == "__main__":
 
     output.to_csv("proj_totfield.csv")
     components.to_pickle("proj_components.pkl")
+    components.to_csv("proj_components.csv")
 
     elapsed = time.time() - start
     print(f"Elapsed loop:{elapsed}")  #
