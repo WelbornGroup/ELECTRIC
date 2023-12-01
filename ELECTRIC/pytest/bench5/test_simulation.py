@@ -24,7 +24,7 @@ def test_bench5():
     # run the calculation
     driver_proc = subprocess.Popen([sys.executable, driver_path, 
                                     "-probes", "1 40", "-snap", "bench5.arc", 
-                                    "-mdi", "-role DRIVER -name driver -method TCP -port 8021"
+                                    "-mdi", "-role DRIVER -name driver -method TCP -port 8021",
                                     "--bymol"],
                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=mypath)
     engine_proc = subprocess.Popen([engine_path, "bench5", "-k", "no_ewald.key", 
@@ -59,7 +59,7 @@ def test_bench5_equil():
     # run the calculation
     driver_proc = subprocess.Popen([sys.executable, driver_path, 
                                     "-probes", "1 40", "-snap", "bench5.arc", 
-                                    "-mdi", "-role DRIVER -name driver -method TCP -port 8021"
+                                    "-mdi", "-role DRIVER -name driver -method TCP -port 8021",
                                     "--bymol", 
                                     "--equil", "2"],
                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=mypath)
@@ -99,7 +99,7 @@ def test_bench5_equil_stride():
     # run the calculation
     driver_proc = subprocess.Popen([sys.executable, driver_path, 
                                     "-probes", "1 40", "-snap", "bench5.arc", 
-                                    "-mdi", "-role DRIVER -name driver -method TCP -port 8021"
+                                    "-mdi", "-role DRIVER -name driver -method TCP -port 8021",
                                     "--bymol", 
                                     "--equil", "1",
                                     "--stride", "2"],
@@ -141,7 +141,7 @@ def test_nengines():
     # run the calculation
     driver_proc = subprocess.Popen([sys.executable, driver_path, 
                                     "-probes", "1 40", "-snap", "bench5.arc", 
-                                    "-mdi", "-role DRIVER -name driver -method TCP -port 8021"
+                                    "-mdi", "-role DRIVER -name driver -method TCP -port 8021",
                                     "--bymol","--nengines", str(nengines)],
                                    stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=mypath)
     engine_procs = []

@@ -122,23 +122,25 @@ def collect_task(comm, npoles, snapshot_coords, snap_num, atoms_pole_numbers, ou
     # if user has specified that they want a projection.
     probe_coordinates = [snapshot_coords[probes[i] - 1] for i in range(len(probes))]
 
-    # Get all combinations of probes
-    labels = [ f"{probes[i]} and {probes[j]} - frame {snap_num}" for i, j in combinations(range(len(probes)), 2) ]
-    fragment_labels = [ f"{by_type} {x}" for x in from_fragment ]
-    combos = [ (i, j) for i, j in combinations(range(len(probes)), 2) ]
-    efield = np.zeros((len(combos), len(from_fragment)))
+    if projection:
+        # Get all combinations of probes
+        labels = [ f"{probes[i]} and {probes[j]} - frame {snap_num}" for i, j in combinations(range(len(probes)), 2) ]
+        fragment_labels = [ f"{by_type} {x}" for x in from_fragment ]
+        combos = [ (i, j) for i, j in combinations(range(len(probes)), 2) ]
+        efield = np.zeros((len(combos), len(from_fragment)))
 
-    for i, combo in enumerate(combos):
-        avg_field = (totfield[combo[0]] + totfield[combo[1]]) / 2
-        coord1 = probe_coordinates[combo[0]]
-        coord2 = probe_coordinates[combo[1]]
-        # Unit vector
-        dir_vec = (coord2 - coord1) / np.linalg.norm(coord2 - coord1)
-        efield_projection = np.dot(avg_field, dir_vec) * conversion_factor
-        efield[i] = efield_projection  
+        for i, combo in enumerate(combos):
+            avg_field = (totfield[combo[0]] + totfield[combo[1]]) / 2
+            coord1 = probe_coordinates[combo[0]]
+            coord2 = probe_coordinates[combo[1]]
+            # Unit vector
+            dir_vec = (coord2 - coord1) / np.linalg.norm(coord2 - coord1)
+            efield_projection = np.dot(avg_field, dir_vec) * conversion_factor
+            efield[i] = efield_projection  
 
-    # Add the data to the output dataframe  
-    output = pd.concat([output, pd.DataFrame(efield.T, columns=labels, index=fragment_labels)], axis=1)
+        # Add the data to the output dataframe  
+        output = pd.concat([output, pd.DataFrame(efield.T, columns=labels, index=fragment_labels)], axis=1)
+
     return output, components
 
 
@@ -159,7 +161,7 @@ if __name__ == "__main__":
     nengines = args.nengines
     equil = args.equil
     stride = args.stride
-    projection = not args.components
+    projection = not args.components_only
 
     # Process args for MDI
     mdi.MDI_Init(args.mdi)
@@ -382,7 +384,9 @@ if __name__ == "__main__":
             components
         )
 
-    output.to_csv("proj_totfield.csv")
+    if projection:
+        output.to_csv("proj_totfield.csv")
+        
     components.to_csv("ef_components.csv")
 
     elapsed = time.time() - start
