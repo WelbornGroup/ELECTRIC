@@ -90,7 +90,6 @@ def collect_task(comm, npoles, snapshot_coords, snap_num, atoms_pole_numbers, ou
 
     # Sum the appropriate values
     fragment_labels = [f"{by_type} {x} {n} dimension" for x in from_fragment for n in ["x", "y", "z"]]
-    totfield_df = pd.DataFrame(columns=fragment_labels, index=range(len(probes)))
     
     fields = [ ufield, dfield ]
 
@@ -104,10 +103,9 @@ def collect_task(comm, npoles, snapshot_coords, snap_num, atoms_pole_numbers, ou
         # be together - add to totfield array.
         totfield += field_at_fragment.reshape(len(probes), len(from_fragment), 3)
 
-    # Fill in a dataframe of the total field.
-    totfield_df[fragment_labels] = totfield.reshape(len(probes), -1)
+    frame_data = pd.DataFrame(totfield.reshape(len(probes), -1), index=range(len(probes)), columns=fragment_labels)
 
-    frame_data = totfield_df.T
+    frame_data = frame_data.T
 
     # Rename the columns to be the probe atom number and the snapshot number.
     frame_data.columns = [f"{probe} - frame {snap_num}" for probe in probes]
