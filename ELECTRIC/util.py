@@ -91,6 +91,14 @@ def create_parser():
         action="store_true",
     )
 
+    optional.add_argument(
+        "--components-only",
+        help="""
+                Flag which indicates that only the electric field components should be calculated.
+                If this flag is set, the electric field projection will not be calculated.""",
+        action="store_true",
+    )
+
     return parser
 
 

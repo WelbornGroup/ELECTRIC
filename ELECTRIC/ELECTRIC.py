@@ -2,13 +2,15 @@ import time
 import numpy as np
 import pandas as pd
 
+from itertools import combinations
 
 from util import process_pdb, index_fragments, create_parser
-
 
 # Use local MDI build
 import mdi.MDI_Library as mdi
 
+from line_profiler import LineProfiler
+lp = LineProfiler()
 
 def connect_to_engines(nengines):
     """
@@ -32,8 +34,10 @@ def connect_to_engines(nengines):
     # Connect to the engine
     engine_comm = []
     for iengine in range(nengines):
+        print("Attempting to connect to engine " + str(iengine))
         comm = mdi.MDI_Accept_Communicator()
         engine_comm.append(comm)
+        print("Connected!")
 
     # Verify the engine names
     for iengine in range(nengines):
@@ -49,8 +53,8 @@ def connect_to_engines(nengines):
 
     return engine_comm
 
-
-def collect_task(comm, npoles, snapshot_coords, snap_num, atoms_pole_numbers, output):
+@lp
+def collect_task(comm, npoles, snapshot_coords, snap_num, atoms_pole_numbers, output, components):
     """
     Receive all data associated with an engine's task.
 
@@ -88,61 +92,57 @@ def collect_task(comm, npoles, snapshot_coords, snap_num, atoms_pole_numbers, ou
     mdi.MDI_Recv(3 * npoles * len(probes), mdi.MDI_DOUBLE, comm, buf=ufield)
 
     # Sum the appropriate values
+    fragment_labels = [f"{by_type} {x} {n} dimension" for x in from_fragment for n in ["x", "y", "z"]]
+    
+    fields = [ ufield, dfield ]
 
-    columns = ["Probe Atom", "Probe Coordinates"]
-    columns += [f"{by_type} {x}" for x in from_fragment]
-    dfield_df = pd.DataFrame(columns=columns, index=range(len(probes)))
-    ufield_df = pd.DataFrame(columns=columns, index=range(len(probes)))
-    totfield_df = pd.DataFrame(columns=columns, index=range(len(probes)))
+    totfield = np.zeros((len(probes), len(atoms_pole_numbers), 3))
+   
+    # Loop over the fields and add the data to the dataframes
+    for field in fields:
+        field_at_fragment = np.array([ field[x, atoms_pole_numbers[i] - 1].sum(axis=0) for x in range(len(probes)) for i in range(len(atoms_pole_numbers))  ])
+        # reshape to keep as array for more calculations
+        # for array calculations, we want x, y, z components for a fragment to 
+        # be together - add to totfield array.
+        totfield += field_at_fragment.reshape(len(probes), len(from_fragment), 3)
 
-    # Get sum at each probe from fragment.
-    for i in range(len(probes)):
-        dfield_df.loc[i, "Probe Atom"] = probes[i]
-        dfield_df.loc[i, "Probe Coordinates"] = snapshot_coords[probes[i] - 1]
-        ufield_df.loc[i, "Probe Atom"] = probes[i]
-        ufield_df.loc[i, "Probe Coordinates"] = snapshot_coords[probes[i] - 1]
-        totfield_df.loc[i, "Probe Atom"] = probes[i]
-        totfield_df.loc[i, "Probe Coordinates"] = snapshot_coords[probes[i] - 1]
+    frame_data = pd.DataFrame(totfield.reshape(len(probes), -1), index=range(len(probes)), columns=fragment_labels)
 
-        for fragment_index, fragment in enumerate(atoms_pole_numbers):
-            fragment_string = f"{by_type} {from_fragment[fragment_index]}"
-            # This uses a numpy array (fragments) for indexing. The fragments
-            # array lists pole indices in that fragment. We subtract 1 because
-            # python indexes from zero.
-            dfield_df.loc[i, fragment_string] = dfield[i, fragment - 1].sum(axis=0)
-            ufield_df.loc[i, fragment_string] = ufield[i, fragment - 1].sum(axis=0)
-            totfield_df.loc[i, fragment_string] = (
-                dfield_df.loc[i, fragment_string] + ufield_df.loc[i, fragment_string]
-            )
+    frame_data = frame_data.T
+
+    # Rename the columns to be the probe atom number and the snapshot number.
+    frame_data.columns = [f"{probe} - frame {snap_num}" for probe in probes]
+
+    # multiply by the conversion factor
+    frame_data = frame_data * conversion_factor
+
+    # Add the data to the output dataframe
+    components = pd.concat([components, frame_data], axis=1)
 
     # Pairwise probe calculation - Get avg electric field
-    count = 0
-    for i in range(len(probes)):
-        for j in range(i + 1, len(probes)):
-            avg_field = (totfield_df.iloc[i, 2:] + totfield_df.iloc[j, 2:]) / 2
+    # if user has specified that they want a projection.
+    probe_coordinates = [snapshot_coords[probes[i] - 1] for i in range(len(probes))]
 
-            coord1 = totfield_df.loc[i, "Probe Coordinates"]
-            coord2 = totfield_df.loc[j, "Probe Coordinates"]
+    if projection:
+        # Get all combinations of probes
+        labels = [ f"{probes[i]} and {probes[j]} - frame {snap_num}" for i, j in combinations(range(len(probes)), 2) ]
+        fragment_labels = [ f"{by_type} {x}" for x in from_fragment ]
+        combos = [ (i, j) for i, j in combinations(range(len(probes)), 2) ]
+        efield = np.zeros((len(combos), len(from_fragment)))
+
+        for i, combo in enumerate(combos):
+            avg_field = (totfield[combo[0]] + totfield[combo[1]]) / 2
+            coord1 = probe_coordinates[combo[0]]
+            coord2 = probe_coordinates[combo[1]]
             # Unit vector
             dir_vec = (coord2 - coord1) / np.linalg.norm(coord2 - coord1)
+            efield_projection = np.dot(avg_field, dir_vec) * conversion_factor
+            efield[i] = efield_projection  
 
-            # print(avg_field)
+        # Add the data to the output dataframe  
+        output = pd.concat([output, pd.DataFrame(efield.T, columns=labels, index=fragment_labels)], axis=1)
 
-            efield_at_point = []
-            label = []
-            for column_name, column_value in avg_field.items():
-                efield_at_point.append(
-                    np.dot(column_value, dir_vec) * conversion_factor
-                )
-                label.append(column_name)
-                count += 1
-            series = pd.Series(efield_at_point, index=label)
-            output = pd.concat([output, series], axis=1)
-            cols = list(output.columns)
-            cols[-1] = f"{probes[i]} and {probes[j]} - frame {snap_num}"
-            output.columns = cols
-
-    return output
+    return output, components
 
 
 if __name__ == "__main__":
@@ -156,12 +156,14 @@ if __name__ == "__main__":
     ###########################################################################
 
     start = time.time()
+    print("ELECTRIC Calculation started.")
 
     parser = create_parser()
     args = parser.parse_args()
     nengines = args.nengines
     equil = args.equil
     stride = args.stride
+    projection = not args.components_only
 
     # Process args for MDI
     mdi.MDI_Init(args.mdi)
@@ -177,8 +179,8 @@ if __name__ == "__main__":
     if args.byres:
         residues = process_pdb(args.byres)[0]
 
+    print("Connecting to engines...")
     engine_comm = connect_to_engines(nengines)
-
     # Print the probe atoms
     print(f"Probes: {probes}")
 
@@ -232,7 +234,6 @@ if __name__ == "__main__":
     start = time.time()
 
     probe_pole_indices = [int(ipoles[atom_number - 1]) for atom_number in probes]
-    print(f"Probe pole indices {probe_pole_indices}")
 
     # Get the atom and pole numbers for the molecules/residues of interest.
     atoms_pole_numbers = []
@@ -302,6 +303,7 @@ if __name__ == "__main__":
 
     start = time.time()
     output = pd.DataFrame()
+    components = pd.DataFrame()
 
     itask = 0
     itask_to_snap_num = {}
@@ -350,12 +352,6 @@ if __name__ == "__main__":
                     engine_comm[icomm],
                 )
 
-                # Get the electric field information
-                # mdi.MDI_Send_Command("<FIELD", engine_comm)
-                # field = np.zeros(3 * npoles, dtype='float64')
-                # mdi.MDI_Recv(3*npoles, mdi.MDI_DOUBLE, engine_comm, buf = field)
-                # field = field.reshape(npoles,3)
-
                 # Get the pairwise DFIELD
                 # Note: We only send the command here; we do NOT wait for Tinker to finish the calculation
                 # This allows us to farm out tasks to each of the engines simultaneously
@@ -365,13 +361,15 @@ if __name__ == "__main__":
                 # After every engine has received a task, collect the data
                 if (icomm % nengines) == (nengines - 1):
                     for jcomm in range(nengines):
-                        output = collect_task(
+                        
+                        output, components = collect_task(
                             engine_comm[jcomm],
                             npoles,
                             snapshot_coords[jcomm],
                             itask_to_snap_num[itask - nengines + jcomm],
                             atoms_pole_numbers,
                             output,
+                            components
                         )
 
                     elapsed_dfield = time.time() - start_dfield
@@ -379,19 +377,26 @@ if __name__ == "__main__":
 
     # Collect any tasks that have not yet been collected
     for icomm in range(itask % nengines):
-        output = collect_task(
+        output, components = collect_task(
             engine_comm[icomm],
             npoles,
             snapshot_coords[icomm],
             itask_to_snap_num[itask - ( itask % nengines ) + icomm],
             atoms_pole_numbers,
             output,
+            components
         )
 
-    output.to_csv("proj_totfield.csv")
+    if projection:
+        output.to_csv("proj_totfield.csv")
+        
+    components.to_csv("ef_components.csv")
 
     elapsed = time.time() - start
     print(f"Elapsed loop:{elapsed}")  #
+
+    with open('profile_output.txt', 'w') as f:
+        lp.print_stats(stream=f)
 
     # Send the "EXIT" command to the engine
     for comm in engine_comm:
