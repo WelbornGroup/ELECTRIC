@@ -9,5 +9,6 @@ dependencies:
   - pandas
   - jupyterhub
   - matplotlib
+  - mpi4py
   - pip:
     - line-profiler
