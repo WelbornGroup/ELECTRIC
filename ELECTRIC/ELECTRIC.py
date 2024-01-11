@@ -416,6 +416,7 @@ if __name__ == "__main__":
     if projection:
         output.to_csv("proj_totfield.csv")
 
+    components.index.name = "Fragment and Dimension"
     components.to_csv("ef_components.csv")
 
     elapsed = time.time() - start
