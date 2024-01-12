@@ -8,9 +8,11 @@ ELECTRIC
 
 ELECTRIC: Electric fields Leveraged from multipole Expansion Calculations in Tinker Rapid Interface Code.
 
-ELECTRIC uses the MolSSI Driver Interface to perform electric field analysis of Tinker trajectories which use the AMOEBA forcefield. This currently works as a post-processing tool, meaning that you run simulations as normal using Tinker, then analyze the trajectories using MDI-enabled Tinker and this driver. 
+ELECTRIC uses the `MolSSI Driver Interface <https://molssi.org/software/mdi-2/>`_ to perform electric field analysis of Tinker trajectories which use the AMOEBA forcefield. 
+This currently works as a post-processing tool, meaning that you run simulations as normal using Tinker, then analyze the trajectories using MDI-enabled Tinker and this driver. 
 
-ELECTRIC is written by Jessica A. Nash and Taylor A. Barnes from `The Molecular Sciences Software Institute <https://molssi.org/>`_, in collaboration with `Prof. Valerie Vassier Welborn <https://www.valeriewelborn.com/>`_.
+ELECTRIC is written by Jessica A. Nash and Taylor A. Barnes from `The Molecular Sciences Software Institute <https://molssi.org/>`_, 
+in collaboration with `Prof. Valerie Vassier Welborn <https://www.valeriewelborn.com/>`_.
 
 Using this tool, you can calculate the electric field along a bond or between atoms due to molecules or residues in the system.
 

@@ -91,15 +91,44 @@ You can change the options for your electric calculation through command line ar
 Output
 ------
 
-The driver will output a file called :code:`proj_totfield.csv`. This is a CSV file which contains data on the projected electric field at the point between each probe atom due to each fragment , depending on input (`--byres` for by residue, `--bymol` for by molecule, or by atom if neither argument is given.). Each column will contain a header which indicates which probe atoms the measurement is between, followed by the frame number, while the rows will be the electric field at the mean location between the probe atoms due to a particular fragment
+Depending on the input options specified, ELECTRIC will output one or two files.
+As of ELECTRIC version 1.1, the driver will output a file called :code:`ef_components.csv` in addition to :code:`proj_totfield.csv`.
+The file :code:`ef_components.csv` contains the ELECTRIC field components (x, y, and z) direction at each probe due to each fragment.
+The file :code:`proj_totfield.csv` contains the projected electric field at the point between each probe atom due to each fragment.
 
-Consider the example (:code:`bench5`), which was run with the following command:
+For an explanation of the output, consider the example (:code:`bench5`), 
+which was run with the following command:
 
 .. code-block:: bash
 
     python ${DRIVER_LOC} -probes "1 40" -snap bench5.arc -mdi "-role DRIVER -name driver -method TCP -port 8022" --bymol
 
-Here, we have set the probe atoms to be atoms 1 and 40, and we have indicated we want the the electric field between the probe atoms based on contributions by molecule. Headers will be "`i and j - frame n`. Where `i` and `j` are the atom indices of the probes, and `n` is the frame number.
+
+Electric Field Components
+^^^^^^^^^^^^^^^^^^^^^^^^^
+The file :code:`ef_components.csv` will contain the values for the electric field in Mv/cm for each component (x, y, and z) 
+at each probe atom due to each fragment.
+For example, a truncated version of our example output is:
+
+.. datatable::
+
+    csv_file: data/ef_components.csv
+
+The first column is the fragment and dimension, 
+while subsequent columns give information about the probe atom and frame number.
+In the example above, the value in row 1, column 2 is the x-component of the electric field at probe atom 1 due to molecule 1 in frame 1 of the simulation trajectory.
+
+Projected Electric Field
+^^^^^^^^^^^^^^^^^^^^^^^^
+The driver will output a file called :code:`proj_totfield.csv`. 
+This is a CSV file which contains data on the projected electric field at the point between each probe atom due to each fragment , 
+depending on input (`--byres` for by residue, `--bymol` for by molecule, or by atom if neither argument is given.). 
+Each column will contain a header which indicates which probe atoms the measurement is between, followed by the frame number, 
+while the rows will be the electric field at the mean location between the probe atoms due to a particular fragment
+
+Here, we have set the probe atoms to be atoms 1 and 40, 
+and we have indicated we want the the electric field between the probe atoms based on contributions by molecule. 
+Headers will be "`i and j - frame n`. Where `i` and `j` are the atom indices of the probes, and `n` is the frame number.
 
 For the example, headers are:
 
@@ -111,9 +140,13 @@ For the example, headers are:
     "1 and 40 - frame 4"
     "1 and 40 - frame 5"
 
-Since this calculation was run using :code:`--bymol`, there are 216 rows, one for each molecule in the system.
+Since this calculation was run using :code:`--bymol`, 
+there are 216 rows, one for each molecule in the system.
 
-The first entry, column :code:`1 and 40 - frame 1`, header :code:`molecule 1`, gives the projected total electric field at the midway point between :code:`atom 1` and :code:`atom 40` due to :code:`molecule 1`. The electric field has been projected along the vector which points from :code:`atom 1` to :code:`atom 40`. The projection will always be along the vector from atom 1 to atom 2. You can reverse the sign of the number if you would like the vector to point the opposite way.
+The first entry, column :code:`1 and 40 - frame 1`, 
+header :code:`molecule 1`, gives the projected total electric field at the midway point between :code:`atom 1` and :code:`atom 40` due to :code:`molecule 1`. 
+The electric field has been projected along the vector which points from :code:`atom 1` to :code:`atom 40`. 
+The projection will always be along the vector from atom 1 to atom 2. You can reverse the sign of the number if you would like the vector to point the opposite way.
 
 
 Running ELECTRIC in Parallel

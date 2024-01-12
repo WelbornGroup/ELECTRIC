@@ -1,14 +1,16 @@
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Installation &mdash; ELECTRIC  documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-      <link rel="stylesheet" href="_static/copybutton.css" type="text/css" />
-      <link rel="stylesheet" href="https://cdn.datatables.net/1.10.22/css/jquery.dataTables.css" type="text/css" />
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+      <link rel="stylesheet" type="text/css" href="_static/copybutton.css?v=76b2166b" />
+      <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.22/css/jquery.dataTables.css" />
+
+  
   <!--[if lt IE 9]>
     <script src="_static/js/html5shiv.min.js"></script>
   <![endif]-->
@@ -95,7 +97,8 @@ If you are not using <code class="code docutils literal notranslate"><span class
 If you are using the Windows Operating System, we recommend the Windows Subsystem for Linux (WSL).</p>
 </div>
 <p>To install ELECTRIC and MDI-enabled Tinker, you should have <code class="code docutils literal notranslate"><span class="pre">cmake</span></code> and a Fortran compiler installed.
-If you are using the <cite>conda</cite> package manager, you can clone the repository and use the provided <cite>environment.yaml</cite>
+If you are using the <code class="code docutils literal notranslate"><span class="pre">conda</span></code> package manager, you can clone the repository and use the provided
+<code class="code docutils literal notranslate"><span class="pre">environment.yaml</span></code>
 to create an environment with the required dependencies (including Python packages) using the following command.</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>--recurse-submodules<span class="w"> </span>https://github.com/WelbornGroup/ELECTRIC.git
 <span class="nb">cd</span><span class="w"> </span>ELECTRIC
@@ -138,7 +141,7 @@ If you are performing post processing on a simulation, you will not use this lin
 which will request a connection to the driver and then listen for commands from the driver.
 This command is similar to running a simulation with Tinker, except that it uses a modified Tinker input file
 (more on this below), and adds an additional command line argument which passes information to MDI
-(<cite>-mdi “role ENGINE -name NO_EWALD -method TCP -port 8022 -hostname localhost”</cite>):</p>
+(<code class="code docutils literal notranslate"><span class="pre">-mdi</span> <span class="pre">&quot;role</span> <span class="pre">ENGINE</span> <span class="pre">-name</span> <span class="pre">NO_EWALD</span> <span class="pre">-method</span> <span class="pre">TCP</span> <span class="pre">-port</span> <span class="pre">8022</span> <span class="pre">-hostname</span> <span class="pre">localhost&quot;</span></code>):</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span><span class="si">${</span><span class="nv">TINKER_LOC</span><span class="si">}</span><span class="w"> </span>bench5<span class="w"> </span>-k<span class="w"> </span>no_ewald.key<span class="w"> </span>-mdi<span class="w"> </span><span class="s2">&quot;-role ENGINE -name NO_EWALD -method TCP -port 8022 -hostname localhost&quot;</span><span class="w"> </span><span class="m">10</span><span class="w"> </span><span class="m">1</span>.0<span class="w"> </span><span class="m">0</span>.001999<span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="m">300</span>.00<span class="w"> </span>&gt;<span class="w"> </span>no_ewald.log<span class="w"> </span><span class="p">&amp;</span>
 </pre></div>
 </div>
@@ -147,7 +150,7 @@ which will listen for connections from an MDI engine:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>python<span class="w"> </span><span class="si">${</span><span class="nv">DRIVER_LOC</span><span class="si">}</span><span class="w"> </span>-probes<span class="w"> </span><span class="s2">&quot;1 40&quot;</span><span class="w"> </span>-snap<span class="w"> </span>bench5.arc<span class="w"> </span>-mdi<span class="w"> </span><span class="s2">&quot;-role DRIVER -name driver -method TCP -port 8022&quot;</span><span class="w"> </span>--bymol<span class="w"> </span><span class="p">&amp;</span>
 </pre></div>
 </div>
-<p>The driver’s output should match the reference output file (<cite>proj_totfield.csv</cite>) in the <cite>sample_analysis</cite> directory.</p>
+<p>The driver’s output should match the reference output file (<code class="code docutils literal notranslate"><span class="pre">proj_totfield.csv</span></code>) in the <code class="code docutils literal notranslate"><span class="pre">sample_analysis</span></code> directory.</p>
 </section>
 </section>
 
