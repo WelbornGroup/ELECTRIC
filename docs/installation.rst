@@ -10,7 +10,8 @@ Compiling MDI-Tinker and ELECTRIC
     If you are using the Windows Operating System, we recommend the Windows Subsystem for Linux (WSL).
 
 To install ELECTRIC and MDI-enabled Tinker, you should have :code:`cmake` and a Fortran compiler installed. 
-If you are using the `conda` package manager, you can clone the repository and use the provided `environment.yaml` 
+If you are using the :code:`conda` package manager, you can clone the repository and use the provided 
+:code:`environment.yaml` 
 to create an environment with the required dependencies (including Python packages) using the following command.
 
 .. code-block:: bash
@@ -67,7 +68,7 @@ The script then launches an instance of Tinker as an MDI engine,
 which will request a connection to the driver and then listen for commands from the driver. 
 This command is similar to running a simulation with Tinker, except that it uses a modified Tinker input file 
 (more on this below), and adds an additional command line argument which passes information to MDI 
-(`-mdi "role ENGINE -name NO_EWALD -method TCP -port 8022 -hostname localhost"`):
+(:code:`-mdi "role ENGINE -name NO_EWALD -method TCP -port 8022 -hostname localhost"`):
 
 .. code-block:: bash
 
@@ -80,7 +81,7 @@ which will listen for connections from an MDI engine:
 
     python ${DRIVER_LOC} -probes "1 40" -snap bench5.arc -mdi "-role DRIVER -name driver -method TCP -port 8022" --bymol &
 
-The driver's output should match the reference output file (`proj_totfield.csv`) in the `sample_analysis` directory.
+The driver's output should match the reference output file (:code:`proj_totfield.csv`) in the :code:`sample_analysis` directory.
 
 
 
